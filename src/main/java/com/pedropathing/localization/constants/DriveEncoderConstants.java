@@ -1,5 +1,6 @@
 package com.pedropathing.localization.constants;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.Encoder;
 
 /**
@@ -8,6 +9,7 @@ import com.pedropathing.localization.Encoder;
  * @version 1.0, 12/24/2024
  */
 
+@Config
 public class DriveEncoderConstants {
 
     /** The number of inches per ticks of the encoder for forward movement

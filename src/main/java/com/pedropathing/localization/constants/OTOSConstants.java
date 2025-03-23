@@ -1,6 +1,6 @@
 package com.pedropathing.localization.constants;
 
-import com.acmerobotics.roadrunner.ftc.SparkFunOTOSCorrected;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * @version 1.0, 12/24/2024
  */
 
+@Config
 public class OTOSConstants {
 
     /** Whether to use the corrected OTOS class

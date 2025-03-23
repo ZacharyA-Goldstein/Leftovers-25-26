@@ -1,5 +1,6 @@
 package com.pedropathing.localization.constants;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.Encoder;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
@@ -9,6 +10,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
  * @version 1.0, 12/24/2024
  */
 
+@Config
 public class TwoWheelConstants {
 
     /** The number of inches per tick of the encoder for forward movement

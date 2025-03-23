@@ -1,5 +1,6 @@
 package com.pedropathing.localization.constants;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.GoBildaPinpointDriver;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * @version 1.0, 12/24/2024
  */
 
+@Config
 public class PinpointConstants {
 
     /** The Y Offset of the Forward Encoder (Deadwheel) from the center of the robot in DistanceUnit

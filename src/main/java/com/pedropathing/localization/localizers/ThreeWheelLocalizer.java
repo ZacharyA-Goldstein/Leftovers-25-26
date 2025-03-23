@@ -41,7 +41,7 @@ import com.pedropathing.util.NanoTimer;
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 4/2/2024
  */
-@Config
+
 public class ThreeWheelLocalizer extends Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;

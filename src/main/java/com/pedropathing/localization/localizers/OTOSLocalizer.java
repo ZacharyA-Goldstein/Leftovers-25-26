@@ -1,6 +1,6 @@
 package com.pedropathing.localization.localizers;
 
-import com.acmerobotics.roadrunner.ftc.SparkFunOTOSCorrected;
+import com.pedropathing.localization.SparkFunOTOSCorrected;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
