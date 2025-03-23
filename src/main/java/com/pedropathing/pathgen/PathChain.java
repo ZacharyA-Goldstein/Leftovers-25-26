@@ -1,6 +1,9 @@
 package com.pedropathing.pathgen;
 
+import com.pedropathing.follower.FollowerConstants;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * This is the PathChain class. This class handles chaining together multiple Paths into a larger
@@ -23,7 +26,7 @@ public class PathChain {
         LAST_PATH
     }
     private DecelerationType decelerationType = DecelerationType.LAST_PATH;
-
+    private double decelerationStartMultiplier = FollowerConstants.decelerationStartMultiplier;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
 
     /**
@@ -78,9 +81,7 @@ public class PathChain {
      * @param callbacks the specified PathCallbacks.
      */
     public void setCallbacks(PathCallback... callbacks) {
-        for (PathCallback callback : callbacks) {
-            this.callbacks.add(callback);
-        }
+        this.callbacks.addAll(Arrays.asList(callbacks));
     }
 
     /**
@@ -117,5 +118,13 @@ public class PathChain {
 
     public double length() {
         return length;
+    }
+
+    public void setDecelerationStartMultiplier(double decelerationStartMultiplier) {
+        this.decelerationStartMultiplier = decelerationStartMultiplier;
+    }
+
+    public double getDecelerationStartMultiplier() {
+        return decelerationStartMultiplier;
     }
 }

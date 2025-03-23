@@ -906,7 +906,32 @@ public class Follower {
             return new Vector(driveVectorScaler.getMaxPowerScaling(), currentPath.getClosestPointTangentVector().getTheta());
         }
 
-        driveError = getDriveVelocityError();
+        double distanceToGoal;
+        if (!currentPath.isAtParametricEnd()) {
+            if (followingPathChain && currentPathChain.getDecelerationType() == PathChain.DecelerationType.GLOBAL) {
+                double remainingLength = 0;
+
+                if (chainIndex < currentPathChain.size()) {
+                    for (int i = chainIndex + 1; i<currentPathChain.size(); i++) {
+                        remainingLength += currentPathChain.getPath(i).length();
+                    }
+                }
+
+                distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
+
+                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(FollowerConstants.xMovement, 2) / forwardZeroPowerAcceleration)) {
+                    return new Vector(driveVectorScaler.getMaxPowerScaling(), currentPath.getClosestPointTangentVector().getTheta());
+                }
+            } else {
+                distanceToGoal = currentPath.length() * (1 - currentPath.getClosestPointTValue());
+            }
+        } else {
+            Vector offset = new Vector();
+            offset.setOrthogonalComponents(getPose().getX() - currentPath.getLastControlPoint().getX(), getPose().getY() - currentPath.getLastControlPoint().getY());
+            distanceToGoal = MathFunctions.dotProduct(currentPath.getEndTangent(), offset);
+        }
+
+        driveError = getDriveVelocityError(distanceToGoal);
 
         if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
             secondaryDrivePIDF.updateError(driveError);
@@ -925,20 +950,7 @@ public class Follower {
      *
      * @return returns the projected velocity.
      */
-    public double getDriveVelocityError() {
-        double distanceToGoal;
-        if (!currentPath.isAtParametricEnd()) {
-            if (followingPathChain && currentPathChain.getDecelerationType() == PathChain.DecelerationType.GLOBAL) {
-                distanceToGoal = currentPathChain.length() * (currentPathChain.size() - chainIndex - currentPath.getClosestPointTValue())/currentPathChain.size();
-            } else {
-                distanceToGoal = currentPath.length() * (1 - currentPath.getClosestPointTValue());
-            }
-        } else {
-            Vector offset = new Vector();
-            offset.setOrthogonalComponents(getPose().getX() - currentPath.getLastControlPoint().getX(), getPose().getY() - currentPath.getLastControlPoint().getY());
-            distanceToGoal = MathFunctions.dotProduct(currentPath.getEndTangent(), offset);
-        }
-
+    public double getDriveVelocityError(double distanceToGoal) {
         Vector distanceToGoalVector = MathFunctions.scalarMultiplyVector(MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector()), distanceToGoal);
         Vector velocity = new Vector(MathFunctions.dotProduct(getVelocity(), MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta());
 
