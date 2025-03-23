@@ -661,9 +661,11 @@ public class Follower {
                     if (poseUpdater.getVelocity().getMagnitude() < 1.0 && currentPath.getClosestPointTValue() > 0.8
                             && zeroVelocityDetectedTimer == null && isBusy) {
                         zeroVelocityDetectedTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-                        Log.d("Follower_logger", "!!!! Robot stuck !!!!");
 
-                        debugLog();
+                        if (logDebug) {
+                            Log.d("Follower_logger", "!!!! Robot stuck !!!!");
+                            debugLog();
+                        }
                     }
 
                     if (currentPath.isAtParametricEnd() ||
@@ -714,7 +716,6 @@ public class Follower {
                             }
                         }
                     }
-                    //RobotLog.d("Follower:: isBusy:" + isBusy);
                 }
             }
         } else {
@@ -900,14 +901,14 @@ public class Follower {
      */
     public Vector getDriveVector() {
         if (!useDrive) return new Vector();
-        if (followingPathChain && chainIndex < currentPathChain.size() - 1) {
+
+        if (followingPathChain && ((chainIndex < currentPathChain.size() - 1 && currentPathChain.getDecelerationType() == PathChain.DecelerationType.LAST_PATH) || currentPathChain.getDecelerationType() == PathChain.DecelerationType.NONE)) {
             return new Vector(driveVectorScaler.getMaxPowerScaling(), currentPath.getClosestPointTangentVector().getTheta());
         }
 
         driveError = getDriveVelocityError();
 
         if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
-            // Log.d("Follower_logger_secondary::", "In secondary drive PIDF");
             secondaryDrivePIDF.updateError(driveError);
             driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF() + secondaryDrivePIDFFeedForward * MathFunctions.getSign(driveError), -driveVectorScaler.getMaxPowerScaling(), driveVectorScaler.getMaxPowerScaling()), currentPath.getClosestPointTangentVector().getTheta());
             return MathFunctions.copyVector(driveVector);
@@ -927,7 +928,11 @@ public class Follower {
     public double getDriveVelocityError() {
         double distanceToGoal;
         if (!currentPath.isAtParametricEnd()) {
-            distanceToGoal = currentPath.length() * (1 - currentPath.getClosestPointTValue());
+            if (followingPathChain && currentPathChain.getDecelerationType() == PathChain.DecelerationType.GLOBAL) {
+                distanceToGoal = currentPathChain.length() * (currentPathChain.size() - chainIndex - currentPath.getClosestPointTValue())/currentPathChain.size();
+            } else {
+                distanceToGoal = currentPath.length() * (1 - currentPath.getClosestPointTValue());
+            }
         } else {
             Vector offset = new Vector();
             offset.setOrthogonalComponents(getPose().getX() - currentPath.getLastControlPoint().getX(), getPose().getY() - currentPath.getLastControlPoint().getY());
@@ -983,11 +988,6 @@ public class Follower {
         if (!useHeading) return new Vector();
         headingError = MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()) * MathFunctions.getSmallestAngleDifference(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal());
         if (Math.abs(headingError) < headingPIDFSwitch && useSecondaryHeadingPID) {
-//            if(logDebug) {
-//                Log.d("Follower_logger", "using secondary heading PIDF controller, error: "
-//                        + String.format("%3.3f", Math.toDegrees(headingError)));
-//
-//            }
             secondaryHeadingPIDF.updateError(headingError);
             headingVector = new Vector(MathFunctions.clamp(secondaryHeadingPIDF.runPIDF() + secondaryHeadingPIDFFeedForward * MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()), -driveVectorScaler.getMaxPowerScaling(), driveVectorScaler.getMaxPowerScaling()), poseUpdater.getPose().getHeading());
             return MathFunctions.copyVector(headingVector);
