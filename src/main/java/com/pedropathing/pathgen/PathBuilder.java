@@ -1,5 +1,7 @@
 package com.pedropathing.pathgen;
 
+import com.pedropathing.follower.FollowerConstants;
+
 import java.util.ArrayList;
 
 /**
@@ -17,6 +19,7 @@ public class PathBuilder {
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
+    private double decelerationStartMultiplier = FollowerConstants.decelerationStartMultiplier;
 
     /**
      * This is an empty constructor for the PathBuilder class so it can get started.
@@ -253,6 +256,7 @@ public class PathBuilder {
         PathChain returnChain = new PathChain(paths);
         returnChain.setCallbacks(callbacks);
         returnChain.setDecelerationType(decelerationType);
+        returnChain.setDecelerationStartMultiplier(decelerationStartMultiplier);
         return returnChain;
     }
 
@@ -261,6 +265,15 @@ public class PathBuilder {
      */
     public PathBuilder setGlobalDeceleration() {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
+        return this;
+    }
+
+    /**
+     * Makes this decelerate based on the entire chain and not only the last path (recommended if the last path is short)
+     */
+    public PathBuilder setGlobalDeceleration(double decelerationStartMultiplier) {
+        this.decelerationType = PathChain.DecelerationType.GLOBAL;
+        this.decelerationStartMultiplier = decelerationStartMultiplier;
         return this;
     }
 
