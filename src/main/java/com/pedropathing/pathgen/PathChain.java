@@ -1,6 +1,7 @@
 package com.pedropathing.pathgen;
 
 import com.pedropathing.follower.FollowerConstants;
+import com.pedropathing.localization.Pose;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,5 +127,15 @@ public class PathChain {
 
     public double getDecelerationStartMultiplier() {
         return decelerationStartMultiplier;
+    }
+
+    public Pose endPose() {
+        Path last = pathChain.get(pathChain.size() - 1);
+        return new Pose(last.endPose().getX(), last.endPose().getY(), last.endPose().getHeading());
+    }
+
+    public Point endPoint() {
+        Path last = pathChain.get(pathChain.size() - 1);
+        return new Point(last.endPoint().getX(), last.endPoint().getY());
     }
 }

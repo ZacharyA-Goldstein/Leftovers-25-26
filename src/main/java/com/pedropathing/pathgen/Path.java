@@ -562,4 +562,12 @@ public class Path {
     public HeadingInterpolation getHeadingInterpolation() {
         return headingInterpolation;
     }
+
+    public Pose endPose() {
+        return new Pose(curve.getLastControlPoint().getX(), curve.getLastControlPoint().getY(), endHeading);
+    }
+
+    public Point endPoint() {
+        return curve.getLastControlPoint();
+    }
 }
