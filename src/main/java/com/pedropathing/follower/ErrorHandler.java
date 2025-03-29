@@ -49,6 +49,7 @@ public class ErrorHandler {
     private Vector translationalIntegralVector;
     private Vector teleopDriveVector;
     private Vector teleopHeadingVector;
+
     public Vector driveVector;
     public Vector headingVector;
     public Vector translationalVector;
@@ -431,6 +432,66 @@ public class ErrorHandler {
             averageAcceleration = MathFunctions.addVectors(averageAcceleration, accelerations.get(i));
         }
         averageAcceleration = MathFunctions.scalarMultiplyVector(averageAcceleration, 1.0 / accelerations.size());
+    }
+
+    public boolean isTeleopDrive() {
+        return teleopDrive;
+    }
+
+    public Vector getCentripetalVector() {
+        return centripetalVector;
+    }
+
+    public Vector getTranslationalVector() {
+        return translationalVector;
+    }
+
+    public Vector getTeleopHeadingVector() {
+        return teleopHeadingVector;
+    }
+
+    public Vector getTeleopDriveVector() {
+        return teleopDriveVector;
+    }
+
+    public Vector getTranslationalIntegralVector() {
+        return translationalIntegralVector;
+    }
+
+    public Vector getAverageAcceleration() {
+        return averageAcceleration;
+    }
+
+    public Vector getSecondaryTranslationalIntegralVector() {
+        return secondaryTranslationalIntegralVector;
+    }
+
+    public Vector getAveragePreviousVelocity() {
+        return averagePreviousVelocity;
+    }
+
+    public Vector getAverageVelocity() {
+        return averageVelocity;
+    }
+
+    public double getHeadingError() {
+        return headingError;
+    }
+
+    public double getDriveError() {
+        return driveError;
+    }
+
+    public double getRawDriveError() {
+        return rawDriveError;
+    }
+
+    public double[] getDriveErrors() {
+        return driveErrors;
+    }
+
+    public KalmanFilter getDriveKalmanFilter() {
+        return driveKalmanFilter;
     }
     
 }

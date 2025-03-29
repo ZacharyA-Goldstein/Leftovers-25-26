@@ -2,12 +2,6 @@ package com.pedropathing.follower;
 
 import static com.pedropathing.follower.FollowerConstants.automaticHoldEnd;
 import static com.pedropathing.follower.FollowerConstants.cacheInvalidateSeconds;
-import static com.pedropathing.follower.FollowerConstants.drivePIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.drivePIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.forwardZeroPowerAcceleration;
-import static com.pedropathing.follower.FollowerConstants.headingPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.headingPIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.lateralZeroPowerAcceleration;
 import static com.pedropathing.follower.FollowerConstants.leftFrontMotorName;
 import static com.pedropathing.follower.FollowerConstants.leftRearMotorName;
 import static com.pedropathing.follower.FollowerConstants.nominalVoltage;
@@ -17,14 +11,6 @@ import static com.pedropathing.follower.FollowerConstants.leftFrontMotorDirectio
 import static com.pedropathing.follower.FollowerConstants.leftRearMotorDirection;
 import static com.pedropathing.follower.FollowerConstants.rightFrontMotorDirection;
 import static com.pedropathing.follower.FollowerConstants.rightRearMotorDirection;
-import static com.pedropathing.follower.FollowerConstants.secondaryDrivePIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.secondaryHeadingPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.secondaryTranslationalPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.translationalPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.translationalPIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryDrivePID;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryHeadingPID;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryTranslationalPID;
 import static com.pedropathing.follower.FollowerConstants.useVoltageCompensationInAuto;
 import static com.pedropathing.follower.FollowerConstants.useVoltageCompensationInTeleOp;
 
@@ -84,6 +70,7 @@ public class NewFollower {
     private List<DcMotorEx> motors;
 
     private Drivetrain drivetrain;
+    private ErrorHandler errorHandler;
 
     public PoseUpdater poseUpdater;
     private DashboardPoseTracker dashboardPoseTracker;
@@ -206,6 +193,7 @@ public class NewFollower {
         poseUpdater = new PoseUpdater(hardwareMap);
        //TODO add switch
         drivetrain = new Mecanum(FollowerConstants.frontLeftVector, maxPowerScaling);
+        errorHandler = new ErrorHandler(poseUpdater, drivetrain);
 
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
@@ -247,6 +235,7 @@ public class NewFollower {
         poseUpdater = new PoseUpdater(hardwareMap, localizer);
         //TODO add switch
         drivetrain = new Mecanum(FollowerConstants.frontLeftVector, maxPowerScaling);
+        errorHandler = new ErrorHandler(poseUpdater, drivetrain);
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
         voltageTimer.reset();
@@ -586,11 +575,19 @@ public class NewFollower {
     }
 
     /**
+     * Calls an update to the ErrorHandler, which updates the robot's current errors and corrective vectors.
+     */
+    public void updateErrors() {
+        errorHandler.update(this);
+    }
+
+    /**
      * This calls an update to the PoseUpdater, which updates the robot's current position estimate.
      * This also updates all the Follower's PIDFs, which updates the motor powers.
      */
     public void update() {
         updatePose();
+        updateErrors();
 
         if (!teleopDrive) {
             if (currentPath != null) {
@@ -700,12 +697,7 @@ public class NewFollower {
                 }
             }
         } else {
-            velocities.add(poseUpdater.getVelocity());
-            velocities.remove(velocities.get(velocities.size() - 1));
-
-            calculateAveragedVelocityAndAcceleration();
-
-            drivePowers = driveVectorScaler.getDrivePowers(getCentripetalForceCorrection(), teleopHeadingVector, teleopDriveVector, poseUpdater.getPose().getHeading());
+            drivePowers = drivetrain.getDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseUpdater.getPose().getHeading());
 
             for (int i = 0; i < motors.size(); i++) {
                 if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
@@ -747,6 +739,10 @@ public class NewFollower {
      * This resets the PIDFs and stops following the current Path.
      */
     public void breakFollowing() {
+        if (logDebug) {
+            Log.d("Follower_logger", "Breaking following");
+        }
+        errorHandler.breakFollowing();
         teleopDrive = false;
         setMotorsToFloat();
         holdingPosition = false;
@@ -758,13 +754,11 @@ public class NewFollower {
         headingPIDF.reset();
         secondaryTranslationalPIDF.reset();
         secondaryTranslationalIntegral.reset();
-
         translationalPIDF.reset();
         translationalIntegral.reset();
         for (int i = 0; i < motors.size(); i++) {
             motors.get(i).setPower(0);
         }
-
         zeroVelocityDetectedTimer = null;
     }
 
@@ -841,28 +835,28 @@ public class NewFollower {
      * @param telemetry this is an instance of Telemetry or the FTC Dashboard telemetry that this
      *                  method will use to output the debug data.
      */
-    public void telemetryDebug(MultipleTelemetry telemetry) {
+    public void multipleTelemetryDebug(MultipleTelemetry telemetry) {
         telemetry.addData("follower busy", isBusy());
-        telemetry.addData("heading error", headingError);
-        telemetry.addData("heading vector magnitude", headingVector.getMagnitude());
-        telemetry.addData("corrective vector magnitude", correctiveVector.getMagnitude());
-        telemetry.addData("corrective vector heading", correctiveVector.getTheta());
+        telemetry.addData("heading error", getHeadingError());
+        telemetry.addData("heading vector magnitude", getHeadingVector().getMagnitude());
+        telemetry.addData("corrective vector magnitude", getCorrectiveVector().getMagnitude());
+        telemetry.addData("corrective vector heading", getCorrectiveVector().getTheta());
         telemetry.addData("translational error magnitude", getTranslationalError().getMagnitude());
         telemetry.addData("translational error direction", getTranslationalError().getTheta());
-        telemetry.addData("translational vector magnitude", translationalVector.getMagnitude());
-        telemetry.addData("translational vector heading", translationalVector.getMagnitude());
-        telemetry.addData("centripetal vector magnitude", centripetalVector.getMagnitude());
-        telemetry.addData("centripetal vector heading", centripetalVector.getTheta());
-        telemetry.addData("drive error", driveError);
-        telemetry.addData("drive vector magnitude", driveVector.getMagnitude());
-        telemetry.addData("drive vector heading", driveVector.getTheta());
+        telemetry.addData("translational vector magnitude", getTranslationalVector().getMagnitude());
+        telemetry.addData("translational vector heading", getTranslationalVector().getMagnitude());
+        telemetry.addData("centripetal vector magnitude", getCentripetalVector().getMagnitude());
+        telemetry.addData("centripetal vector heading", getCentripetalVector().getTheta());
+        telemetry.addData("drive error", getDriveError());
+        telemetry.addData("drive vector magnitude", getDriveVector().getMagnitude());
+        telemetry.addData("drive vector heading", getDriveVector().getTheta());
         telemetry.addData("x", getPose().getX());
         telemetry.addData("y", getPose().getY());
         telemetry.addData("heading", getPose().getHeading());
         telemetry.addData("total heading", poseUpdater.getTotalHeading());
         telemetry.addData("velocity magnitude", getVelocity().getMagnitude());
         telemetry.addData("velocity heading", getVelocity().getTheta());
-        driveKalmanFilter.debug(telemetry);
+        getDriveKalmanFilter().debug(telemetry);
         telemetry.update();
 //        if (drawOnDashboard) {
 //            Drawing.drawDebug(NewFollower);
@@ -1108,10 +1102,6 @@ public class NewFollower {
         return Math.abs(pose.getX() - getPose().getX()) < xTolerance && Math.abs(pose.getY() - getPose().getY()) < yTolerance;
     }
 
-    public double getHeadingError() {
-        return headingError;
-    }
-
     /**
      * Sets the maximum power that can be used by the drive vector scaler. Clamped between 0 and 1.
      *
@@ -1224,4 +1214,82 @@ public class NewFollower {
     public FilteredPIDFController getDrivePIDF() {
         return drivePIDF;
     }
+
+    public boolean isTeleopDrive() {
+        return teleopDrive;
+    }
+
+    public Vector getCentripetalVector() {
+        return errorHandler.getCentripetalVector();
+    }
+
+    public Vector getTranslationalVector() {
+        return errorHandler.getTranslationalVector();
+    }
+
+    public Vector getTeleopHeadingVector() {
+        return errorHandler.getTeleopHeadingVector();
+    }
+
+    public Vector getTeleopDriveVector() {
+        return errorHandler.getTeleopDriveVector();
+    }
+
+    public Vector getTranslationalIntegralVector() {
+        return errorHandler.getTranslationalIntegralVector();
+    }
+
+    public Vector getAverageAcceleration() {
+        return errorHandler.getAverageAcceleration();
+    }
+
+    public Vector getSecondaryTranslationalIntegralVector() {
+        return errorHandler.getSecondaryTranslationalIntegralVector();
+    }
+
+    public double getHeadingError() {
+        return errorHandler.getHeadingError();
+    }
+
+    public double getDriveError() {
+        return errorHandler.getDriveError();
+    }
+
+    public double getRawDriveError() {
+        return errorHandler.getRawDriveError();
+    }
+
+    public double[] getDriveErrors() {
+        return errorHandler.getDriveErrors();
+    }
+
+    public Vector getDriveVector() {
+        return errorHandler.getDriveVector();
+    }
+
+    public Vector getCorrectiveVector() {
+        return errorHandler.getCorrectiveVector();
+    }
+
+    public Vector getHeadingVector() {
+        return errorHandler.getHeadingVector();
+    }
+
+    public Vector getTranslationalError() {
+        return errorHandler.getTranslationalError();
+    }
+
+    public Vector getTranslationalCorrection() {
+        return errorHandler.getTranslationalCorrection();
+    }
+
+    public Vector getCentripetalForceCorrection() {
+        return errorHandler.getCentripetalForceCorrection();
+    }
+
+    public KalmanFilter getDriveKalmanFilter() {
+        return errorHandler.getDriveKalmanFilter();
+    }
+
+
 }
