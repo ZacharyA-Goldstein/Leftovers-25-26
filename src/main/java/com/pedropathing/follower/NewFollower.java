@@ -83,7 +83,7 @@ public class NewFollower {
     private DcMotorEx rightRear;
     private List<DcMotorEx> motors;
 
-    private DriveVectorScaler driveVectorScaler;
+    private Drivetrain drivetrain;
 
     public PoseUpdater poseUpdater;
     private DashboardPoseTracker dashboardPoseTracker;
@@ -193,7 +193,6 @@ public class NewFollower {
         headingPIDF = new PIDFController(FollowerConstants.headingPIDFCoefficients);
         secondaryDrivePIDF = new FilteredPIDFController(FollowerConstants.secondaryDrivePIDFCoefficients);
         drivePIDF = new FilteredPIDFController(FollowerConstants.drivePIDFCoefficients);
-        driveKalmanFilter = new KalmanFilter(FollowerConstants.driveKalmanFilterParameters);
         turnHeadingErrorThreshold = FollowerConstants.turnHeadingErrorThreshold;
     }
 
@@ -205,7 +204,9 @@ public class NewFollower {
      */
     public void initialize() {
         poseUpdater = new PoseUpdater(hardwareMap);
-        driveVectorScaler = new DriveVectorScaler(FollowerConstants.frontLeftVector);
+       //TODO add switch
+        drivetrain = new Mecanum(FollowerConstants.frontLeftVector, maxPowerScaling);
+
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
         voltageTimer.reset();
@@ -244,7 +245,8 @@ public class NewFollower {
 
     public void initialize(Localizer localizer) {
         poseUpdater = new PoseUpdater(hardwareMap, localizer);
-        driveVectorScaler = new DriveVectorScaler(FollowerConstants.frontLeftVector);
+        //TODO add switch
+        drivetrain = new Mecanum(FollowerConstants.frontLeftVector, maxPowerScaling);
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
         voltageTimer.reset();
@@ -302,7 +304,7 @@ public class NewFollower {
      */
     public void setMaxPower(double set) {
         globalMaxPower = set;
-        driveVectorScaler.setMaxPowerScaling(set);
+        maxPowerScaling = set;
     }
 
     /**
@@ -489,7 +491,7 @@ public class NewFollower {
      * @param holdEnd this makes the Follower hold the last Point on the Path.
      */
     public void followPath(Path path, boolean holdEnd) {
-        driveVectorScaler.setMaxPowerScaling(globalMaxPower);
+        maxPowerScaling = globalMaxPower;
         breakFollowing();
         holdPositionAtEnd = holdEnd;
         isBusy = true;
@@ -536,7 +538,7 @@ public class NewFollower {
      * @param holdEnd this makes the Follower hold the last Point on the PathChain.
      */
     public void followPath(PathChain pathChain, double maxPower, boolean holdEnd) {
-        driveVectorScaler.setMaxPowerScaling(maxPower);
+        maxPowerScaling = maxPower;
         breakFollowing();
         holdPositionAtEnd = holdEnd;
         pathStartTimes = new long[pathChain.size()];
@@ -595,7 +597,7 @@ public class NewFollower {
                 if (holdingPosition) {
                     closestPose = currentPath.getClosestPoint(poseUpdater.getPose(), 1);
 
-                    drivePowers = driveVectorScaler.getDrivePowers(MathFunctions.scalarMultiplyVector(getTranslationalCorrection(), holdPointTranslationalScaling), MathFunctions.scalarMultiplyVector(getHeadingVector(), holdPointHeadingScaling), new Vector(), poseUpdater.getPose().getHeading());
+                    drivePowers = drivetrain.getDrivePowers(MathFunctions.scalarMultiplyVector(getTranslationalCorrection(), holdPointTranslationalScaling), MathFunctions.scalarMultiplyVector(getHeadingVector(), holdPointHeadingScaling), new Vector(), poseUpdater.getPose().getHeading());
 
                     for (int i = 0; i < motors.size(); i++) {
                         if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
@@ -609,7 +611,7 @@ public class NewFollower {
                         }
                     }
 
-                    if(headingError < turnHeadingErrorThreshold && isTurning) {
+                    if(getHeadingError() < turnHeadingErrorThreshold && isTurning) {
                         isTurning = false;
                         isBusy = false;
                     }
@@ -619,7 +621,7 @@ public class NewFollower {
 
                         if (followingPathChain) updateCallbacks();
 
-                        drivePowers = driveVectorScaler.getDrivePowers(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseUpdater.getPose().getHeading());
+                        drivePowers = drivetrain.getDrivePowers(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseUpdater.getPose().getHeading());
 
                         for (int i = 0; i < motors.size(); i++) {
                             if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
@@ -762,8 +764,6 @@ public class NewFollower {
         for (int i = 0; i < motors.size(); i++) {
             motors.get(i).setPower(0);
         }
-
-        teleopDriveValues = new double[3];
 
         zeroVelocityDetectedTimer = null;
     }

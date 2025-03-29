@@ -87,6 +87,7 @@ public class ErrorHandler {
     public ErrorHandler(PoseUpdater poseUpdater, Drivetrain drivetrain) {
         this.poseUpdater = poseUpdater;
         this.drivetrain = drivetrain;
+        driveKalmanFilter = new KalmanFilter(FollowerConstants.driveKalmanFilterParameters);
     }
 
     public void update(NewFollower follower) {
@@ -140,6 +141,7 @@ public class ErrorHandler {
         teleopHeadingVector = new Vector();
         previousSecondaryTranslationalIntegral = 0;
         previousTranslationalIntegral = 0;
+        teleopDriveValues = new double[3];
     }
 
     /**
