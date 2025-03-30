@@ -6,6 +6,8 @@ import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Vector;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * This is the Path class. This class handles containing information on the actual path the Follower
@@ -343,7 +345,7 @@ public class Path {
             }
 
             if (reversedHeadingInterpolation) {
-                return MathFunctions.normalizeAngle(startHeading - MathFunctions.getTurnDirection(startHeading, endHeading) * (Math.PI * 2 - MathFunctions.getSmallestAngleDifference(endHeading, startHeading)) * (t / linearInterpolationEndTime));
+                return MathFunctions.normalizeAngle(startHeading - MathFunctions.getTurnDirection(startHeading, endHeading) * (MathFunctions.getSmallestAngleDifference(endHeading, startHeading)) * (t / linearInterpolationEndTime));
             }
 
             return MathFunctions.normalizeAngle(startHeading + MathFunctions.getTurnDirection(startHeading, endHeading) * MathFunctions.getSmallestAngleDifference(endHeading, startHeading) * (t / linearInterpolationEndTime));
@@ -569,5 +571,18 @@ public class Path {
 
     public Point endPoint() {
         return curve.getLastControlPoint();
+    }
+
+    public Path inReverse() {
+        ArrayList<Point> controlPoints = getControlPoints();
+        Collections.reverse(controlPoints);
+
+        if (controlPoints.size() <= 1) {
+            return new Path(new BezierPoint(controlPoints.get(0)));
+        } else if (controlPoints.size() == 2) {
+            return new Path(new BezierLine(controlPoints.get(0), controlPoints.get(1)));
+        }
+
+        return new Path(new BezierCurve(controlPoints));
     }
 }
