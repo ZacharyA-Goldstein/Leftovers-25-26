@@ -596,6 +596,8 @@ public class NewFollower {
 
                     drivePowers = drivetrain.getDrivePowers(MathFunctions.scalarMultiplyVector(getTranslationalCorrection(), holdPointTranslationalScaling), MathFunctions.scalarMultiplyVector(getHeadingVector(), holdPointHeadingScaling), new Vector(), poseUpdater.getPose().getHeading());
 
+                    updateErrors();
+
                     for (int i = 0; i < motors.size(); i++) {
                         if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
                             double voltageNormalized = getVoltageNormalized();
@@ -613,10 +615,13 @@ public class NewFollower {
                         isBusy = false;
                     }
                 } else {
+
                     if (isBusy) {
                         closestPose = currentPath.getClosestPoint(poseUpdater.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
 
                         if (followingPathChain) updateCallbacks();
+
+                        updateErrors();
 
                         drivePowers = drivetrain.getDrivePowers(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseUpdater.getPose().getHeading());
 
@@ -661,6 +666,8 @@ public class NewFollower {
                             chainIndex++;
                             currentPath = currentPathChain.getPath(chainIndex);
                             closestPose = currentPath.getClosestPoint(poseUpdater.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
+
+                            updateErrors();
                         } else {
                             // At last path, run some end detection stuff
                             // set isBusy to false if at end
@@ -668,6 +675,7 @@ public class NewFollower {
                                 reachedParametricPathEnd = true;
                                 reachedParametricPathEndTime = System.currentTimeMillis();
                             }
+                            updateErrors();
 
                             if ((System.currentTimeMillis() - reachedParametricPathEndTime > currentPath.getPathEndTimeoutConstraint()) ||
                                     (poseUpdater.getVelocity().getMagnitude() < currentPath.getPathEndVelocityConstraint()
@@ -697,6 +705,10 @@ public class NewFollower {
                 }
             }
         } else {
+            updateErrors();
+
+            errorHandler.teleopUpdate();
+
             drivePowers = drivetrain.getDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseUpdater.getPose().getHeading());
 
             for (int i = 0; i < motors.size(); i++) {

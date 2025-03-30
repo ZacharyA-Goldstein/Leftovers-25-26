@@ -146,6 +146,16 @@ public class ErrorHandler {
     }
 
     /**
+     * Do the teleop calculations
+     */
+    public void teleopUpdate() {
+        velocities.add(poseUpdater.getVelocity());
+        velocities.remove(velocities.get(velocities.size() - 1));
+
+        calculateAveragedVelocityAndAcceleration();
+    }
+
+    /**
      * This returns a Vector in the direction the robot must go to move along the path. This Vector
      * takes into account the projected position of the robot to calculate how much power is needed.
      * <p>
