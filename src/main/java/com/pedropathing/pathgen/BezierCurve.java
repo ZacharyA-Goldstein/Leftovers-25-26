@@ -1,10 +1,14 @@
 package com.pedropathing.pathgen;
 
 
+import androidx.annotation.NonNull;
+
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.localization.Pose;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * This is the BezierCurve class. This class handles the creation of Bezier curves, which are used
@@ -365,5 +369,52 @@ public class BezierCurve {
      */
     public String pathType() {
         return "curve";
+    }
+
+
+    /**
+     * Returns a clone of the BezierCurve.
+     *
+     * @return returns the coefficients.
+     */
+    @NonNull
+    public BezierCurve clone() {
+        BezierCurve clone = new BezierCurve();
+        clone.controlPoints = new ArrayList<>(controlPoints);
+        clone.pointCoefficients = new ArrayList<>(pointCoefficients);
+        clone.endTangent = MathFunctions.copyVector(endTangent);
+        clone.length = length;
+        clone.UNIT_TO_TIME = UNIT_TO_TIME;
+        clone.dashboardDrawingPoints = new double[dashboardDrawingPoints.length][];
+        for (int i = 0; i < dashboardDrawingPoints.length; i++) {
+            clone.dashboardDrawingPoints[i] = dashboardDrawingPoints[i].clone();
+        }
+        return clone;
+    }
+
+    /**
+     * Returns a new BezierCurve with the control points reversed.
+     *
+     * @return a new BezierCurve with reversed control points.
+     */
+    public BezierCurve getReversed() {
+        ArrayList<Point> reversedControlPoints = new ArrayList<>(controlPoints);
+        Collections.reverse(reversedControlPoints);
+        BezierCurve reversedCurve = new BezierCurve(reversedControlPoints);
+
+        // Recalculate coefficients, tangents, and drawing points
+        reversedCurve.generateBezierCurve();
+        reversedCurve.length = reversedCurve.approximateLength();
+        reversedCurve.UNIT_TO_TIME = 1 / reversedCurve.length;
+        reversedCurve.endTangent.setOrthogonalComponents(
+                reversedCurve.controlPoints.get(reversedCurve.controlPoints.size() - 1).getX() -
+                        reversedCurve.controlPoints.get(reversedCurve.controlPoints.size() - 2).getX(),
+                reversedCurve.controlPoints.get(reversedCurve.controlPoints.size() - 1).getY() -
+                        reversedCurve.controlPoints.get(reversedCurve.controlPoints.size() - 2).getY()
+        );
+        reversedCurve.endTangent = MathFunctions.normalizeVector(reversedCurve.endTangent);
+        reversedCurve.initializeDashboardDrawingPoints();
+
+        return reversedCurve;
     }
 }
