@@ -92,8 +92,8 @@ publishing {
 	publications {
 		register<MavenPublication>("release") {
 			groupId = "com.pedropathing"
-			artifactId = "pedro"
-			version = "1.0.9"
+			artifactId = "dev"
+			version = "1.1.0-dev3"
 
 			afterEvaluate {
 				from(components["release"])
