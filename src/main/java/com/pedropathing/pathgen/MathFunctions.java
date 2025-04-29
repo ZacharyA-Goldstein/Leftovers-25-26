@@ -105,16 +105,7 @@ public class MathFunctions {
         return -1; // clock wise
     }
 
-    /**
-     * This returns the distance between a Pose and a Point,
-     *
-     * @param pose this is the Pose.
-     * @param point this is the Point.
-     * @return returns the distance between the two.
-     */
-    public static double distance(Pose pose, Point point) {
-        return Math.sqrt(Math.pow(pose.getX() - point.getX(), 2) + Math.pow(pose.getY() - point.getY(), 2));
-    }
+
 
     /**
      * This returns the distance between a Pose and another Pose.
@@ -127,16 +118,7 @@ public class MathFunctions {
         return Math.sqrt(Math.pow(one.getX() - two.getX(), 2) + Math.pow(one.getY() - two.getY(), 2));
     }
 
-    /**
-     * This returns a Point that is the sum of the two input Point.
-     *
-     * @param one the first Point
-     * @param two the second Point
-     * @return returns the sum of the two Points.
-     */
-    public static Point addPoints(Point one, Point two) {
-        return new Point(one.getX() + two.getX(), one.getY() + two.getY(), Point.CARTESIAN);
-    }
+
 
     /**
      * This returns a Pose that is the sum of the two input Pose.
@@ -149,17 +131,6 @@ public class MathFunctions {
         return new Pose(one.getX() + two.getX(), one.getY() + two.getY(), one.getHeading() + two.getHeading());
     }
 
-    /**
-     * This subtracts the second Point from the first Point and returns the result as a Point.
-     * Do note that order matters here.
-     *
-     * @param one the first Point.
-     * @param two the second Point.
-     * @return returns the difference of the two Points.
-     */
-    public static Point subtractPoints(Point one, Point two) {
-        return new Point(one.getX() - two.getX(), one.getY() - two.getY(), Point.CARTESIAN);
-    }
 
     /**
      * This subtracts the second Pose from the first Pose and returns the result as a Pose.
@@ -189,16 +160,6 @@ public class MathFunctions {
         return new Pose(x, y, heading);
     }
 
-    /**
-     * This multiplies a Point by a scalar and returns the result as a Point
-     *
-     * @param point the Point being multiplied.
-     * @param scalar the scalar multiplying into the Point.
-     * @return returns the scaled Point.
-     */
-    public static Point scalarMultiplyPoint(Point point, double scalar) {
-        return new Point(point.getX() * scalar, point.getY() * scalar, Point.CARTESIAN);
-    }
 
     /**
      * Copies a Point, but with a different reference location in the memory. So basically a deep
@@ -207,8 +168,8 @@ public class MathFunctions {
      * @param point the Point to be deep copied.
      * @return returns the copied Point.
      */
-    public static Point copyPoint(Point point) {
-        return new Point(point.getX(), point.getY(), Point.CARTESIAN);
+    public static Pose copyPose(Pose point) {
+        return new Pose(point.getX(), point.getY());
     }
 
     /**

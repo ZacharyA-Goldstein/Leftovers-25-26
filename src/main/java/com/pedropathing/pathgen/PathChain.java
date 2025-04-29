@@ -134,8 +134,8 @@ public class PathChain {
         return new Pose(last.endPose().getX(), last.endPose().getY(), last.endPose().getHeading());
     }
 
-    public Point endPoint() {
+    public Pose endPoint() {
         Path last = pathChain.get(pathChain.size() - 1);
-        return new Point(last.endPoint().getX(), last.endPoint().getY());
+        return new Pose(last.endPoint().getX(), last.endPoint().getY());
     }
 }

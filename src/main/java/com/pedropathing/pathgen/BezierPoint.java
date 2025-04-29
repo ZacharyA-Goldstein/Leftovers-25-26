@@ -17,7 +17,7 @@ import java.util.ArrayList;
  */
 public class BezierPoint extends BezierCurve {
 
-    private Point point;
+    private Pose pose;
 
     private Vector endTangent = new Vector();
 
@@ -30,12 +30,7 @@ public class BezierPoint extends BezierCurve {
      *
      * @param point the specified point.
      */
-    public BezierPoint(Point point) {
-        super();
-        this.point = point;
-        length = approximateLength();
-        super.initializeDashboardDrawingPoints();
-    }
+
 
     /**
      * This creates a new BezierPoint with a specified Point.
@@ -45,7 +40,7 @@ public class BezierPoint extends BezierCurve {
      */
     public BezierPoint(Pose pose) {
         super();
-        this.point = new Point(pose);
+        this.pose = pose;
         length = approximateLength();
         super.initializeDashboardDrawingPoints();
     }
@@ -80,8 +75,8 @@ public class BezierPoint extends BezierCurve {
      * @return this returns the Point requested.
      */
     @Override
-    public Point getPoint(double t) {
-        return new Point(point.getX(), point.getY(), Point.CARTESIAN);
+    public Pose getPose(double t) {
+        return new Pose(pose.getX(), pose.getY());
     }
 
     /**
@@ -138,9 +133,9 @@ public class BezierPoint extends BezierCurve {
      * @return This returns the control point.
      */
     @Override
-    public ArrayList<Point> getControlPoints() {
-        ArrayList<Point> returnList = new ArrayList<>();
-        returnList.add(point);
+    public ArrayList<Pose> getControlPoints() {
+        ArrayList<Pose> returnList = new ArrayList<>();
+        returnList.add(pose);
         return returnList;
     }
 
@@ -150,8 +145,8 @@ public class BezierPoint extends BezierCurve {
      * @return This returns the Point.
      */
     @Override
-    public Point getFirstControlPoint() {
-        return point;
+    public Pose getFirstControlPoint() {
+        return pose;
     }
 
     /**
@@ -162,8 +157,8 @@ public class BezierPoint extends BezierCurve {
      * @return This returns the Point.
      */
     @Override
-    public Point getSecondControlPoint() {
-        return point;
+    public Pose getSecondControlPoint() {
+        return pose;
     }
 
     /**
@@ -174,8 +169,8 @@ public class BezierPoint extends BezierCurve {
      * @return This returns the Point.
      */
     @Override
-    public Point getSecondToLastControlPoint() {
-        return point;
+    public Pose getSecondToLastControlPoint() {
+        return pose;
     }
 
     /**
@@ -186,8 +181,8 @@ public class BezierPoint extends BezierCurve {
      * @return This returns the Point.
      */
     @Override
-    public Point getLastControlPoint() {
-        return point;
+    public Pose getLastControlPoint() {
+        return pose;
     }
 
     /**

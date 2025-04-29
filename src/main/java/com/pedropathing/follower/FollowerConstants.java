@@ -3,8 +3,8 @@ package com.pedropathing.follower;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.Localizers;
+import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Point;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.pedropathing.pathgen.Vector;
 import com.pedropathing.util.CustomFilteredPIDFCoefficients;
@@ -75,7 +75,7 @@ public class FollowerConstants {
     public static double yMovement = 65.43028;
 
 
-    private static double[] convertToPolar = Point.cartesianToPolar(xMovement, -yMovement);
+    private static double[] convertToPolar = Pose.cartesianToPolar(xMovement, -yMovement);
 
     /** The actual drive vector for the front left wheel, if the robot is facing a heading of 0 radians with the wheel centered at (0,0)
      *  Default Value: new Vector(convertToPolar[0], convertToPolar[1])

@@ -9,7 +9,6 @@ import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Point;
 import com.pedropathing.pathgen.Vector;
 
 /**
@@ -33,7 +32,7 @@ public class Drawing {
     public static void drawDebug(Follower follower) {
         if (follower.getCurrentPath() != null) {
             drawPath(follower.getCurrentPath(), "#3F51B5");
-            Point closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
+            Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
             drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), "#3F51B5");
         }
         drawPoseHistory(follower.getDashboardPoseTracker(), "#4CAF50");
@@ -111,21 +110,7 @@ public class Drawing {
         return false;
     }
 
-    /**
-     * This draws a robot on the Dashboard at a specified Point.
-     *
-     * @param c the Canvas on the Dashboard on which this will draw
-     * @param t the Point to draw at
-     */
-    public static void drawRobotOnCanvas(Canvas c, Point t) {
-        c.setStrokeWidth(1);
-        c.strokeCircle(t.getX(), t.getY(), ROBOT_RADIUS);
 
-        Vector halfv = new Vector(0.5 * ROBOT_RADIUS, t.getTheta());
-        Vector p1 = MathFunctions.addVectors(halfv, new Vector(t.getR(), t.getTheta()));
-        Vector p2 = MathFunctions.addVectors(p1, halfv);
-        c.strokeLine(p1.getXComponent(), p1.getYComponent(), p2.getXComponent(), p2.getYComponent());
-    }
 
     /**
      * This draws a robot on the Dashboard at a specified Pose. This is more useful for drawing the

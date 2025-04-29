@@ -172,29 +172,29 @@ public class Path {
                 closestPointTValue = 0;
                 break;
             case "line":
-                Vector BA = new Vector(MathFunctions.subtractPoints(curve.getLastControlPoint(), curve.getFirstControlPoint()));
-                Vector PA = new Vector(MathFunctions.subtractPoints(new Point(pose), curve.getFirstControlPoint()));
+                Vector BA = new Vector(MathFunctions.subtractPoses(curve.getLastControlPoint(), curve.getFirstControlPoint()));
+                Vector PA = new Vector(MathFunctions.subtractPoses(pose, curve.getFirstControlPoint()));
 
                 closestPointTValue = MathFunctions.clamp(MathFunctions.dotProduct(BA, PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
                 break;
             default:
                 for (int i = 0; i < searchLimit; i++) {
-                    Point lastPoint = curve.getPoint(closestPointTValue);
-                    Point posePoint = new Point(pose);
+                    Pose lastPoint = curve.getPose(closestPointTValue);
+                    Pose posePoint = pose;
 
-                    Vector differenceVector = new Vector(MathFunctions.subtractPoints(lastPoint, posePoint));
+                    Vector differenceVector = new Vector(MathFunctions.subtractPoses(lastPoint, posePoint));
 
                     double firstDerivative = 2 * MathFunctions.dotProduct(curve.getDerivative(closestPointTValue), differenceVector);
                     double secondDerivative = 2 * (Math.pow(curve.getDerivative(closestPointTValue).getMagnitude(), 2) +
                             MathFunctions.dotProduct(differenceVector, curve.getSecondDerivative(closestPointTValue)));
 
                     closestPointTValue = MathFunctions.clamp(closestPointTValue - firstDerivative / (secondDerivative + 1e-9), 0, 1);
-                    if (curve.getPoint(closestPointTValue).distanceFrom(lastPoint) < 0.1)
+                    if (curve.getPose(closestPointTValue).distanceFrom(lastPoint) < 0.1)
                         break;
                 }
         }
 
-        Point closestPoint = curve.getPoint(closestPointTValue);
+        Pose closestPoint = curve.getPose(closestPointTValue);
         closestPointTangentVector = curve.getDerivative(closestPointTValue);
         closestPointNormalVector = curve.getApproxSecondDerivative(closestPointTValue);
         closestPointCurvature = curve.getCurvature(closestPointTValue);
@@ -248,8 +248,8 @@ public class Path {
      * @param t this is the t value of the parametric curve. t is clamped to be between 0 and 1 inclusive.
      * @return this returns the point requested.
      */
-    public Point getPoint(double t) {
-        return curve.getPoint(t);
+    public Pose getPoint(double t) {
+        return curve.getPose(t);
     }
 
     /**
@@ -381,7 +381,7 @@ public class Path {
      *
      * @return This returns the control points.
      */
-    public ArrayList<Point> getControlPoints() {
+    public ArrayList<Pose> getControlPoints() {
         return curve.getControlPoints();
     }
 
@@ -390,7 +390,7 @@ public class Path {
      *
      * @return This returns the Point.
      */
-    public Point getFirstControlPoint() {
+    public Pose getFirstControlPoint() {
         return curve.getFirstControlPoint();
     }
 
@@ -399,7 +399,7 @@ public class Path {
      *
      * @return This returns the Point.
      */
-    public Point getSecondControlPoint() {
+    public Pose getSecondControlPoint() {
         return curve.getSecondControlPoint();
     }
 
@@ -408,7 +408,7 @@ public class Path {
      *
      * @return This returns the Point.
      */
-    public Point getSecondToLastControlPoint() {
+    public Pose getSecondToLastControlPoint() {
         return curve.getSecondToLastControlPoint();
     }
 
@@ -417,7 +417,7 @@ public class Path {
      *
      * @return This returns the Point.
      */
-    public Point getLastControlPoint() {
+    public Pose getLastControlPoint() {
         return curve.getLastControlPoint();
     }
 
@@ -567,7 +567,7 @@ public class Path {
         return new Pose(curve.getLastControlPoint().getX(), curve.getLastControlPoint().getY(), endHeading);
     }
 
-    public Point endPoint() {
+    public Pose endPoint() {
         return curve.getLastControlPoint();
     }
 

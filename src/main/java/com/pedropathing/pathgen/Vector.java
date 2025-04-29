@@ -1,5 +1,7 @@
 package com.pedropathing.pathgen;
 
+import com.pedropathing.localization.Pose;
+
 /**
  * This is the Point class. This class handles storing information about vectors, which are
  * basically Points but using polar coordinates as the default. The main reason this class exists
@@ -29,8 +31,8 @@ public class Vector {
         setComponents(0, 0);
     }
 
-    public Vector(Point point) {
-        setOrthogonalComponents(point.getX(), point.getY());
+    public Vector(Pose pose) {
+        setOrthogonalComponents(pose.getX(), pose.getY());
     }
 
     /**
@@ -58,7 +60,7 @@ public class Vector {
             this.magnitude = magnitude;
             this.theta = MathFunctions.normalizeAngle(theta);
         }
-        orthogonalComponents = Point.polarToCartesian(magnitude, theta);
+        orthogonalComponents = Pose.polarToCartesian(magnitude, theta);
         xComponent = orthogonalComponents[0];
         yComponent = orthogonalComponents[1];
     }
@@ -102,7 +104,7 @@ public class Vector {
         double[] polarComponents;
         this.xComponent = xComponent;
         this.yComponent = yComponent;
-        polarComponents = Point.cartesianToPolar(xComponent, yComponent);
+        polarComponents = Pose.cartesianToPolar(xComponent, yComponent);
         magnitude = polarComponents[0];
         theta = polarComponents[1];
     }

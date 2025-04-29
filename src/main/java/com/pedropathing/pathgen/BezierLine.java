@@ -17,30 +17,15 @@ import java.util.ArrayList;
  */
 public class BezierLine extends BezierCurve {
 
-    private Point startPoint;
-    private Point endPoint;
+    private Pose startPoint;
+    private Pose endPoint;
 
     private Vector endTangent;
 
     private double UNIT_TO_TIME;
     private double length;
 
-    /**
-     * This creates a new BezierLine with specified start and end Points.
-     * This is just a line but it extends the BezierCurve class so things work.
-     *
-     * @param startPoint start point of the line.
-     * @param endPoint   end point of the line.
-     */
-    public BezierLine(Point startPoint, Point endPoint) {
-        super();
-        this.startPoint = startPoint;
-        this.endPoint = endPoint;
-        length = approximateLength();
-        UNIT_TO_TIME = 1 / length;
-        endTangent = MathFunctions.normalizeVector(getDerivative(1));
-        super.initializeDashboardDrawingPoints();
-    }
+
 
     /**
      * This creates a new BezierLine with specified start and end Points.
@@ -51,8 +36,8 @@ public class BezierLine extends BezierCurve {
      */
     public BezierLine(Pose startPose, Pose endPose) {
         super();
-        this.startPoint = new Point(startPose);
-        this.endPoint = new Point(endPose);
+        this.startPoint = startPose;
+        this.endPoint = endPose;
         length = approximateLength();
         UNIT_TO_TIME = 1 / length;
         endTangent = MathFunctions.normalizeVector(getDerivative(1));
@@ -86,9 +71,9 @@ public class BezierLine extends BezierCurve {
      * @return this returns the Point requested.
      */
     @Override
-    public Point getPoint(double t) {
+    public Pose getPose(double t) {
         t = MathFunctions.clamp(t, 0, 1);
-        return new Point((endPoint.getX() - startPoint.getX()) * t + startPoint.getX(), (endPoint.getY() - startPoint.getY()) * t + startPoint.getY(), Point.CARTESIAN);
+        return new Pose((endPoint.getX() - startPoint.getX()) * t + startPoint.getX(), (endPoint.getY() - startPoint.getY()) * t + startPoint.getY());
     }
 
     /**
@@ -148,8 +133,8 @@ public class BezierLine extends BezierCurve {
      * @return This returns the control points.
      */
     @Override
-    public ArrayList<Point> getControlPoints() {
-        ArrayList<Point> returnList = new ArrayList<>();
+    public ArrayList<Pose> getControlPoints() {
+        ArrayList<Pose> returnList = new ArrayList<>();
         returnList.add(startPoint);
         returnList.add(endPoint);
         return returnList;
@@ -161,7 +146,7 @@ public class BezierLine extends BezierCurve {
      * @return This returns the Point.
      */
     @Override
-    public Point getFirstControlPoint() {
+    public Pose getFirstControlPoint() {
         return startPoint;
     }
 
@@ -171,7 +156,7 @@ public class BezierLine extends BezierCurve {
      * @return This returns the Point.
      */
     @Override
-    public Point getSecondControlPoint() {
+    public Pose getSecondControlPoint() {
         return endPoint;
     }
 
@@ -181,7 +166,7 @@ public class BezierLine extends BezierCurve {
      * @return This returns the Point.
      */
     @Override
-    public Point getSecondToLastControlPoint() {
+    public Pose getSecondToLastControlPoint() {
         return startPoint;
     }
 
@@ -191,7 +176,7 @@ public class BezierLine extends BezierCurve {
      * @return This returns the Point.
      */
     @Override
-    public Point getLastControlPoint() {
+    public Pose getLastControlPoint() {
         return endPoint;
     }
 

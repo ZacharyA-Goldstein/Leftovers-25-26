@@ -51,7 +51,6 @@ import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.PathBuilder;
 import com.pedropathing.pathgen.PathCallback;
 import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Point;
 import com.pedropathing.pathgen.Vector;
 import com.pedropathing.util.DashboardPoseTracker;
 import com.pedropathing.util.Drawing;
@@ -333,7 +332,7 @@ public class Follower {
      *
      * @return returns the Point.
      */
-    public Point getPointFromPath(double t) {
+    public Pose getPointFromPath(double t) {
         if (currentPath != null) {
             return currentPath.getPoint(t);
         } else {
@@ -485,15 +484,6 @@ public class Follower {
         closestPose = currentPath.getClosestPoint(poseUpdater.getPose(), 1);
     }
 
-    /**
-     * This holds a Point.
-     *
-     * @param point   the Point to stay at.
-     * @param heading the heading to face.
-     */
-    public void holdPoint(Point point, double heading) {
-        holdPoint(new BezierPoint(point), heading);
-    }
 
     /**
      * This holds a Point.
@@ -501,7 +491,7 @@ public class Follower {
      * @param pose the Point (as a Pose) to stay at.
      */
     public void holdPoint(Pose pose) {
-        holdPoint(new Point(pose), pose.getHeading());
+        holdPoint(new BezierPoint(pose), pose.getHeading());
     }
 
     /**
@@ -1416,15 +1406,6 @@ public class Follower {
         secondaryDrivePIDF.setCoefficients(set);
     }
 
-    /**
-     * Checks if the robot is at a certain point within certain tolerances
-     * @param point Point to compare with the current point
-     * @param xTolerance Tolerance for the x position
-     * @param yTolerance Tolerance for the y position
-     */
-    public boolean atPoint(Point point, double xTolerance, double yTolerance) {
-        return Math.abs(point.getX() - getPose().getX()) < xTolerance && Math.abs(point.getY() - getPose().getY()) < yTolerance;
-    }
 
     /**
      * Checks if the robot is at a certain pose within certain tolerances

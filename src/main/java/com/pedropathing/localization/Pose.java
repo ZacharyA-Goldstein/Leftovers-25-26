@@ -20,6 +20,11 @@ public class Pose {
     private double x;
     private double y;
     private double heading;
+    private double r;
+    private double theta;
+
+    public static final int POLAR = 0;
+    public static final int CARTESIAN = 1;
     private boolean pedroCoordinates = true;
 
     /**
@@ -129,6 +134,24 @@ public class Pose {
      */
     public double getHeading() {
         return heading;
+    }
+
+    /**
+     * Returns the r value of this Point. This is a polar coordinate value.
+     *
+     * @return returns the r value.
+     */
+    public double getR() {
+        return r;
+    }
+
+    /**
+     * Returns the theta value of this Point. This is a polar coordinate value.
+     *
+     * @return returns the theta value.
+     */
+    public double getTheta() {
+        return theta;
     }
 
     /**
@@ -281,6 +304,31 @@ public class Pose {
         }
     }
 
+    public double distanceFrom(Pose otherPoint) {
+        return Math.sqrt(Math.pow(otherPoint.getX() - x, 2) + Math.pow(otherPoint.getY() - y, 2));
+    }
+
+    public static double[] polarToCartesian(double r, double theta) {
+        return new double[]{r * Math.cos(theta), r * Math.sin(theta)};
+    }
+
+
+    public static double[] cartesianToPolar(double x, double y) {
+        if (x == 0) {
+            if (y > 0) {
+                return new double[]{Math.abs(y), Math.PI / 2};
+            } else {
+                return new double[]{Math.abs(y), (3 * Math.PI) / 2};
+            }
+        }
+        double r = Math.sqrt(x * x + y * y);
+        if (x < 0) return new double[]{r, Math.PI + Math.atan(y / x)};
+        if (y > 0) {
+            return new double[]{r, Math.atan(y / x)};
+        } else {
+            return new double[]{r, (2 * Math.PI) + Math.atan(y / x)};
+        }
+    }
     @NonNull
     @Override
     public String toString() {

@@ -1,6 +1,7 @@
 package com.pedropathing.pathgen;
 
 import com.pedropathing.follower.FollowerConstants;
+import com.pedropathing.localization.Pose;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,15 +60,6 @@ public class PathBuilder {
         return this;
     }
 
-    /**
-     * This adds a default Path defined by a specified BezierCurve to the PathBuilder.
-     *
-     * @param controlPoints This is the specified control points that define the BezierCurve.
-     * @return This returns itself with the updated data.
-     */
-    public PathBuilder addBezierCurve(Point... controlPoints) {
-        return addPath(new BezierCurve(controlPoints));
-    }
 
     /**
      * This adds a default Path defined by a specified BezierCurve to the PathBuilder.
@@ -75,7 +67,7 @@ public class PathBuilder {
      * @param controlPoints This is the specified control points that define the BezierCurve.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder addBezierCurve(ArrayList<Point> controlPoints) {
+    public PathBuilder addBezierCurve(ArrayList<Pose> controlPoints) {
         return addPath(new BezierCurve(controlPoints));
     }
 
@@ -86,7 +78,7 @@ public class PathBuilder {
      * @param endPoint end point of the line.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder addBezierLine(Point startPoint, Point endPoint) {
+    public PathBuilder addBezierLine(Pose startPoint, Pose endPoint) {
         return addPath(new BezierLine(startPoint, endPoint));
     }
 
