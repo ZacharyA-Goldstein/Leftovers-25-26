@@ -19,8 +19,8 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.util.Constants;
-import com.pedropathing.util.CustomFilteredPIDFCoefficients;
-import com.pedropathing.util.CustomPIDFCoefficients;
+import com.pedropathing.control.CustomFilteredPIDFCoefficients;
+import com.pedropathing.control.CustomPIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -29,23 +29,21 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.localization.Pose;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.localization.PoseUpdater;
-import com.pedropathing.pathgen.BezierPoint;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Path;
-import com.pedropathing.pathgen.PathBuilder;
-import com.pedropathing.pathgen.PathCallback;
-import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.geometry.BezierPoint;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.geometry.Path;
+import com.pedropathing.geometry.PathBuilder;
+import com.pedropathing.geometry.PathCallback;
+import com.pedropathing.geometry.PathChain;
+import com.pedropathing.geometry.Vector;
 import com.pedropathing.util.DashboardPoseTracker;
-import com.pedropathing.util.Drawing;
-import com.pedropathing.util.FilteredPIDFController;
-import com.pedropathing.util.KalmanFilter;
-import com.pedropathing.util.PIDFController;
+import com.pedropathing.control.FilteredPIDFController;
+import com.pedropathing.control.KalmanFilter;
+import com.pedropathing.control.PIDFController;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

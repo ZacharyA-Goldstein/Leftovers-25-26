@@ -1,9 +1,7 @@
-package com.pedropathing.pathgen;
+package com.pedropathing.geometry;
 
 import com.pedropathing.follower.FollowerConstants;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.util.MathFunctions;
 
 import java.util.ArrayList;
 

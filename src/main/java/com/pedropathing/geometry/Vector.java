@@ -1,6 +1,6 @@
-package com.pedropathing.pathgen;
+package com.pedropathing.geometry;
 
-import com.pedropathing.localization.Pose;
+import com.pedropathing.util.MathFunctions;
 
 /**
  * This is the Point class. This class handles storing information about vectors, which are

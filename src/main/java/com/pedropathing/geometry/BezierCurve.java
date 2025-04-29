@@ -1,13 +1,12 @@
-package com.pedropathing.pathgen;
+package com.pedropathing.geometry;
 
 
 import androidx.annotation.NonNull;
 
 import com.pedropathing.follower.FollowerConstants;
-import com.pedropathing.localization.Pose;
+import com.pedropathing.util.MathFunctions;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 /**

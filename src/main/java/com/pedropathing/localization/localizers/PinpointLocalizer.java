@@ -4,18 +4,13 @@ package com.pedropathing.localization.localizers;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import static com.pedropathing.localization.constants.PinpointConstants.*;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
 import com.pedropathing.localization.GoBildaPinpointDriver;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.geometry.Vector;
 import com.pedropathing.util.NanoTimer;
 
 import java.util.Objects;

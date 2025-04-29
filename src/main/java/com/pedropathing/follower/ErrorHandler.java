@@ -15,15 +15,15 @@ import static com.pedropathing.follower.FollowerConstants.useSecondaryDrivePID;
 import static com.pedropathing.follower.FollowerConstants.useSecondaryHeadingPID;
 import static com.pedropathing.follower.FollowerConstants.useSecondaryTranslationalPID;
 
-import com.pedropathing.localization.Pose;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.localization.PoseUpdater;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Path;
-import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Vector;
-import com.pedropathing.util.FilteredPIDFController;
-import com.pedropathing.util.KalmanFilter;
-import com.pedropathing.util.PIDFController;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.geometry.Path;
+import com.pedropathing.geometry.PathChain;
+import com.pedropathing.geometry.Vector;
+import com.pedropathing.control.FilteredPIDFController;
+import com.pedropathing.control.KalmanFilter;
+import com.pedropathing.control.PIDFController;
 
 import java.util.ArrayList;
 import java.util.Arrays;

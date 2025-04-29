@@ -3,13 +3,13 @@ package com.pedropathing.follower;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.Localizers;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.util.MathFunctions;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.pedropathing.pathgen.Vector;
-import com.pedropathing.util.CustomFilteredPIDFCoefficients;
-import com.pedropathing.util.CustomPIDFCoefficients;
-import com.pedropathing.util.KalmanFilterParameters;
+import com.pedropathing.geometry.Vector;
+import com.pedropathing.control.CustomFilteredPIDFCoefficients;
+import com.pedropathing.control.CustomPIDFCoefficients;
+import com.pedropathing.control.KalmanFilterParameters;
 
 /**
  * This is the FollowerConstants class. It holds many constants and parameters for various parts of

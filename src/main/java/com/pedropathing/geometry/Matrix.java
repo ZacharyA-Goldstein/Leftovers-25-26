@@ -1,4 +1,4 @@
-package com.pedropathing.localization;
+package com.pedropathing.geometry;
 
 import java.util.Arrays;
 

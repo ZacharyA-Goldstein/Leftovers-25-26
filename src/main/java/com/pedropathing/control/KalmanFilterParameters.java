@@ -1,4 +1,4 @@
-package com.pedropathing.util;
+package com.pedropathing.control;
 
 import kotlin.jvm.JvmField;
 

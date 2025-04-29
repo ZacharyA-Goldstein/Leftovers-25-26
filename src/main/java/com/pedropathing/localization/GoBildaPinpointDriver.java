@@ -29,7 +29,8 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedropathing.pathgen.MathFunctions;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.lynx.LynxI2cDeviceSynch;
 import com.qualcomm.hardware.lynx.LynxNackException;
 import com.qualcomm.robotcore.hardware.I2cAddr;
@@ -39,7 +40,6 @@ import com.qualcomm.robotcore.hardware.configuration.annotations.DevicePropertie
 import com.qualcomm.robotcore.hardware.configuration.annotations.I2cDeviceType;
 import com.qualcomm.robotcore.util.TypeConversion;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.nio.ByteBuffer;

@@ -4,9 +4,9 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.geometry.Vector;
 import static com.pedropathing.localization.constants.OTOSConstants.*;
 
 /**

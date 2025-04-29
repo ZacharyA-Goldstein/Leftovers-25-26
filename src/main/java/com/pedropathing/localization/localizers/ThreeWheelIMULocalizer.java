@@ -1,6 +1,5 @@
 package com.pedropathing.localization.localizers;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -8,14 +7,13 @@ import com.qualcomm.robotcore.hardware.IMU;
 import static com.pedropathing.localization.constants.ThreeWheelIMUConstants.*;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import com.pedropathing.localization.Encoder;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.localization.Matrix;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.MathFunctions;
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.geometry.Matrix;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.util.MathFunctions;
+import com.pedropathing.geometry.Vector;
 import com.pedropathing.util.NanoTimer;
 
 /**

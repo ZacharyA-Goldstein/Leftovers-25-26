@@ -1,10 +1,9 @@
-package com.pedropathing.pathgen;
+package com.pedropathing.geometry;
 
 import com.pedropathing.follower.FollowerConstants;
-import com.pedropathing.localization.Pose;
+import com.pedropathing.util.MathFunctions;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * This is the PathBuilder class. This class makes it easier to create PathChains, so you don't have

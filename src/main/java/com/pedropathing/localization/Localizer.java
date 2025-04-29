@@ -1,8 +1,9 @@
 package com.pedropathing.localization;
 
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.IMU;
 
-import com.pedropathing.pathgen.Vector;
+import com.pedropathing.geometry.Vector;
 
 /**
  * This is the Localizer class. It is an abstract superclass of all localizers used in Pedro Pathing,
