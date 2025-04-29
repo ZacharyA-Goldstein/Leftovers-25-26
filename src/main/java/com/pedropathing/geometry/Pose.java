@@ -18,11 +18,6 @@ public class Pose {
     private double x;
     private double y;
     private double heading;
-    private double r;
-    private double theta;
-
-    public static final int POLAR = 0;
-    public static final int CARTESIAN = 1;
     private boolean pedroCoordinates = true;
 
     /**
@@ -132,24 +127,6 @@ public class Pose {
      */
     public double getHeading() {
         return heading;
-    }
-
-    /**
-     * Returns the r value of this Point. This is a polar coordinate value.
-     *
-     * @return returns the r value.
-     */
-    public double getR() {
-        return r;
-    }
-
-    /**
-     * Returns the theta value of this Point. This is a polar coordinate value.
-     *
-     * @return returns the theta value.
-     */
-    public double getTheta() {
-        return theta;
     }
 
     /**
