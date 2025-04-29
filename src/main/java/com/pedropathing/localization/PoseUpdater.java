@@ -21,7 +21,7 @@ import com.pedropathing.pathgen.Vector;
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
- * @author  Baron Henderson - 20077 The Indubitables
+ * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 3/4/2024
  */
 public class PoseUpdater {
