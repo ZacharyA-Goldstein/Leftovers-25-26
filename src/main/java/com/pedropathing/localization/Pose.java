@@ -8,8 +8,7 @@ import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Vector;
 
 /**
- * This is the Pose class. It defines poses in 2D space, like the Pose2D class in Road Runner except
- * in the Pedro Pathing code so I don't have to import the Road Runner library. A Pose consists of
+ * This is the Pose class. It defines poses in 2D space. A Pose consists of
  * two coordinates defining a position and a third value for the heading, so basically just defining
  * any position and orientation the robot can be at, unless your robot can fly for whatever reason.
  *
