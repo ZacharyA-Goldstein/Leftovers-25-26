@@ -565,10 +565,6 @@ public class Path {
         return new Pose(curve.getLastControlPoint().getX(), curve.getLastControlPoint().getY(), endHeading);
     }
 
-    public Pose endPoint() {
-        return curve.getLastControlPoint();
-    }
-
     public Path getReversed() {
         return new Path(curve.getReversed());
     }

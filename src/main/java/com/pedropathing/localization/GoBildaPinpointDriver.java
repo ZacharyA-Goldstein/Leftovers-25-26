@@ -29,8 +29,8 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.util.MathFunctions;
 import com.qualcomm.hardware.lynx.LynxI2cDeviceSynch;
 import com.qualcomm.hardware.lynx.LynxNackException;
 import com.qualcomm.robotcore.hardware.I2cAddr;
@@ -408,13 +408,13 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      * to determine your location. Then when you pull a new position from your secondary sensor,
      * send a setPosition command with the new position. The Pinpoint will then track your movement
      * relative to that new, more accurate position.
+     *
      * @param pos a Pose describing the robot's new position.
      */
-    public Pose setPosition(Pose pos){
+    public void setPosition(Pose pos) {
         writeByteArray(Register.X_POSITION,(floatToByteArray((float) MathFunctions.inToMM(pos.getX()), ByteOrder.LITTLE_ENDIAN)));
         writeByteArray(Register.Y_POSITION,(floatToByteArray((float) MathFunctions.inToMM(pos.getY()),ByteOrder.LITTLE_ENDIAN)));
         writeByteArray(Register.H_ORIENTATION,(floatToByteArray((float) pos.getHeading(),ByteOrder.LITTLE_ENDIAN)));
-        return pos;
     }
 
     /**

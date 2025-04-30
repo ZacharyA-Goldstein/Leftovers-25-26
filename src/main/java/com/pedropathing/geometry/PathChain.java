@@ -131,11 +131,11 @@ public class PathChain {
 
     public Pose endPose() {
         Path last = pathChain.get(pathChain.size() - 1);
-        return new Pose(last.endPose().getX(), last.endPose().getY(), last.endPose().getHeading());
+        return last.endPose();
     }
 
     public Pose endPoint() {
         Path last = pathChain.get(pathChain.size() - 1);
-        return new Pose(last.endPoint().getX(), last.endPoint().getY());
+        return last.getLastControlPoint();
     }
 }
