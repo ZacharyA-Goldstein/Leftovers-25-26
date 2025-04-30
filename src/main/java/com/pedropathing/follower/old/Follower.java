@@ -33,8 +33,8 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.util.Constants;
-import com.pedropathing.control.CustomFilteredPIDFCoefficients;
-import com.pedropathing.control.CustomPIDFCoefficients;
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -1393,7 +1393,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setHeadingPIDF(CustomPIDFCoefficients set){
+    public void setHeadingPIDF(PIDFCoefficients set){
         headingPIDF.setCoefficients(set);
     }
 
@@ -1403,7 +1403,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setTranslationalPIDF(CustomPIDFCoefficients set){
+    public void setTranslationalPIDF(PIDFCoefficients set){
         translationalPIDF.setCoefficients(set);
     }
 
@@ -1413,7 +1413,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setDrivePIDF(CustomFilteredPIDFCoefficients set){
+    public void setDrivePIDF(FilteredPIDFCoefficients set){
         drivePIDF.setCoefficients(set);
     }
 
@@ -1423,7 +1423,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setSecondaryHeadingPIDF(CustomPIDFCoefficients set){
+    public void setSecondaryHeadingPIDF(PIDFCoefficients set){
         secondaryHeadingPIDF.setCoefficients(set);
     }
 
@@ -1433,7 +1433,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setSecondaryTranslationalPIDF(CustomPIDFCoefficients set){
+    public void setSecondaryTranslationalPIDF(PIDFCoefficients set){
         secondaryTranslationalPIDF.setCoefficients(set);
     }
 
@@ -1443,7 +1443,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setSecondaryDrivePIDF(CustomFilteredPIDFCoefficients set){
+    public void setSecondaryDrivePIDF(FilteredPIDFCoefficients set){
         secondaryDrivePIDF.setCoefficients(set);
     }
 

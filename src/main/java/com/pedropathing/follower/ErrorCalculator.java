@@ -5,6 +5,7 @@ import static com.pedropathing.follower.old.FollowerConstants.lateralZeroPowerAc
 
 import com.pedropathing.control.KalmanFilter;
 import com.pedropathing.control.KalmanFilterParameters;
+import com.pedropathing.follower.old.FollowerConstants;
 import com.pedropathing.geometry.Path;
 import com.pedropathing.geometry.PathChain;
 import com.pedropathing.geometry.Pose;
@@ -15,13 +16,14 @@ import java.util.Arrays;
 
 public class ErrorCalculator {
 
-    // Static instance of the singleton
     private static ErrorCalculator instance;
     private KalmanFilter driveKalmanFilter;
     private Pose closestPose, currentPose;
     private Path currentPath;
     private PathChain currentPathChain;
+    private boolean followingPathChain;
     private double[] driveErrors;
+    private int chainIndex;
     private double rawDriveError, previousRawDriveError, driveError, headingError;
     private Vector velocityVector = new Vector();
 
@@ -32,6 +34,7 @@ public class ErrorCalculator {
                 1);
 
         driveKalmanFilter = new KalmanFilter(driveKalmanFilterParameters);
+
     }
 
     // Public method to provide access to the instance
@@ -46,12 +49,14 @@ public class ErrorCalculator {
         return instance;
     }
 
-    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, Vector velocity) {
+    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Vector velocity, int chainIndex) {
         this.currentPose = currentPose;
         this.velocityVector = velocity;
         this.currentPath = currentPath;
         this.closestPose = this.currentPath.getClosestPoint(currentPose, 10);
         this.currentPathChain = currentPathChain;
+        this.followingPathChain = followingPathChain;
+        this.chainIndex = chainIndex;
     }
 
     /**
@@ -122,6 +127,33 @@ public class ErrorCalculator {
     }
 
     public double getDriveError() {
+        double distanceToGoal;
+        if (!currentPath.isAtParametricEnd()) {
+            if (followingPathChain && currentPathChain.getDecelerationType() == PathChain.DecelerationType.GLOBAL) {
+                double remainingLength = 0;
+
+                if (chainIndex < currentPathChain.size()) {
+                    for (int i = chainIndex + 1; i<currentPathChain.size(); i++) {
+                        remainingLength += currentPathChain.getPath(i).length();
+                    }
+                }
+
+                distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
+
+                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(FollowerConstants.xMovement, 2) / forwardZeroPowerAcceleration)) {
+                    return -1;
+                }
+            } else {
+                distanceToGoal = currentPath.length() * (1 - currentPath.getClosestPointTValue());
+            }
+        } else {
+            Vector offset = new Vector();
+            offset.setOrthogonalComponents(currentPose.getX() - currentPath.getLastControlPoint().getX(), currentPose.getY() - currentPath.getLastControlPoint().getY());
+            distanceToGoal = MathFunctions.dotProduct(currentPath.getEndTangent(), offset);
+        }
+
+        driveError = getDriveVelocityError(distanceToGoal);
+
         return driveError;
     }
 

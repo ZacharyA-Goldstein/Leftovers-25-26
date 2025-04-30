@@ -1,22 +1,25 @@
 package com.pedropathing.follower;
 
+import static com.pedropathing.util.MathFunctions.findNormalizingScaling;
+
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
 
 /**
- * This is the Mecanum class. This class takes in inputs Vectors for driving, heading
+ * This is the Mecanum class, a child class of Drivetrain. This class takes in inputs Vectors for driving, heading
  * correction, and translational/centripetal correction and returns an array with wheel powers.
  *
  * @author Anyi Lin - 10158 Scott's Bots
+ * @author Baron Henderson - 20077 The Indubitables
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
- * @version 1.0, 3/4/2024
+ * @version 1.0, 4/30/2025
  */
 public class Mecanum extends Drivetrain {
     // This is ordered left front, left back, right front, right back. These are also normalized.
 
     /**
-     * This creates a new DriveVectorScaler, which takes in various movement vectors and outputs
+     * This creates a new Mecanum, which takes in various movement vectors and outputs
      * the wheel drive powers necessary to move in the intended direction, given the true movement
      * vector for the front left mecanum wheel.
      *
@@ -77,7 +80,7 @@ public class Mecanum extends Drivetrain {
 
             if (leftSideVector.getMagnitude() > maxPowerScaling || rightSideVector.getMagnitude() > maxPowerScaling) {
                 //if the combined corrective and heading power is greater than 1, then scale down heading power
-                double headingScalingFactor = Math.min(findNormalizingScaling(correctivePower, headingPower), findNormalizingScaling(correctivePower, MathFunctions.scalarMultiplyVector(headingPower, -1)));
+                double headingScalingFactor = Math.min(findNormalizingScaling(correctivePower, headingPower, maxPowerScaling), findNormalizingScaling(correctivePower, MathFunctions.scalarMultiplyVector(headingPower, -1),maxPowerScaling));
                 truePathingVectors[0] = MathFunctions.subtractVectors(correctivePower, MathFunctions.scalarMultiplyVector(headingPower, headingScalingFactor));
                 truePathingVectors[1] = MathFunctions.addVectors(correctivePower, MathFunctions.scalarMultiplyVector(headingPower, headingScalingFactor));
             } else {
@@ -87,7 +90,7 @@ public class Mecanum extends Drivetrain {
 
                 if (leftSideVectorWithPathing.getMagnitude() > maxPowerScaling || rightSideVectorWithPathing.getMagnitude() > maxPowerScaling) {
                     // too much power now, so we scale down the pathing vector
-                    double pathingScalingFactor = Math.min(findNormalizingScaling(leftSideVector, pathingPower), findNormalizingScaling(rightSideVector, pathingPower));
+                    double pathingScalingFactor = Math.min(findNormalizingScaling(leftSideVector, pathingPower, maxPowerScaling), findNormalizingScaling(rightSideVector, pathingPower, maxPowerScaling));
                     truePathingVectors[0] = MathFunctions.addVectors(leftSideVector, MathFunctions.scalarMultiplyVector(pathingPower, pathingScalingFactor));
                     truePathingVectors[1] = MathFunctions.addVectors(rightSideVector, MathFunctions.scalarMultiplyVector(pathingPower, pathingScalingFactor));
                 } else {
@@ -122,34 +125,6 @@ public class Mecanum extends Drivetrain {
         }
 
         return wheelPowers;
-    }
-
-    /**
-     * This takes in two Vectors, one static and one variable, and returns the scaling factor that,
-     * when multiplied to the variable Vector, results in magnitude of the sum of the static Vector
-     * and the scaled variable Vector being the max power scaling.
-     *
-     * IMPORTANT NOTE: I did not intend for this to be used for anything other than the method above
-     * this one in this class, so there will be errors if you input Vectors of length greater than maxPowerScaling,
-     * and it will scale up the variable Vector if the magnitude of the sum of the two input Vectors
-     * isn't greater than maxPowerScaling. So, just don't use this elsewhere. There's gotta be a better way to do
-     * whatever you're trying to do.
-     *
-     * I know that this is used outside of this class, however, I created this method so I get to
-     * use it if I want to. Also, it's only used once outside of the DriveVectorScaler class, and
-     * it's used to scale Vectors, as intended.
-     *
-     * @param staticVector the Vector that is held constant.
-     * @param variableVector the Vector getting scaled to make the sum of the input Vectors have a
-     *                       magnitude of maxPowerScaling.
-     * @return returns the scaling factor for the variable Vector.
-     */
-    public double findNormalizingScaling(Vector staticVector, Vector variableVector) {
-        double a = Math.pow(variableVector.getXComponent(), 2) + Math.pow(variableVector.getYComponent(), 2);
-        double b = staticVector.getXComponent() * variableVector.getXComponent() + staticVector.getYComponent() * variableVector.getYComponent();
-        double c = Math.pow(staticVector.getXComponent(), 2) + Math.pow(staticVector.getYComponent(), 2) - Math.pow(maxPowerScaling, 2);
-        return (-b + Math.sqrt(Math.pow(b, 2) - a*c))/(a);
-
     }
 }
 

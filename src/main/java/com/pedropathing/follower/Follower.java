@@ -1,18 +1,14 @@
 package com.pedropathing.follower;
 
 import static com.pedropathing.follower.old.FollowerConstants.automaticHoldEnd;
-import static com.pedropathing.follower.old.FollowerConstants.cacheInvalidateSeconds;
 import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorName;
 import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.nominalVoltage;
 import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorName;
 import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorName;
 import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorDirection;
 import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorDirection;
 import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorDirection;
 import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.useVoltageCompensationInAuto;
-import static com.pedropathing.follower.old.FollowerConstants.useVoltageCompensationInTeleOp;
 
 import android.util.Log;
 
@@ -20,12 +16,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.old.FollowerConstants;
 import com.pedropathing.util.Constants;
-import com.pedropathing.control.CustomFilteredPIDFCoefficients;
-import com.pedropathing.control.CustomPIDFCoefficients;
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -68,7 +63,7 @@ public class Follower {
     private List<DcMotorEx> motors;
 
     private Drivetrain drivetrain;
-    private ErrorHandler errorHandler;
+    private VectorCalculator vectorCalculator;
 
     public PoseUpdater poseUpdater;
     private DashboardPoseTracker dashboardPoseTracker;
@@ -127,12 +122,6 @@ public class Follower {
      * Credit to team 14343 Escape Velocity for the voltage code
      * Credit to team 23511 Seattle Solvers for implementing the voltage code into Follower.java
      */
-    private boolean cached = false;
-
-    private VoltageSensor voltageSensor;
-    public double voltage = 0;
-    private final ElapsedTime voltageTimer = new ElapsedTime();
-
     private boolean logDebug = true;
 
     private ElapsedTime zeroVelocityDetectedTimer;
@@ -191,11 +180,7 @@ public class Follower {
         poseUpdater = new PoseUpdater(hardwareMap);
        //TODO add switch
         drivetrain = new Mecanum(FollowerConstants.frontLeftVector, maxPowerScaling);
-        errorHandler = new ErrorHandler(poseUpdater, drivetrain);
-
-
-        voltageSensor = hardwareMap.voltageSensor.iterator().next();
-        voltageTimer.reset();
+        vectorCalculator = VectorCalculator.getInstance();
 
         leftFront = hardwareMap.get(DcMotorEx.class, leftFrontMotorName);
         leftRear = hardwareMap.get(DcMotorEx.class, leftRearMotorName);
@@ -233,10 +218,7 @@ public class Follower {
         poseUpdater = new PoseUpdater(hardwareMap, localizer);
         //TODO add switch
         drivetrain = new Mecanum(FollowerConstants.frontLeftVector, maxPowerScaling);
-        errorHandler = new ErrorHandler(poseUpdater, drivetrain);
-
-        voltageSensor = hardwareMap.voltageSensor.iterator().next();
-        voltageTimer.reset();
+        vectorCalculator = VectorCalculator.getInstance();
 
         leftFront = hardwareMap.get(DcMotorEx.class, leftFrontMotorName);
         leftRear = hardwareMap.get(DcMotorEx.class, leftRearMotorName);
@@ -564,12 +546,6 @@ public class Follower {
         }
     }
 
-    /**
-     * Calls an update to the ErrorHandler, which updates the robot's current errors and corrective vectors.
-     */
-    public void updateErrors() {
-        errorHandler.update(this);
-    }
 
     /**
      * This calls an update to the PoseUpdater, which updates the robot's current position estimate.
@@ -577,7 +553,7 @@ public class Follower {
      */
     public void update() {
         updatePose();
-        updateErrors();
+        //updateErrors();
 
         if (!teleopDrive) {
             if (currentPath != null) {
@@ -590,13 +566,7 @@ public class Follower {
 
                     for (int i = 0; i < motors.size(); i++) {
                         if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
-                            double voltageNormalized = getVoltageNormalized();
-
-                            if (useVoltageCompensationInAuto) {
-                                motors.get(i).setPower(drivePowers[i] * voltageNormalized);
-                            } else {
                                 motors.get(i).setPower(drivePowers[i]);
-                            }
                         }
                     }
 
@@ -617,13 +587,7 @@ public class Follower {
 
                         for (int i = 0; i < motors.size(); i++) {
                             if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
-                                double voltageNormalized = getVoltageNormalized();
-
-                                if (useVoltageCompensationInAuto) {
-                                    motors.get(i).setPower(drivePowers[i] * voltageNormalized);
-                                } else {
                                     motors.get(i).setPower(drivePowers[i]);
-                                }
                             }
                         }
                     }
@@ -697,20 +661,12 @@ public class Follower {
         } else {
             updateErrors();
 
-            errorHandler.teleopUpdate();
+            vectorCalculator.teleopUpdate();
 
             drivePowers = drivetrain.getDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseUpdater.getPose().getHeading());
 
             for (int i = 0; i < motors.size(); i++) {
-                if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
-                    double voltageNormalized = getVoltageNormalized();
-
-                    if (useVoltageCompensationInTeleOp) {
-                        motors.get(i).setPower(drivePowers[i] * voltageNormalized);
-                    } else {
                         motors.get(i).setPower(drivePowers[i]);
-                    }
-                }
             }
         }
     }
@@ -744,20 +700,13 @@ public class Follower {
         if (logDebug) {
             Log.d("Follower_logger", "Breaking following");
         }
-        errorHandler.breakFollowing();
+        vectorCalculator.breakFollowing();
         teleopDrive = false;
         setMotorsToFloat();
         holdingPosition = false;
         isBusy = false;
         reachedParametricPathEnd = false;
-        secondaryDrivePIDF.reset();
-        drivePIDF.reset();
-        secondaryHeadingPIDF.reset();
-        headingPIDF.reset();
-        secondaryTranslationalPIDF.reset();
-        secondaryTranslationalIntegral.reset();
-        translationalPIDF.reset();
-        translationalIntegral.reset();
+
         for (int i = 0; i < motors.size(); i++) {
             motors.get(i).setPower(0);
         }
@@ -902,13 +851,6 @@ public class Follower {
         return dashboardPoseTracker;
     }
 
-    /**
-     * This resets the IMU, if applicable.
-     */
-    private void resetIMU() throws InterruptedException {
-        poseUpdater.resetIMU();
-    }
-
     private void debugLog() {
         Log.d("Follower_logger::", "isAtParametricEnd:" + currentPath.isAtParametricEnd()
                 + " | isBusy: " + isBusy
@@ -944,36 +886,6 @@ public class Follower {
         return poseUpdater.getLocalizer().isNAN();
     }
 
-    /**
-     * @return The last cached voltage measurement.
-     */
-    public double getVoltage() {
-        if (voltageTimer.seconds() > cacheInvalidateSeconds && cacheInvalidateSeconds >= 0) {
-            cached = false;
-        }
-
-        if (!cached)
-            refreshVoltage();
-
-        return voltage;
-    }
-
-    /**
-     * @return A scalar that normalizes power outputs to the nominal voltage from the current voltage.
-     */
-    public double getVoltageNormalized() {
-        return Math.min(nominalVoltage / getVoltage(), 1);
-    }
-
-    /**
-     * Overrides the voltage cooldown.
-     */
-    public void refreshVoltage() {
-        cached = true;
-        voltage = voltageSensor.getVoltage();
-        voltageTimer.reset();
-    }
-
     /** Turns a certain amount of degrees left
      * @param radians the amount of radians to turn
      * @param isLeft true if turning left, false if turning right
@@ -989,7 +901,7 @@ public class Follower {
      * @param radians the heading in radians to turn to
      */
     public void turnTo(double radians) {
-        holdPoint(new Pose(getPose().getX(), getPose().getY(), Math.toRadians(radians)));
+        holdPoint(new Pose(getPose().getX(), getPose().getY(), radians));
         isTurning = true;
         isBusy = true;
     }
@@ -1019,7 +931,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setHeadingPIDF(CustomPIDFCoefficients set){
+    public void setHeadingPIDF(PIDFCoefficients set){
         headingPIDF.setCoefficients(set);
     }
 
@@ -1029,7 +941,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setTranslationalPIDF(CustomPIDFCoefficients set){
+    public void setTranslationalPIDF(PIDFCoefficients set){
         translationalPIDF.setCoefficients(set);
     }
 
@@ -1039,7 +951,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setDrivePIDF(CustomFilteredPIDFCoefficients set){
+    public void setDrivePIDF(FilteredPIDFCoefficients set){
         drivePIDF.setCoefficients(set);
     }
 
@@ -1049,7 +961,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setSecondaryHeadingPIDF(CustomPIDFCoefficients set){
+    public void setSecondaryHeadingPIDF(PIDFCoefficients set){
         secondaryHeadingPIDF.setCoefficients(set);
     }
 
@@ -1059,7 +971,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setSecondaryTranslationalPIDF(CustomPIDFCoefficients set){
+    public void setSecondaryTranslationalPIDF(PIDFCoefficients set){
         secondaryTranslationalPIDF.setCoefficients(set);
     }
 
@@ -1069,7 +981,7 @@ public class Follower {
      *
      * @param set PIDF coefficients you would like to set.
      */
-    public void setSecondaryDrivePIDF(CustomFilteredPIDFCoefficients set){
+    public void setSecondaryDrivePIDF(FilteredPIDFCoefficients set){
         secondaryDrivePIDF.setCoefficients(set);
     }
 
@@ -1212,75 +1124,75 @@ public class Follower {
     }
 
     public Vector getCentripetalVector() {
-        return errorHandler.getCentripetalVector();
+        return vectorCalculator.getCentripetalVector();
     }
 
     public Vector getTranslationalVector() {
-        return errorHandler.getTranslationalVector();
+        return vectorCalculator.getTranslationalVector();
     }
 
     public Vector getTeleopHeadingVector() {
-        return errorHandler.getTeleopHeadingVector();
+        return vectorCalculator.getTeleopHeadingVector();
     }
 
     public Vector getTeleopDriveVector() {
-        return errorHandler.getTeleopDriveVector();
+        return vectorCalculator.getTeleopDriveVector();
     }
 
     public Vector getTranslationalIntegralVector() {
-        return errorHandler.getTranslationalIntegralVector();
+        return vectorCalculator.getTranslationalIntegralVector();
     }
 
     public Vector getAverageAcceleration() {
-        return errorHandler.getAverageAcceleration();
+        return vectorCalculator.getAverageAcceleration();
     }
 
     public Vector getSecondaryTranslationalIntegralVector() {
-        return errorHandler.getSecondaryTranslationalIntegralVector();
+        return vectorCalculator.getSecondaryTranslationalIntegralVector();
     }
 
     public double getHeadingError() {
-        return errorHandler.getHeadingError();
+        return vectorCalculator.getHeadingError();
     }
 
     public double getDriveError() {
-        return errorHandler.getDriveError();
+        return vectorCalculator.getDriveError();
     }
 
     public double getRawDriveError() {
-        return errorHandler.getRawDriveError();
+        return vectorCalculator.getRawDriveError();
     }
 
     public double[] getDriveErrors() {
-        return errorHandler.getDriveErrors();
+        return vectorCalculator.getDriveErrors();
     }
 
     public Vector getDriveVector() {
-        return errorHandler.getDriveVector();
+        return vectorCalculator.getDriveVector();
     }
 
     public Vector getCorrectiveVector() {
-        return errorHandler.getCorrectiveVector();
+        return vectorCalculator.getCorrectiveVector();
     }
 
     public Vector getHeadingVector() {
-        return errorHandler.getHeadingVector();
+        return vectorCalculator.getHeadingVector();
     }
 
     public Vector getTranslationalError() {
-        return errorHandler.getTranslationalError();
+        return vectorCalculator.getTranslationalError();
     }
 
     public Vector getTranslationalCorrection() {
-        return errorHandler.getTranslationalCorrection();
+        return vectorCalculator.getTranslationalCorrection();
     }
 
     public Vector getCentripetalForceCorrection() {
-        return errorHandler.getCentripetalForceCorrection();
+        return vectorCalculator.getCentripetalForceCorrection();
     }
 
     public KalmanFilter getDriveKalmanFilter() {
-        return errorHandler.getDriveKalmanFilter();
+        return vectorCalculator.getDriveKalmanFilter();
     }
 
 

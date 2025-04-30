@@ -291,4 +291,30 @@ public class MathFunctions {
     public static double mmToIn(double mm) {
         return mm / 25.4;
     }
+
+    /**
+     * This takes in two Vectors, one static and one variable, and returns the scaling factor that,
+     * when multiplied to the variable Vector, results in magnitude of the sum of the static Vector
+     * and the scaled variable Vector being the max power scaling.
+     *
+     * IMPORTANT NOTE: There will be errors if you input Vectors of length greater than maxPowerScaling,
+     * and it will scale up the variable Vector if the magnitude of the sum of the two input Vectors
+     * isn't greater than maxPowerScaling.
+     *
+     * I know that this is used outside of this class, however, I created this method so I get to
+     * use it if I want to.
+     *
+     * @param staticVector the Vector that is held constant.
+     * @param variableVector the Vector getting scaled to make the sum of the input Vectors have a
+     *                       magnitude of maxPowerScaling.
+     * @param maxPowerScaling
+     * @return returns the scaling factor for the variable Vector.
+     */
+    public static double findNormalizingScaling(Vector staticVector, Vector variableVector, double maxPowerScaling) {
+        double a = Math.pow(variableVector.getXComponent(), 2) + Math.pow(variableVector.getYComponent(), 2);
+        double b = staticVector.getXComponent() * variableVector.getXComponent() + staticVector.getYComponent() * variableVector.getYComponent();
+        double c = Math.pow(staticVector.getXComponent(), 2) + Math.pow(staticVector.getYComponent(), 2) - Math.pow(maxPowerScaling, 2);
+        return (-b + Math.sqrt(Math.pow(b, 2) - a*c))/(a);
+
+    }
 }

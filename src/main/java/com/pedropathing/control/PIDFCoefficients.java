@@ -3,7 +3,7 @@ package com.pedropathing.control;
 import androidx.annotation.NonNull;
 
 /**
- * This is the CustomPIDFCoefficients class. This class handles holding coefficients for PIDF
+ * This is the PIDFCoefficients class. This class handles holding coefficients for PIDF
  * controllers.
  *
  * @author Anyi Lin - 10158 Scott's Bots
@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/5/2024
  */
-public class CustomPIDFCoefficients {
+public class PIDFCoefficients {
     public double P;
     public double I;
     public double D;
@@ -22,14 +22,14 @@ public class CustomPIDFCoefficients {
     private boolean usingEquation;
 
     /**
-     * This creates a new CustomPIDFCoefficients with constant coefficients.
+     * This creates a new PIDFCoefficients with constant coefficients.
      *
      * @param p the coefficient for the proportional factor.
      * @param i the coefficient for the integral factor.
      * @param d the coefficient for the derivative factor.
      * @param f the coefficient for the feedforward factor.
      */
-    public CustomPIDFCoefficients(double p, double i, double d, double f) {
+    public PIDFCoefficients(double p, double i, double d, double f) {
         P = p;
         I = i;
         D = d;
@@ -37,7 +37,7 @@ public class CustomPIDFCoefficients {
     }
 
     /**
-     * This creates a new CustomPIDFCoefficients with constant PID coefficients and a variable
+     * This creates a new PIDFCoefficients with constant PID coefficients and a variable
      * feedforward equation using a FeedForwardConstant.
      *
      * @param p the coefficient for the proportional factor.
@@ -45,7 +45,7 @@ public class CustomPIDFCoefficients {
      * @param d the coefficient for the derivative factor.
      * @param f the equation for the feedforward factor.
      */
-    public CustomPIDFCoefficients(double p, double i, double d, FeedForwardConstant f) {
+    public PIDFCoefficients(double p, double i, double d, FeedForwardConstant f) {
         usingEquation = true;
         P = p;
         I = i;

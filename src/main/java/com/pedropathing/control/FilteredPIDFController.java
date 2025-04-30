@@ -9,7 +9,7 @@ package com.pedropathing.control;
  * @version 1.0, 7/15/2024
  */
 public class FilteredPIDFController {
-    private CustomFilteredPIDFCoefficients coefficients;
+    private FilteredPIDFCoefficients coefficients;
 
     private double previousError;
     private double error;
@@ -29,7 +29,7 @@ public class FilteredPIDFController {
      *
      * @param set the coefficients to use.
      */
-    public FilteredPIDFController(CustomFilteredPIDFCoefficients set) {
+    public FilteredPIDFController(FilteredPIDFCoefficients set) {
         setCoefficients(set);
         reset();
     }
@@ -131,7 +131,7 @@ public class FilteredPIDFController {
      *
      * @param set the coefficients that the filtered PIDF will use.
      */
-    public void setCoefficients(CustomFilteredPIDFCoefficients set) {
+    public void setCoefficients(FilteredPIDFCoefficients set) {
         coefficients = set;
     }
 
@@ -140,7 +140,7 @@ public class FilteredPIDFController {
      *
      * @return this returns the current coefficients.
      */
-    public CustomFilteredPIDFCoefficients getCoefficients() {
+    public FilteredPIDFCoefficients getCoefficients() {
         return coefficients;
     }
 

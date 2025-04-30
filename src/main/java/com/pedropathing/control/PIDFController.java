@@ -13,7 +13,7 @@ package com.pedropathing.control;
  * @version 1.0, 3/5/2024
  */
 public class PIDFController {
-    private CustomPIDFCoefficients coefficients;
+    private PIDFCoefficients coefficients;
 
     private double previousError;
     private double error;
@@ -31,7 +31,7 @@ public class PIDFController {
      *
      * @param set the coefficients to use.
      */
-    public PIDFController(CustomPIDFCoefficients set) {
+    public PIDFController(PIDFCoefficients set) {
         setCoefficients(set);
         reset();
     }
@@ -127,7 +127,7 @@ public class PIDFController {
      *
      * @param set the coefficients that the PIDF will use.
      */
-    public void setCoefficients(CustomPIDFCoefficients set) {
+    public void setCoefficients(PIDFCoefficients set) {
         coefficients = set;
     }
 
@@ -136,7 +136,7 @@ public class PIDFController {
      *
      * @return this returns the current coefficients.
      */
-    public CustomPIDFCoefficients getCoefficients() {
+    public PIDFCoefficients getCoefficients() {
         return coefficients;
     }
 

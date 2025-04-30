@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 
 
 
-public class CustomFilteredPIDFCoefficients {
+public class FilteredPIDFCoefficients {
     public double P;
     public double I;
     public double D;
@@ -32,7 +32,7 @@ public class CustomFilteredPIDFCoefficients {
      * @param t the time constant for the filter
      * @param f the coefficient for the feedforward factor.
      */
-    public CustomFilteredPIDFCoefficients(double p, double i, double d, double t, double f) {
+    public FilteredPIDFCoefficients(double p, double i, double d, double t, double f) {
         P = p;
         I = i;
         D = d;
@@ -50,7 +50,7 @@ public class CustomFilteredPIDFCoefficients {
      * @param t the time constant for the filter
      * @param f the equation for the feedforward factor.
      */
-    public CustomFilteredPIDFCoefficients(double p, double i, double d, double t, FeedForwardConstant f) {
+    public FilteredPIDFCoefficients(double p, double i, double d, double t, FeedForwardConstant f) {
         usingEquation = true;
         P = p;
         I = i;

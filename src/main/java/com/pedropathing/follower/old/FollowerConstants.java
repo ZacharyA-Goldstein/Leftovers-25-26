@@ -7,8 +7,8 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.pedropathing.geometry.Vector;
-import com.pedropathing.control.CustomFilteredPIDFCoefficients;
-import com.pedropathing.control.CustomPIDFCoefficients;
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.control.KalmanFilterParameters;
 
 /**
@@ -90,7 +90,7 @@ public class FollowerConstants {
 
     /** Translational PIDF coefficients (don't use integral)
      *  Default Value: new CustomPIDFCoefficients(0.1,0,0,0); */
-    public static CustomPIDFCoefficients translationalPIDFCoefficients = new CustomPIDFCoefficients(
+    public static PIDFCoefficients translationalPIDFCoefficients = new PIDFCoefficients(
             0.1,
             0,
             0,
@@ -98,7 +98,7 @@ public class FollowerConstants {
 
     /** Translational Integral
      *  Default Value: new CustomPIDFCoefficients(0,0,0,0); */
-    public static CustomPIDFCoefficients translationalIntegral = new CustomPIDFCoefficients(
+    public static PIDFCoefficients translationalIntegral = new PIDFCoefficients(
             0,
             0,
             0,
@@ -108,10 +108,9 @@ public class FollowerConstants {
      *  Default Value: 0.015 */
     public static double translationalPIDFFeedForward = 0.015;
 
-
     /** Heading error PIDF coefficients
      *  Default Value: new CustomPIDFCoefficients(1,0,0,0); */
-    public static CustomPIDFCoefficients headingPIDFCoefficients = new CustomPIDFCoefficients(
+    public static PIDFCoefficients headingPIDFCoefficients = new PIDFCoefficients(
             1,
             0,
             0,
@@ -124,7 +123,7 @@ public class FollowerConstants {
 
     /** Drive PIDF coefficients
      *  Default Value: new CustomFilteredPIDFCoefficients(0.025,0,0.00001,0.6,0); */
-    public static CustomFilteredPIDFCoefficients drivePIDFCoefficients = new CustomFilteredPIDFCoefficients(
+    public static FilteredPIDFCoefficients drivePIDFCoefficients = new FilteredPIDFCoefficients(
             0.025,
             0,
             0.00001,
@@ -256,7 +255,7 @@ public class FollowerConstants {
     /** Secondary translational PIDF coefficients (don't use integral).
      * @see #useSecondaryTranslationalPID
      *  Default Value: new CustomPIDFCoefficients(0.3, 0, 0.01, 0) */
-    public static CustomPIDFCoefficients secondaryTranslationalPIDFCoefficients = new CustomPIDFCoefficients(
+    public static PIDFCoefficients secondaryTranslationalPIDFCoefficients = new PIDFCoefficients(
             0.3,
             0,
             0.01,
@@ -265,7 +264,7 @@ public class FollowerConstants {
     /** Secondary translational Integral value.
      * @see #useSecondaryTranslationalPID
      *  Default Value: new CustomPIDFCoefficients(0, 0, 0, 0) */
-    public static CustomPIDFCoefficients secondaryTranslationalIntegral = new CustomPIDFCoefficients(
+    public static PIDFCoefficients secondaryTranslationalIntegral = new PIDFCoefficients(
             0,
             0,
             0,
@@ -285,7 +284,7 @@ public class FollowerConstants {
     /** Secondary heading error PIDF coefficients.
      * @see #useSecondaryHeadingPID
      *  Default Value: new CustomPIDFCoefficients(5, 0, 0.08, 0) */
-    public static CustomPIDFCoefficients secondaryHeadingPIDFCoefficients = new CustomPIDFCoefficients(
+    public static PIDFCoefficients secondaryHeadingPIDFCoefficients = new PIDFCoefficients(
             5,
             0,
             0.08,
@@ -305,7 +304,7 @@ public class FollowerConstants {
     /** Secondary drive PIDF coefficients.
      * @see #useSecondaryDrivePID
      *  Default Value: new CustomFilteredPIDFCoefficients(0.02, 0, 0.000005, 0.6, 0) */
-    public static CustomFilteredPIDFCoefficients secondaryDrivePIDFCoefficients = new CustomFilteredPIDFCoefficients(
+    public static FilteredPIDFCoefficients secondaryDrivePIDFCoefficients = new FilteredPIDFCoefficients(
             0.02,
             0,
             0.000005,
