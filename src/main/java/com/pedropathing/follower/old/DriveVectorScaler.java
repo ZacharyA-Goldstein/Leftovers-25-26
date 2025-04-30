@@ -1,6 +1,6 @@
-package com.pedropathing.follower;
+package com.pedropathing.follower.old;
 
-import static com.pedropathing.follower.FollowerConstants.maxPower;
+import static com.pedropathing.follower.old.FollowerConstants.maxPower;
 
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;

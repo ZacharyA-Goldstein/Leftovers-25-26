@@ -3,7 +3,7 @@ package com.pedropathing.geometry;
 
 import androidx.annotation.NonNull;
 
-import com.pedropathing.follower.FollowerConstants;
+import com.pedropathing.follower.old.FollowerConstants;
 import com.pedropathing.util.MathFunctions;
 
 import java.util.ArrayList;

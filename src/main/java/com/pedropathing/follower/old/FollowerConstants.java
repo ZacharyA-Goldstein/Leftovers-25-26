@@ -1,4 +1,4 @@
-package com.pedropathing.follower;
+package com.pedropathing.follower.old;
 
 
 import com.acmerobotics.dashboard.config.Config;

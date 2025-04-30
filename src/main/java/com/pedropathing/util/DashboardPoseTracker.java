@@ -1,9 +1,6 @@
 package com.pedropathing.util;
 
-import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.PoseUpdater;
-
-import java.util.ArrayList;
 
 /**
  * This is the DashboardPoseTracker class. This tracks the pose history of the robot through a

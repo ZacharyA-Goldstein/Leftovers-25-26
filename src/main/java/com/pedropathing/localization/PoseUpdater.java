@@ -1,5 +1,5 @@
 package com.pedropathing.localization;
-import static com.pedropathing.follower.FollowerConstants.localizers;
+import static com.pedropathing.follower.old.FollowerConstants.localizers;
 
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Constants;

@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
-import com.pedropathing.follower.Follower;
+import com.pedropathing.follower.old.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.Path;
 import com.pedropathing.geometry.PathChain;

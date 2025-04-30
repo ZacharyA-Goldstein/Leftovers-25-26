@@ -1,7 +1,4 @@
-package com.pedropathing.geometry;
-
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.util.SingleRunAction;
+package com.pedropathing.util;
 
 /**
  * This is the PathCallback class. This class handles callbacks of Runnables in PathChains.

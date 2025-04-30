@@ -15,7 +15,7 @@ public abstract class Drivetrain {
      * @param correctivePower this Vector includes the centrifugal force scaling Vector as well as a
      *                        translational power Vector to correct onto the Bezier curve the Follower
      *                        is following.
-     * @param headingPower this Vector points in the direction of the robot's current heaing, and
+     * @param headingPower this Vector points in the direction of the robot's current heading, and
      *                     the magnitude tells the robot how much it should turn and in which
      *                     direction.
      * @param pathingPower this Vector points in the direction the robot needs to go to continue along

@@ -1,7 +1,8 @@
 package com.pedropathing.geometry;
 
-import com.pedropathing.follower.FollowerConstants;
+import com.pedropathing.follower.old.FollowerConstants;
 import com.pedropathing.util.MathFunctions;
+import com.pedropathing.util.PathCallback;
 
 import java.util.ArrayList;
 

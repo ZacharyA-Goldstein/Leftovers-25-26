@@ -1,20 +1,21 @@
 package com.pedropathing.follower;
 
-import static com.pedropathing.follower.FollowerConstants.drivePIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.drivePIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.forwardZeroPowerAcceleration;
-import static com.pedropathing.follower.FollowerConstants.headingPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.headingPIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.lateralZeroPowerAcceleration;
-import static com.pedropathing.follower.FollowerConstants.secondaryDrivePIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.secondaryHeadingPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.secondaryTranslationalPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.translationalPIDFFeedForward;
-import static com.pedropathing.follower.FollowerConstants.translationalPIDFSwitch;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryDrivePID;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryHeadingPID;
-import static com.pedropathing.follower.FollowerConstants.useSecondaryTranslationalPID;
+import static com.pedropathing.follower.old.FollowerConstants.drivePIDFFeedForward;
+import static com.pedropathing.follower.old.FollowerConstants.drivePIDFSwitch;
+import static com.pedropathing.follower.old.FollowerConstants.forwardZeroPowerAcceleration;
+import static com.pedropathing.follower.old.FollowerConstants.headingPIDFFeedForward;
+import static com.pedropathing.follower.old.FollowerConstants.headingPIDFSwitch;
+import static com.pedropathing.follower.old.FollowerConstants.lateralZeroPowerAcceleration;
+import static com.pedropathing.follower.old.FollowerConstants.secondaryDrivePIDFFeedForward;
+import static com.pedropathing.follower.old.FollowerConstants.secondaryHeadingPIDFFeedForward;
+import static com.pedropathing.follower.old.FollowerConstants.secondaryTranslationalPIDFFeedForward;
+import static com.pedropathing.follower.old.FollowerConstants.translationalPIDFFeedForward;
+import static com.pedropathing.follower.old.FollowerConstants.translationalPIDFSwitch;
+import static com.pedropathing.follower.old.FollowerConstants.useSecondaryDrivePID;
+import static com.pedropathing.follower.old.FollowerConstants.useSecondaryHeadingPID;
+import static com.pedropathing.follower.old.FollowerConstants.useSecondaryTranslationalPID;
 
+import com.pedropathing.follower.old.FollowerConstants;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.localization.PoseUpdater;
 import com.pedropathing.util.MathFunctions;
@@ -32,13 +33,6 @@ public class ErrorHandler {
     private PoseUpdater poseUpdater;
     private Drivetrain drivetrain;
 
-    private KalmanFilter driveKalmanFilter;
-    private double[] driveErrors;
-    private double rawDriveError;
-    private double previousRawDriveError;
-    public double driveError;
-    public double headingError;
-
     private ArrayList<Vector> velocities = new ArrayList<>();
     private ArrayList<Vector> accelerations = new ArrayList<>();
 
@@ -55,7 +49,7 @@ public class ErrorHandler {
     public Vector translationalVector;
     public Vector centripetalVector;
     public Vector correctiveVector;
-    private final int AVERAGED_VELOCITY_SAMPLE_NUMBER = FollowerConstants.AVERAGED_VELOCITY_SAMPLE_NUMBER;;
+    private final int AVERAGED_VELOCITY_SAMPLE_NUMBER = 8;;
     private double previousSecondaryTranslationalIntegral;
     private double previousTranslationalIntegral;
     private double[] teleopDriveValues;
@@ -68,11 +62,7 @@ public class ErrorHandler {
     private boolean followingPathChain = false;
     private double maxPowerScaling = 1.0;
 
-    private PathChain currentPathChain;
-    private Path currentPath;
     private int chainIndex;
-    private Pose closestPose;
-
     private double centripetalScaling;
 
     private PIDFController secondaryTranslationalPIDF;
@@ -88,20 +78,18 @@ public class ErrorHandler {
     public ErrorHandler(PoseUpdater poseUpdater, Drivetrain drivetrain) {
         this.poseUpdater = poseUpdater;
         this.drivetrain = drivetrain;
-        driveKalmanFilter = new KalmanFilter(FollowerConstants.driveKalmanFilterParameters);
     }
 
-    public void update(NewFollower follower) {
+    public void update(Follower follower) {
         this.useDrive = follower.getUseDrive();
         this.useHeading = follower.getUseHeading();
         this.useTranslational = follower.getUseTranslational();
         this.useCentripetal = follower.getUseCentripetal();
         this.teleopDrive = follower.getTeleopDrive();
         this.maxPowerScaling = follower.getMaxPowerScaling();
-        this.currentPathChain = follower.getCurrentPathChain();
-        this.currentPath = follower.getCurrentPath();
+
         this.chainIndex = follower.getChainIndex();
-        this.closestPose = follower.getClosestPose();
+
         this.followingPathChain = follower.getFollowingPathChain();
         this.centripetalScaling = follower.getCentripetalScaling();
         this.secondaryTranslationalPIDF = follower.getSecondaryTranslationalPIDF();
@@ -122,13 +110,6 @@ public class ErrorHandler {
         translationalVector = new Vector();
         centripetalVector = new Vector();
         correctiveVector = new Vector();
-        driveError = 0;
-        headingError = 0;
-        rawDriveError = 0;
-        previousRawDriveError = 0;
-        driveErrors = new double[2];
-        Arrays.fill(driveErrors, 0);
-        driveKalmanFilter.reset();
 
         for (int i = 0; i < AVERAGED_VELOCITY_SAMPLE_NUMBER; i++) {
             velocities.add(new Vector());
@@ -208,48 +189,48 @@ public class ErrorHandler {
         return MathFunctions.copyVector(driveVector);
     }
 
-    /**
-     * This returns the velocity the robot needs to be at to make it to the end of the Path
-     * at some specified deceleration (well technically just some negative acceleration).
-     *
-     * @return returns the projected velocity.
-     */
-    public double getDriveVelocityError(double distanceToGoal) {
-        Vector distanceToGoalVector = MathFunctions.scalarMultiplyVector(MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector()), distanceToGoal);
-        Vector velocity = new Vector(MathFunctions.dotProduct(poseUpdater.getVelocity(), MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta());
-
-        Vector forwardHeadingVector = new Vector(1.0, poseUpdater.getPose().getHeading());
-
-        double forwardVelocity = MathFunctions.dotProduct(forwardHeadingVector, velocity);
-        double forwardDistanceToGoal = MathFunctions.dotProduct(forwardHeadingVector, distanceToGoalVector);
-        double forwardVelocityGoal = MathFunctions.getSign(forwardDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * forwardZeroPowerAcceleration * (forwardDistanceToGoal <= 0 ? 1 : -1) * forwardDistanceToGoal));
-        double forwardVelocityZeroPowerDecay = forwardVelocity - MathFunctions.getSign(forwardDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(forwardVelocity, 2) + 2 * forwardZeroPowerAcceleration * Math.abs(forwardDistanceToGoal)));
-
-        Vector lateralHeadingVector = new Vector(1.0, poseUpdater.getPose().getHeading() - Math.PI / 2);
-        double lateralVelocity = MathFunctions.dotProduct(lateralHeadingVector, velocity);
-        double lateralDistanceToGoal = MathFunctions.dotProduct(lateralHeadingVector, distanceToGoalVector);
-
-        double lateralVelocityGoal = MathFunctions.getSign(lateralDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * lateralZeroPowerAcceleration * (lateralDistanceToGoal <= 0 ? 1 : -1) * lateralDistanceToGoal));
-        double lateralVelocityZeroPowerDecay = lateralVelocity - MathFunctions.getSign(lateralDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(lateralVelocity, 2) + 2 * lateralZeroPowerAcceleration * Math.abs(lateralDistanceToGoal)));
-
-        Vector forwardVelocityError = new Vector(forwardVelocityGoal - forwardVelocityZeroPowerDecay - forwardVelocity, forwardHeadingVector.getTheta());
-        Vector lateralVelocityError = new Vector(lateralVelocityGoal - lateralVelocityZeroPowerDecay - lateralVelocity, lateralHeadingVector.getTheta());
-        Vector velocityErrorVector = MathFunctions.addVectors(forwardVelocityError, lateralVelocityError);
-
-        previousRawDriveError = rawDriveError;
-        rawDriveError = velocityErrorVector.getMagnitude() * MathFunctions.getSign(MathFunctions.dotProduct(velocityErrorVector, currentPath.getClosestPointTangentVector()));
-
-        double projection = 2 * driveErrors[1] - driveErrors[0];
-
-        driveKalmanFilter.update(rawDriveError - previousRawDriveError, projection);
-
-        for (int i = 0; i < driveErrors.length - 1; i++) {
-            driveErrors[i] = driveErrors[i + 1];
-        }
-        driveErrors[1] = driveKalmanFilter.getState();
-
-        return driveKalmanFilter.getState();
-    }
+//    /**
+//     * This returns the velocity the robot needs to be at to make it to the end of the Path
+//     * at some specified deceleration (well technically just some negative acceleration).
+//     *
+//     * @return returns the projected velocity.
+//     */
+//    public double getDriveVelocityError(double distanceToGoal) {
+//        Vector distanceToGoalVector = MathFunctions.scalarMultiplyVector(MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector()), distanceToGoal);
+//        Vector velocity = new Vector(MathFunctions.dotProduct(poseUpdater.getVelocity(), MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta());
+//
+//        Vector forwardHeadingVector = new Vector(1.0, poseUpdater.getPose().getHeading());
+//
+//        double forwardVelocity = MathFunctions.dotProduct(forwardHeadingVector, velocity);
+//        double forwardDistanceToGoal = MathFunctions.dotProduct(forwardHeadingVector, distanceToGoalVector);
+//        double forwardVelocityGoal = MathFunctions.getSign(forwardDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * forwardZeroPowerAcceleration * (forwardDistanceToGoal <= 0 ? 1 : -1) * forwardDistanceToGoal));
+//        double forwardVelocityZeroPowerDecay = forwardVelocity - MathFunctions.getSign(forwardDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(forwardVelocity, 2) + 2 * forwardZeroPowerAcceleration * Math.abs(forwardDistanceToGoal)));
+//
+//        Vector lateralHeadingVector = new Vector(1.0, poseUpdater.getPose().getHeading() - Math.PI / 2);
+//        double lateralVelocity = MathFunctions.dotProduct(lateralHeadingVector, velocity);
+//        double lateralDistanceToGoal = MathFunctions.dotProduct(lateralHeadingVector, distanceToGoalVector);
+//
+//        double lateralVelocityGoal = MathFunctions.getSign(lateralDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * lateralZeroPowerAcceleration * (lateralDistanceToGoal <= 0 ? 1 : -1) * lateralDistanceToGoal));
+//        double lateralVelocityZeroPowerDecay = lateralVelocity - MathFunctions.getSign(lateralDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(lateralVelocity, 2) + 2 * lateralZeroPowerAcceleration * Math.abs(lateralDistanceToGoal)));
+//
+//        Vector forwardVelocityError = new Vector(forwardVelocityGoal - forwardVelocityZeroPowerDecay - forwardVelocity, forwardHeadingVector.getTheta());
+//        Vector lateralVelocityError = new Vector(lateralVelocityGoal - lateralVelocityZeroPowerDecay - lateralVelocity, lateralHeadingVector.getTheta());
+//        Vector velocityErrorVector = MathFunctions.addVectors(forwardVelocityError, lateralVelocityError);
+//
+//        previousRawDriveError = rawDriveError;
+//        rawDriveError = velocityErrorVector.getMagnitude() * MathFunctions.getSign(MathFunctions.dotProduct(velocityErrorVector, currentPath.getClosestPointTangentVector()));
+//
+//        double projection = 2 * driveErrors[1] - driveErrors[0];
+//
+//        driveKalmanFilter.update(rawDriveError - previousRawDriveError, projection);
+//
+//        for (int i = 0; i < driveErrors.length - 1; i++) {
+//            driveErrors[i] = driveErrors[i + 1];
+//        }
+//        driveErrors[1] = driveKalmanFilter.getState();
+//
+//        return driveKalmanFilter.getState();
+//    }
     /**
      * This returns a Vector in the direction of the robot that contains the heading correction
      * as its magnitude. Positive heading correction turns the robot counter-clockwise, and negative
@@ -262,7 +243,6 @@ public class ErrorHandler {
      */
     public Vector getHeadingVector() {
         if (!useHeading) return new Vector();
-        headingError = MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()) * MathFunctions.getSmallestAngleDifference(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal());
         if (Math.abs(headingError) < headingPIDFSwitch && useSecondaryHeadingPID) {
             secondaryHeadingPIDF.updateError(headingError);
             headingVector = new Vector(MathFunctions.clamp(secondaryHeadingPIDF.runPIDF() + secondaryHeadingPIDFFeedForward * MathFunctions.getTurnDirection(poseUpdater.getPose().getHeading(), currentPath.getClosestPointHeadingGoal()), -maxPowerScaling, maxPowerScaling), poseUpdater.getPose().getHeading());
@@ -342,18 +322,18 @@ public class ErrorHandler {
         return translationalVector;
     }
 
-    /**
-     * This returns the raw translational error, or how far off the closest point the robot is.
-     *
-     * @return This returns the raw translational error as a Vector.
-     */
-    public Vector getTranslationalError() {
-        Vector error = new Vector();
-        double x = closestPose.getX() - poseUpdater.getPose().getX();
-        double y = closestPose.getY() - poseUpdater.getPose().getY();
-        error.setOrthogonalComponents(x, y);
-        return error;
-    }
+//    /**
+//     * This returns the raw translational error, or how far off the closest point the robot is.
+//     *
+//     * @return This returns the raw translational error as a Vector.
+//     */
+//    public Vector getTranslationalError() {
+//        Vector error = new Vector();
+//        double x = closestPose.getX() - poseUpdater.getPose().getX();
+//        double y = closestPose.getY() - poseUpdater.getPose().getY();
+//        error.setOrthogonalComponents(x, y);
+//        return error;
+//    }
 
     /**
      * This returns a Vector in the direction the robot must go to account for only centripetal
@@ -482,22 +462,6 @@ public class ErrorHandler {
 
     public Vector getAverageVelocity() {
         return averageVelocity;
-    }
-
-    public double getHeadingError() {
-        return headingError;
-    }
-
-    public double getDriveError() {
-        return driveError;
-    }
-
-    public double getRawDriveError() {
-        return rawDriveError;
-    }
-
-    public double[] getDriveErrors() {
-        return driveErrors;
     }
 
     public KalmanFilter getDriveKalmanFilter() {

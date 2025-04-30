@@ -1,10 +1,10 @@
 package com.pedropathing.localization.localizers;
 
 import static com.pedropathing.localization.constants.DriveEncoderConstants.*;
-import static com.pedropathing.follower.FollowerConstants.leftFrontMotorName;
-import static com.pedropathing.follower.FollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.FollowerConstants.rightFrontMotorName;
-import static com.pedropathing.follower.FollowerConstants.rightRearMotorName;
+import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorName;
+import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorName;
+import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorName;
+import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorName;
 
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
