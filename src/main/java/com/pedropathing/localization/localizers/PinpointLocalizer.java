@@ -12,6 +12,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
 import com.pedropathing.util.NanoTimer;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import java.util.Objects;
 
@@ -45,7 +46,7 @@ import java.util.Objects;
  * @author Ethan Doak - Gobilda
  * @version 1.0, 10/2/2024
  */
-public class PinpointLocalizer extends Localizer {
+public class PinpointLocalizer implements Localizer {
     private HardwareMap hardwareMap;
     private GoBildaPinpointDriver odo;
     private double previousHeading;
@@ -233,6 +234,11 @@ public class PinpointLocalizer extends Localizer {
     @Override
     public void resetIMU() {
         odo.recalibrateIMU();
+    }
+
+    @Override
+    public IMU getIMU() {
+        return null;
     }
 
     /**

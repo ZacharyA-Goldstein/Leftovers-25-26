@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
-import com.pedropathing.follower.old.Follower;
+import com.pedropathing.follower.old.OldFollower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.Path;
 import com.pedropathing.geometry.PathChain;
@@ -28,7 +28,7 @@ public class Drawing {
      *
      * @param follower
      */
-    public static void drawDebug(Follower follower) {
+    public static void drawDebug(OldFollower follower) {
         if (follower.getCurrentPath() != null) {
             drawPath(follower.getCurrentPath(), "#3F51B5");
             Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());

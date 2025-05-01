@@ -37,4 +37,10 @@ public abstract class Drivetrain {
     }
 
     public abstract void breakFollowing();
+
+    public abstract void runPowers(double[] drivePowers);
+
+    public abstract void getAndRunDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading);
+
+    public abstract void startTeleopDrive();
 }

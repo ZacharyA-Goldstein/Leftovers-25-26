@@ -1,16 +1,6 @@
 package com.pedropathing.follower;
 
-import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorName;
 import static com.pedropathing.util.MathFunctions.findNormalizingScaling;
-
-import com.pedropathing.util.DashboardPoseTracker;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -37,6 +27,8 @@ public class Mecanum extends Drivetrain {
     private DcMotorEx rightFront;
     private DcMotorEx rightRear;
     private List<DcMotorEx> motors;
+    private double motorCachingThreshold;
+    private boolean useBrakeModeInTeleOp;
 
     // This is ordered left front, left back, right front, right back. These are also normalized.
 
@@ -50,6 +42,8 @@ public class Mecanum extends Drivetrain {
      */
     public Mecanum(HardwareMap hardwareMap, MecanumConstants mecanumConstants) {
         this.maxPowerScaling = mecanumConstants.maxPower();
+        this.motorCachingThreshold = mecanumConstants.motorCachingThreshold();
+        this.useBrakeModeInTeleOp = mecanumConstants.useBrakeModeInTeleOp();
 
         leftFront = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftFrontMotorName());
         leftRear = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftRearMotorName());
@@ -194,5 +188,26 @@ public class Mecanum extends Drivetrain {
         }
         setMotorsToFloat();
     }
+
+    public void runPowers(double[] drivePowers) {
+        for (int i = 0; i < motors.size(); i++) {
+            if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > motorCachingThreshold) {
+                motors.get(i).setPower(drivePowers[i]);
+            }
+        }
+    }
+
+    @Override
+    public void startTeleopDrive() {
+        if(useBrakeModeInTeleOp) {
+            setMotorsToBrake();
+        }
+    }
+
+    public void getAndRunDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading) {
+        runPowers(getDrivePowers(correctivePower, headingPower, pathingPower, robotHeading));
+    }
+
+
 }
 

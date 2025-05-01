@@ -12,6 +12,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
 import com.pedropathing.util.NanoTimer;
+import com.qualcomm.robotcore.hardware.IMU;
 
 /**
  * This is the ThreeWheelLocalizer class. This class extends the Localizer superclass and is a
@@ -41,7 +42,7 @@ import com.pedropathing.util.NanoTimer;
  * @version 1.0, 4/2/2024
  */
 
-public class ThreeWheelLocalizer extends Localizer {
+public class ThreeWheelLocalizer implements Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;
@@ -289,6 +290,11 @@ public class ThreeWheelLocalizer extends Localizer {
      * This does nothing since this localizer does not use the IMU.
      */
     public void resetIMU() {
+    }
+
+    @Override
+    public IMU getIMU() {
+        return null;
     }
 
     /**

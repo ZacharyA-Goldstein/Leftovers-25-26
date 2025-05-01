@@ -2,7 +2,6 @@ package com.pedropathing.follower.old;
 
 
 import com.acmerobotics.dashboard.config.Config;
-import com.pedropathing.localization.Localizers;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -24,11 +23,11 @@ import com.pedropathing.control.KalmanFilterParameters;
  */
 
 @Config
-public class FollowerConstants {
+public class OldFollowerConstants {
 
     /** The Localizer that the Follower & Pose Updater will use
      *  Default Value: Localizers.THREE_WHEEL */
-    public static Localizers localizers = Localizers.THREE_WHEEL;
+    //public static Localizers localizers = Localizers.THREE_WHEEL;
 
     /** The name of the left front motor
      *  Default Value: "leftFront" */

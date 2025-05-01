@@ -22,6 +22,7 @@ public abstract class FollowerConstants {
     public abstract PIDFCoefficients secondaryTranslationalPIDFCoefficients();
 
     public abstract PIDFCoefficients secondaryTranslationalIntegral();
+    public abstract double translationalPIDFSwitch();
 
     public abstract double secondaryTranslationalPIDFFeedForward();
 
@@ -36,10 +37,14 @@ public abstract class FollowerConstants {
     public abstract FilteredPIDFCoefficients secondaryDrivePIDFCoefficients();
 
     public abstract double secondaryDrivePIDFFeedForward();
-    maxPowerScaling
-    BEZIER_CURVE_SEARCH_LIMIT = com.pedropathing.follower.old.FollowerConstants.BEZIER_CURVE_SEARCH_LIMIT;
-    holdPointTranslationalScaling = com.pedropathing.follower.old.FollowerConstants.holdPointTranslationalScaling;
-    holdPointHeadingScaling = com.pedropathing.follower.old.FollowerConstants.holdPointHeadingScaling;
-    centripetalScaling = com.pedropathing.follower.old.FollowerConstants.centripetalScaling;
-    turnHeadingErrorThreshold = com.pedropathing.follower.old.FollowerConstants.turnHeadingErrorThreshold;
+    public abstract int BEZIER_CURVE_SEARCH_LIMIT();
+    public abstract double holdPointTranslationalScaling();
+    public abstract double holdPointHeadingScaling();
+    public abstract double centripetalScaling();
+    public abstract double turnHeadingErrorThreshold();
+
+    public abstract boolean useSecondaryDrivePIDF();
+    public abstract boolean useSecondaryTranslationalPIDF();
+    public abstract boolean useSecondaryHeadingPIDF();
+
 }

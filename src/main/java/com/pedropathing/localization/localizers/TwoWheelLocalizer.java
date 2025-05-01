@@ -43,7 +43,7 @@ import com.pedropathing.util.NanoTimer;
  * @version 1.0, 4/2/2024
  */
 
-public class TwoWheelLocalizer extends Localizer {
+public class TwoWheelLocalizer implements Localizer {
     private HardwareMap hardwareMap;
     private IMU imu;
     private Pose startPose;

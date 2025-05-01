@@ -1,10 +1,10 @@
 package com.pedropathing.localization.localizers;
 
 import static com.pedropathing.localization.constants.DriveEncoderConstants.*;
-import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorName;
+import static com.pedropathing.follower.old.OldFollowerConstants.leftFrontMotorName;
+import static com.pedropathing.follower.old.OldFollowerConstants.leftRearMotorName;
+import static com.pedropathing.follower.old.OldFollowerConstants.rightFrontMotorName;
+import static com.pedropathing.follower.old.OldFollowerConstants.rightRearMotorName;
 
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -17,6 +17,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
 import com.pedropathing.util.NanoTimer;
+import com.qualcomm.robotcore.hardware.IMU;
 
 /**
  * This is the DriveEncoderLocalizer class. This class extends the Localizer superclass and is a
@@ -26,7 +27,7 @@ import com.pedropathing.util.NanoTimer;
  * @version 1.0, 4/2/2024
  */
 
-public class DriveEncoderLocalizer extends Localizer {
+public class DriveEncoderLocalizer implements Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;
@@ -277,6 +278,11 @@ public class DriveEncoderLocalizer extends Localizer {
     public void resetIMU() {
     }
 
+    @Override
+    public IMU getIMU() {
+        return null;
+    }
+
     /**
      * This returns whether if any component of robot's position is NaN.
      *
@@ -285,4 +291,6 @@ public class DriveEncoderLocalizer extends Localizer {
     public boolean isNAN() {
         return Double.isNaN(getPose().getX()) || Double.isNaN(getPose().getY()) || Double.isNaN(getPose().getHeading());
     }
+
+
 }

@@ -45,7 +45,7 @@ import com.pedropathing.util.NanoTimer;
  * @version 1.0, 7/9/2024
  */
 
-public class ThreeWheelIMULocalizer extends Localizer {
+public class ThreeWheelIMULocalizer implements Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;

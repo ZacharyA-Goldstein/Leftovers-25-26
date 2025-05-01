@@ -1,11 +1,11 @@
 package com.pedropathing.follower;
 
-import static com.pedropathing.follower.old.FollowerConstants.forwardZeroPowerAcceleration;
-import static com.pedropathing.follower.old.FollowerConstants.lateralZeroPowerAcceleration;
+import static com.pedropathing.follower.old.OldFollowerConstants.forwardZeroPowerAcceleration;
+import static com.pedropathing.follower.old.OldFollowerConstants.lateralZeroPowerAcceleration;
 
 import com.pedropathing.control.KalmanFilter;
 import com.pedropathing.control.KalmanFilterParameters;
-import com.pedropathing.follower.old.FollowerConstants;
+import com.pedropathing.follower.old.OldFollowerConstants;
 import com.pedropathing.geometry.Path;
 import com.pedropathing.geometry.PathChain;
 import com.pedropathing.geometry.Pose;
@@ -140,7 +140,7 @@ public class ErrorCalculator {
 
                 distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
 
-                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(FollowerConstants.xMovement, 2) / forwardZeroPowerAcceleration)) {
+                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(OldFollowerConstants.xMovement, 2) / forwardZeroPowerAcceleration)) {
                     return -1;
                 }
             } else {

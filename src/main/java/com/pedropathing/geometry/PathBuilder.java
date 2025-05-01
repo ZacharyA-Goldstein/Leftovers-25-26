@@ -1,6 +1,6 @@
 package com.pedropathing.geometry;
 
-import com.pedropathing.follower.old.FollowerConstants;
+import com.pedropathing.follower.old.OldFollowerConstants;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.util.PathCallback;
 
@@ -21,7 +21,7 @@ public class PathBuilder {
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
-    private double decelerationStartMultiplier = FollowerConstants.decelerationStartMultiplier;
+    private double decelerationStartMultiplier = OldFollowerConstants.decelerationStartMultiplier;
     private boolean globalLinearHeadingInterpolation = false;
     private double globalStartHeading = 0;
     private double globalEndHeading = 0;

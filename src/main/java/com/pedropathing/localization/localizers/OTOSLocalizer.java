@@ -7,6 +7,8 @@ import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
+import com.qualcomm.robotcore.hardware.IMU;
+
 import static com.pedropathing.localization.constants.OTOSConstants.*;
 
 /**
@@ -36,7 +38,7 @@ import static com.pedropathing.localization.constants.OTOSConstants.*;
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 7/20/2024
  */
-public class OTOSLocalizer extends Localizer {
+public class OTOSLocalizer implements Localizer {
     private HardwareMap hardwareMap;
     private Pose startPose;
     private SparkFunOTOS otos;
@@ -213,6 +215,11 @@ public class OTOSLocalizer extends Localizer {
      * This does nothing since this localizer does not use the IMU.
      */
     public void resetIMU() {
+    }
+
+    @Override
+    public IMU getIMU() {
+        return null;
     }
 
     /**

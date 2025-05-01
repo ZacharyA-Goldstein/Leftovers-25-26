@@ -1,19 +1,6 @@
 package com.pedropathing.follower;
 
-import static com.pedropathing.follower.old.FollowerConstants.drivePIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.drivePIDFSwitch;
-import static com.pedropathing.follower.old.FollowerConstants.headingPIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.headingPIDFSwitch;
-import static com.pedropathing.follower.old.FollowerConstants.secondaryDrivePIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.secondaryHeadingPIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.secondaryTranslationalPIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.translationalPIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.translationalPIDFSwitch;
-import static com.pedropathing.follower.old.FollowerConstants.useSecondaryDrivePID;
-import static com.pedropathing.follower.old.FollowerConstants.useSecondaryHeadingPID;
-import static com.pedropathing.follower.old.FollowerConstants.useSecondaryTranslationalPID;
-
-import com.pedropathing.follower.old.FollowerConstants;
+import com.pedropathing.follower.old.OldFollowerConstants;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Path;
@@ -42,6 +29,8 @@ public class VectorCalculator {
 
     private double previousSecondaryTranslationalIntegral;
     private double previousTranslationalIntegral;
+    private double drivePIDFFeedForward, secondaryDrivePIDFFeedForward, headingPIDFFeedForward, secondaryHeadingPIDFFeedForward, translationalPIDFFeedForward, secondaryTranslationalPIDFFeedForward, drivePIDFSwitch, headingPIDFSwitch, translationalPIDFSwitch;
+    private boolean useSecondaryDrivePID, useSecondaryHeadingPID, useSecondaryTranslationalPID;
     private double[] teleopDriveValues;
 
     private boolean useDrive = true, useHeading = true, useTranslational = true, useCentripetal = true, teleopDrive = false, followingPathChain = false;
@@ -62,6 +51,13 @@ public class VectorCalculator {
         secondaryTranslationalPIDF = new PIDFController(constants.secondaryTranslationalPIDFCoefficients());
         translationalIntegral = new PIDFController(constants.translationalIntegral());
         secondaryTranslationalIntegral = new PIDFController(constants.secondaryTranslationalIntegral());
+        drivePIDFSwitch = constants.drivePIDFSwitch();
+        headingPIDFSwitch = constants.headingPIDFSwitch();
+        translationalPIDFSwitch = constants.translationalPIDFSwitch();
+        drivePIDFFeedForward = constants.drivePIDFFeedForward();
+
+
+
     }
 
     public void update(boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal, boolean teleopDrive, int chainIndex, double maxPowerScaling, boolean followingPathChain, double centripetalScaling, Pose currentPose, Pose closestPose, Vector velocity, Path currentPath, PathChain currentPathChain, double driveError, double headingError) {
@@ -269,7 +265,7 @@ public class VectorCalculator {
             curvature = (yDoublePrime) / (Math.pow(Math.sqrt(1 + Math.pow(yPrime, 2)), 3));
         }
         if (Double.isNaN(curvature)) return new Vector();
-        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * FollowerConstants.mass * Math.pow(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * MathFunctions.getSign(currentPath.getClosestPointNormalVector().getTheta()));
+        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * OldFollowerConstants.mass * Math.pow(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * MathFunctions.getSign(currentPath.getClosestPointNormalVector().getTheta()));
         return centripetalVector;
     }
 

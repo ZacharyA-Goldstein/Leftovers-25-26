@@ -1,32 +1,32 @@
 package com.pedropathing.follower.old;
 
-import static com.pedropathing.follower.old.FollowerConstants.automaticHoldEnd;
-import static com.pedropathing.follower.old.FollowerConstants.cacheInvalidateSeconds;
-import static com.pedropathing.follower.old.FollowerConstants.drivePIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.drivePIDFSwitch;
-import static com.pedropathing.follower.old.FollowerConstants.forwardZeroPowerAcceleration;
-import static com.pedropathing.follower.old.FollowerConstants.headingPIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.headingPIDFSwitch;
-import static com.pedropathing.follower.old.FollowerConstants.lateralZeroPowerAcceleration;
-import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.nominalVoltage;
-import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorName;
-import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorDirection;
-import static com.pedropathing.follower.old.FollowerConstants.secondaryDrivePIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.secondaryHeadingPIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.secondaryTranslationalPIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.translationalPIDFFeedForward;
-import static com.pedropathing.follower.old.FollowerConstants.translationalPIDFSwitch;
-import static com.pedropathing.follower.old.FollowerConstants.useSecondaryDrivePID;
-import static com.pedropathing.follower.old.FollowerConstants.useSecondaryHeadingPID;
-import static com.pedropathing.follower.old.FollowerConstants.useSecondaryTranslationalPID;
-import static com.pedropathing.follower.old.FollowerConstants.useVoltageCompensationInAuto;
-import static com.pedropathing.follower.old.FollowerConstants.useVoltageCompensationInTeleOp;
+import static com.pedropathing.follower.old.OldFollowerConstants.automaticHoldEnd;
+import static com.pedropathing.follower.old.OldFollowerConstants.cacheInvalidateSeconds;
+import static com.pedropathing.follower.old.OldFollowerConstants.drivePIDFFeedForward;
+import static com.pedropathing.follower.old.OldFollowerConstants.drivePIDFSwitch;
+import static com.pedropathing.follower.old.OldFollowerConstants.forwardZeroPowerAcceleration;
+import static com.pedropathing.follower.old.OldFollowerConstants.headingPIDFFeedForward;
+import static com.pedropathing.follower.old.OldFollowerConstants.headingPIDFSwitch;
+import static com.pedropathing.follower.old.OldFollowerConstants.lateralZeroPowerAcceleration;
+import static com.pedropathing.follower.old.OldFollowerConstants.leftFrontMotorName;
+import static com.pedropathing.follower.old.OldFollowerConstants.leftRearMotorName;
+import static com.pedropathing.follower.old.OldFollowerConstants.nominalVoltage;
+import static com.pedropathing.follower.old.OldFollowerConstants.rightFrontMotorName;
+import static com.pedropathing.follower.old.OldFollowerConstants.rightRearMotorName;
+import static com.pedropathing.follower.old.OldFollowerConstants.leftFrontMotorDirection;
+import static com.pedropathing.follower.old.OldFollowerConstants.leftRearMotorDirection;
+import static com.pedropathing.follower.old.OldFollowerConstants.rightFrontMotorDirection;
+import static com.pedropathing.follower.old.OldFollowerConstants.rightRearMotorDirection;
+import static com.pedropathing.follower.old.OldFollowerConstants.secondaryDrivePIDFFeedForward;
+import static com.pedropathing.follower.old.OldFollowerConstants.secondaryHeadingPIDFFeedForward;
+import static com.pedropathing.follower.old.OldFollowerConstants.secondaryTranslationalPIDFFeedForward;
+import static com.pedropathing.follower.old.OldFollowerConstants.translationalPIDFFeedForward;
+import static com.pedropathing.follower.old.OldFollowerConstants.translationalPIDFSwitch;
+import static com.pedropathing.follower.old.OldFollowerConstants.useSecondaryDrivePID;
+import static com.pedropathing.follower.old.OldFollowerConstants.useSecondaryHeadingPID;
+import static com.pedropathing.follower.old.OldFollowerConstants.useSecondaryTranslationalPID;
+import static com.pedropathing.follower.old.OldFollowerConstants.useVoltageCompensationInAuto;
+import static com.pedropathing.follower.old.OldFollowerConstants.useVoltageCompensationInTeleOp;
 
 import android.util.Log;
 
@@ -73,7 +73,7 @@ import java.util.List;
  * @version 1.0, 3/4/2024
  */
 @Config
-public class Follower {
+public class OldFollower {
     private HardwareMap hardwareMap;
 
     private DcMotorEx leftFront;
@@ -180,7 +180,7 @@ public class Follower {
      * This creates a new Follower given a HardwareMap.
      * @param hardwareMap HardwareMap required
      */
-    public Follower(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
+    public OldFollower(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
         this.hardwareMap = hardwareMap;
         setupConstants(FConstants, LConstants);
         initialize();
@@ -191,7 +191,7 @@ public class Follower {
      * @param hardwareMap HardwareMap required
      * @param localizer the localizer you wish to use
      */
-    public Follower(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
+    public OldFollower(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
         this.hardwareMap = hardwareMap;
         setupConstants(FConstants, LConstants);
         initialize(localizer);
@@ -204,21 +204,21 @@ public class Follower {
      */
     public void setupConstants(Class<?> FConstants, Class<?> LConstants) {
         Constants.setConstants(FConstants, LConstants);
-        BEZIER_CURVE_SEARCH_LIMIT = FollowerConstants.BEZIER_CURVE_SEARCH_LIMIT;
-        AVERAGED_VELOCITY_SAMPLE_NUMBER = FollowerConstants.AVERAGED_VELOCITY_SAMPLE_NUMBER;
-        holdPointTranslationalScaling = FollowerConstants.holdPointTranslationalScaling;
-        holdPointHeadingScaling = FollowerConstants.holdPointHeadingScaling;
-        centripetalScaling = FollowerConstants.centripetalScaling;
-        secondaryTranslationalPIDF = new PIDFController(FollowerConstants.secondaryTranslationalPIDFCoefficients);
-        secondaryTranslationalIntegral = new PIDFController(FollowerConstants.secondaryTranslationalIntegral);
-        translationalPIDF = new PIDFController(FollowerConstants.translationalPIDFCoefficients);
-        translationalIntegral = new PIDFController(FollowerConstants.translationalIntegral);
-        secondaryHeadingPIDF = new PIDFController(FollowerConstants.secondaryHeadingPIDFCoefficients);
-        headingPIDF = new PIDFController(FollowerConstants.headingPIDFCoefficients);
-        secondaryDrivePIDF = new FilteredPIDFController(FollowerConstants.secondaryDrivePIDFCoefficients);
-        drivePIDF = new FilteredPIDFController(FollowerConstants.drivePIDFCoefficients);
-        driveKalmanFilter = new KalmanFilter(FollowerConstants.driveKalmanFilterParameters);
-        turnHeadingErrorThreshold = FollowerConstants.turnHeadingErrorThreshold;
+        BEZIER_CURVE_SEARCH_LIMIT = OldFollowerConstants.BEZIER_CURVE_SEARCH_LIMIT;
+        AVERAGED_VELOCITY_SAMPLE_NUMBER = OldFollowerConstants.AVERAGED_VELOCITY_SAMPLE_NUMBER;
+        holdPointTranslationalScaling = OldFollowerConstants.holdPointTranslationalScaling;
+        holdPointHeadingScaling = OldFollowerConstants.holdPointHeadingScaling;
+        centripetalScaling = OldFollowerConstants.centripetalScaling;
+        secondaryTranslationalPIDF = new PIDFController(OldFollowerConstants.secondaryTranslationalPIDFCoefficients);
+        secondaryTranslationalIntegral = new PIDFController(OldFollowerConstants.secondaryTranslationalIntegral);
+        translationalPIDF = new PIDFController(OldFollowerConstants.translationalPIDFCoefficients);
+        translationalIntegral = new PIDFController(OldFollowerConstants.translationalIntegral);
+        secondaryHeadingPIDF = new PIDFController(OldFollowerConstants.secondaryHeadingPIDFCoefficients);
+        headingPIDF = new PIDFController(OldFollowerConstants.headingPIDFCoefficients);
+        secondaryDrivePIDF = new FilteredPIDFController(OldFollowerConstants.secondaryDrivePIDFCoefficients);
+        drivePIDF = new FilteredPIDFController(OldFollowerConstants.drivePIDFCoefficients);
+        driveKalmanFilter = new KalmanFilter(OldFollowerConstants.driveKalmanFilterParameters);
+        turnHeadingErrorThreshold = OldFollowerConstants.turnHeadingErrorThreshold;
     }
 
     /**
@@ -228,8 +228,8 @@ public class Follower {
      * second derivatives for teleop are set.
      */
     public void initialize() {
-        poseUpdater = new PoseTracker(hardwareMap);
-        driveVectorScaler = new DriveVectorScaler(FollowerConstants.frontLeftVector);
+        //poseUpdater = new PoseTracker(hardwareMap);
+        driveVectorScaler = new DriveVectorScaler(OldFollowerConstants.frontLeftVector);
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
         voltageTimer.reset();
@@ -268,7 +268,7 @@ public class Follower {
 
     public void initialize(Localizer localizer) {
         poseUpdater = new PoseTracker(hardwareMap, localizer);
-        driveVectorScaler = new DriveVectorScaler(FollowerConstants.frontLeftVector);
+        driveVectorScaler = new DriveVectorScaler(OldFollowerConstants.frontLeftVector);
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
         voltageTimer.reset();
@@ -621,7 +621,7 @@ public class Follower {
         breakFollowing();
         teleopDrive = true;
 
-        if(FollowerConstants.useBrakeModeInTeleOp) {
+        if(OldFollowerConstants.useBrakeModeInTeleOp) {
             setMotorsToBrake();
         }
     }
@@ -652,7 +652,7 @@ public class Follower {
                     drivePowers = driveVectorScaler.getDrivePowers(MathFunctions.scalarMultiplyVector(getTranslationalCorrection(), holdPointTranslationalScaling), MathFunctions.scalarMultiplyVector(getHeadingVector(), holdPointHeadingScaling), new Vector(), poseUpdater.getPose().getHeading());
 
                     for (int i = 0; i < motors.size(); i++) {
-                        if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
+                        if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > OldFollowerConstants.motorCachingThreshold) {
                             double voltageNormalized = getVoltageNormalized();
 
                             if (useVoltageCompensationInAuto) {
@@ -676,7 +676,7 @@ public class Follower {
                         drivePowers = driveVectorScaler.getDrivePowers(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseUpdater.getPose().getHeading());
 
                         for (int i = 0; i < motors.size(); i++) {
-                            if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
+                            if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > OldFollowerConstants.motorCachingThreshold) {
                                 double voltageNormalized = getVoltageNormalized();
 
                                 if (useVoltageCompensationInAuto) {
@@ -760,7 +760,7 @@ public class Follower {
             drivePowers = driveVectorScaler.getDrivePowers(getCentripetalForceCorrection(), teleopHeadingVector, teleopDriveVector, poseUpdater.getPose().getHeading());
 
             for (int i = 0; i < motors.size(); i++) {
-                if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > FollowerConstants.motorCachingThreshold) {
+                if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > OldFollowerConstants.motorCachingThreshold) {
                     double voltageNormalized = getVoltageNormalized();
 
                     if (useVoltageCompensationInTeleOp) {
@@ -952,7 +952,7 @@ public class Follower {
 
                 distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
 
-                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(FollowerConstants.xMovement, 2) / forwardZeroPowerAcceleration)) {
+                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(OldFollowerConstants.xMovement, 2) / forwardZeroPowerAcceleration)) {
                     return new Vector(driveVectorScaler.getMaxPowerScaling(), currentPath.getClosestPointTangentVector().getTheta());
                 }
             } else {
@@ -1143,7 +1143,7 @@ public class Follower {
             curvature = (yDoublePrime) / (Math.pow(Math.sqrt(1 + Math.pow(yPrime, 2)), 3));
         }
         if (Double.isNaN(curvature)) return new Vector();
-        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * FollowerConstants.mass * Math.pow(MathFunctions.dotProduct(poseUpdater.getVelocity(), MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -driveVectorScaler.getMaxPowerScaling(), driveVectorScaler.getMaxPowerScaling()), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * MathFunctions.getSign(currentPath.getClosestPointNormalVector().getTheta()));
+        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * OldFollowerConstants.mass * Math.pow(MathFunctions.dotProduct(poseUpdater.getVelocity(), MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -driveVectorScaler.getMaxPowerScaling(), driveVectorScaler.getMaxPowerScaling()), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * MathFunctions.getSign(currentPath.getClosestPointNormalVector().getTheta()));
         return centripetalVector;
     }
 

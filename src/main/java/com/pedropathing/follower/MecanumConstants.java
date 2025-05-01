@@ -14,4 +14,6 @@ public abstract class MecanumConstants extends DrivetrainConstants {
     public abstract DcMotorSimple.Direction leftRearMotorDirection();
     public abstract DcMotorSimple.Direction rightFrontMotorDirection();
     public abstract DcMotorSimple.Direction rightRearMotorDirection();
+    public abstract double motorCachingThreshold();
+    public abstract boolean useBrakeModeInTeleOp();
 }

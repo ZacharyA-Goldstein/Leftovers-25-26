@@ -1,5 +1,5 @@
 package com.pedropathing.localization;
-import static com.pedropathing.follower.old.FollowerConstants.localizers;
+//import static com.pedropathing.follower.old.OldFollowerConstants.localizers;
 
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Constants;
@@ -56,41 +56,6 @@ public class PoseTracker {
      *
      * @param hardwareMap the HardwareMap
      * @param localizer the Localizer
-     * @param FConstants the constants for the Follower
-     * @param LConstants the constants for the Localizer
-     */
-    public PoseTracker(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
-        Constants.setConstants(FConstants, LConstants);
-
-        this.hardwareMap = hardwareMap;
-        this.localizer = localizer;
-
-        if (localizer.getClass() != PinpointLocalizer.class) {
-            try {
-                localizer.resetIMU();
-            } catch (InterruptedException ignored) {
-            }
-        }
-
-        imu = localizer.getIMU();
-    }
-
-    /**
-     * Creates a new PoseTracker from a HardwareMap.
-     *
-     * @param hardwareMap the HardwareMap
-     * @param FConstants the constants for the Follower
-     * @param LConstants the constants for the Localizer
-     */
-    public PoseTracker(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
-        this(hardwareMap, createLocalizer(hardwareMap), FConstants, LConstants);
-    }
-
-    /**
-     * Creates a new PoseTracker from a HardwareMap and a Localizer.
-     *
-     * @param hardwareMap the HardwareMap
-     * @param localizer the Localizer
      */
     public PoseTracker(HardwareMap hardwareMap, Localizer localizer) {
         this.hardwareMap = hardwareMap;
@@ -104,34 +69,6 @@ public class PoseTracker {
         }
 
         imu = localizer.getIMU();
-    }
-
-    /**
-     * Creates a new PoseTracker from a HardwareMap.
-     *
-     * @param hardwareMap the HardwareMap
-     */
-    public PoseTracker(HardwareMap hardwareMap) {
-        this(hardwareMap, createLocalizer(hardwareMap));
-    }
-
-    private static Localizer createLocalizer(HardwareMap hardwareMap) {
-        switch (localizers) {
-            case DRIVE_ENCODERS:
-                return new DriveEncoderLocalizer(hardwareMap);
-            case TWO_WHEEL:
-                return new TwoWheelLocalizer(hardwareMap);
-            case THREE_WHEEL:
-                return new ThreeWheelLocalizer(hardwareMap);
-            case THREE_WHEEL_IMU:
-                return new ThreeWheelIMULocalizer(hardwareMap);
-            case OTOS:
-                return new OTOSLocalizer(hardwareMap);
-            case PINPOINT:
-                return new PinpointLocalizer(hardwareMap);
-            default:
-                throw new IllegalArgumentException("Unsupported localizer type");
-        }
     }
 
 

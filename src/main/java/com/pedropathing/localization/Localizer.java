@@ -13,28 +13,28 @@ import com.pedropathing.geometry.Vector;
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 4/2/2024
  */
-public abstract class Localizer {
+public interface Localizer {
 
     /**
      * This returns the current pose estimate from the Localizer.
      *
      * @return returns the pose as a Pose object.
      */
-    public abstract Pose getPose();
+    Pose getPose();
 
     /**
      * This returns the current velocity estimate from the Localizer.
      *
      * @return returns the velocity as a Pose object.
      */
-    public abstract Pose getVelocity();
+    Pose getVelocity();
 
     /**
      * This returns the current velocity estimate from the Localizer as a Vector.
      *
      * @return returns the velocity as a Vector.
      */
-    public abstract Vector getVelocityVector();
+    Vector getVelocityVector();
 
     /**
      * This sets the start pose of the Localizer. Changing the start pose should move the robot as if
@@ -42,7 +42,7 @@ public abstract class Localizer {
      *
      * @param setStart the new start pose
      */
-    public abstract void setStartPose(Pose setStart);
+    void setStartPose(Pose setStart);
 
     /**
      * This sets the current pose estimate of the Localizer. Changing this should just change the
@@ -50,13 +50,13 @@ public abstract class Localizer {
      *
      * @param setPose the new current pose estimate
      */
-    public abstract void setPose(Pose setPose);
+    void setPose(Pose setPose);
 
     /**
      * This calls an update to the Localizer, updating the current pose estimate and current velocity
      * estimate.
      */
-    public abstract void update();
+    void update();
 
     /**
      * This returns how far the robot has turned in radians, in a number not clamped between 0 and
@@ -64,7 +64,7 @@ public abstract class Localizer {
      *
      * @return returns how far the robot has turned in total, in radians.
      */
-    public abstract double getTotalHeading();
+    double getTotalHeading();
 
     /**
      * This returns the multiplier applied to forward movement measurement to convert from encoder
@@ -72,7 +72,7 @@ public abstract class Localizer {
      *
      * @return returns the forward ticks to inches multiplier
      */
-    public abstract double getForwardMultiplier();
+    double getForwardMultiplier();
 
     /**
      * This returns the multiplier applied to lateral/strafe movement measurement to convert from
@@ -80,7 +80,7 @@ public abstract class Localizer {
      *
      * @return returns the lateral/strafe ticks to inches multiplier
      */
-    public abstract double getLateralMultiplier();
+    double getLateralMultiplier();
 
     /**
      * This returns the multiplier applied to turning movement measurement to convert from encoder
@@ -88,26 +88,24 @@ public abstract class Localizer {
      *
      * @return returns the turning ticks to radians multiplier
      */
-    public abstract double getTurningMultiplier();
+    double getTurningMultiplier();
 
     /**
      * This resets the IMU of the localizer, if applicable.
      */
-    public abstract void resetIMU() throws InterruptedException;
+    void resetIMU() throws InterruptedException;
 
     /**
      * This is overridden to return the IMU, if there is one.
      *
      * @return returns the IMU if it exists
      */
-    public IMU getIMU() {
-        return null;
-    }
+    IMU getIMU();
 
     /**
      * This returns whether if any component of robot's position is NaN.
      *
      * @return returns if any component of the robot's position is NaN
      */
-    public abstract boolean isNAN();
+    boolean isNAN();
 }
