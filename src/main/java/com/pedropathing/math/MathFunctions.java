@@ -148,18 +148,6 @@ public class MathFunctions {
         return new Pose(x, y, heading);
     }
 
-
-    /**
-     * Copies a Point, but with a different reference location in the memory. So basically a deep
-     * copy.
-     *
-     * @param point the Point to be deep copied.
-     * @return returns the copied Point.
-     */
-    public static Pose copyPose(Pose point) {
-        return new Pose(point.getX(), point.getY());
-    }
-
     /**
      * Copies a Vector, but with a different reference location in the memory. So basically a deep
      * copy.

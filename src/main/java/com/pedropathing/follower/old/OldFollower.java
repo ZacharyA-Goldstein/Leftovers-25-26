@@ -33,7 +33,6 @@ import android.util.Log;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.localization.PoseTracker;
-import com.pedropathing.util.Constants;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -203,7 +202,7 @@ public class OldFollower {
      * @param LConstants the constants for the Localizer
      */
     public void setupConstants(Class<?> FConstants, Class<?> LConstants) {
-        Constants.setConstants(FConstants, LConstants);
+     //   Constants.setConstants(FConstants, LConstants);
         BEZIER_CURVE_SEARCH_LIMIT = OldFollowerConstants.BEZIER_CURVE_SEARCH_LIMIT;
         AVERAGED_VELOCITY_SAMPLE_NUMBER = OldFollowerConstants.AVERAGED_VELOCITY_SAMPLE_NUMBER;
         holdPointTranslationalScaling = OldFollowerConstants.holdPointTranslationalScaling;

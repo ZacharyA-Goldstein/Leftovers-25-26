@@ -15,8 +15,8 @@ import java.util.List;
  * This is the Mecanum class, a child class of Drivetrain. This class takes in inputs Vectors for driving, heading
  * correction, and translational/centripetal correction and returns an array with wheel powers.
  *
+Upd * @author Baron Henderson - 20077 The Indubitables
  * @author Anyi Lin - 10158 Scott's Bots
- * @author Baron Henderson - 20077 The Indubitables
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 4/30/2025

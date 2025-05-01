@@ -25,9 +25,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * calculations that are relevant for movement.
  *
  * @author Anyi Lin - 10158 Scott's Bots
+ * @author Baron Henderson - 20077 The Indubitables
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
- * @version 1.0, 3/4/2024
+ * @version 1.1.0, 5/1/2025
  */
 @Config
 public class Follower {

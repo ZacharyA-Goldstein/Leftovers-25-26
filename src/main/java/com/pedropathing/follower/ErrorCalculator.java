@@ -14,10 +14,15 @@ import com.pedropathing.math.MathFunctions;
 
 import java.util.Arrays;
 
+/** This is the ErrorCalculator.
+ * It is in charge of taking the Poses and Velocity produced by the PoseTracker and determining and returning the errors.
+ *
+ * @author Baron Henderson - 20077 The Indubitables
+ */
 public class ErrorCalculator {
 
     private static ErrorCalculator instance;
-    private KalmanFilter driveKalmanFilter;
+    private final KalmanFilter driveKalmanFilter;
     private Pose closestPose, currentPose;
     private Path currentPath;
     private PathChain currentPathChain;

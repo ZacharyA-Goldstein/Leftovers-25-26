@@ -13,6 +13,11 @@ import com.pedropathing.control.PIDFController;
 
 import java.util.ArrayList;
 
+/** This is the VectorCalculator.
+ * It is in charge of taking the errors produced by the ErrorCalculator and determining and returning drive + corrective vectors
+ *
+ * @author Baron Henderson - 20077 The Indubitables
+ */
 public class VectorCalculator {
     private Path currentPath;
     private PathChain currentPathChain;

@@ -13,6 +13,11 @@ import com.pedropathing.localization.localizers.ThreeWheelIMULocalizer;
 import com.pedropathing.localization.localizers.ThreeWheelLocalizer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+/** This is the FollowerBuilder.
+ * It is used to create Followers with a specific drivetrain + localizer without having to use a full constructor
+ *
+ * @author Baron Henderson - 20077 The Indubitables
+ */
 public class FollowerBuilder {
     private final FollowerConstants constants;
     private final HardwareMap hardwareMap;
