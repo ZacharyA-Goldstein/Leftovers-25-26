@@ -243,8 +243,7 @@ public class PoseTracker {
      */
     public Pose getDeltaPose() {
         Pose returnPose = getPose();
-        returnPose.minus(previousPose);
-        return returnPose;
+        return returnPose.minus(previousPose);
     }
 
     /**
