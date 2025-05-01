@@ -1,6 +1,7 @@
 package com.pedropathing.geometry;
 
-import com.pedropathing.util.MathFunctions;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 
 import java.util.ArrayList;
 

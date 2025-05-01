@@ -1,7 +1,7 @@
 package com.pedropathing.follower;
 
-import com.pedropathing.geometry.Vector;
-import com.pedropathing.util.MathFunctions;
+import com.pedropathing.math.Vector;
+import com.pedropathing.math.MathFunctions;
 
 public abstract class Drivetrain {
 

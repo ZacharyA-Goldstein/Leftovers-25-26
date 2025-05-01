@@ -9,10 +9,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.pedropathing.localization.Encoder;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.geometry.Matrix;
+import com.pedropathing.math.Matrix;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.pedropathing.util.NanoTimer;
 
 /**
@@ -145,7 +145,7 @@ public class ThreeWheelIMULocalizer implements Localizer {
      */
     @Override
     public Vector getVelocityVector() {
-        return currentVelocity.getVector();
+        return currentVelocity.getAsVector();
     }
 
     /**
@@ -217,7 +217,7 @@ public class ThreeWheelIMULocalizer implements Localizer {
 
         globalDeltas = Matrix.multiply(Matrix.multiply(prevRotationMatrix, transformation), robotDeltas);
 
-        displacementPose.add(new Pose(globalDeltas.get(0, 0), globalDeltas.get(1, 0), globalDeltas.get(2, 0)));
+        displacementPose.plus(new Pose(globalDeltas.get(0, 0), globalDeltas.get(1, 0), globalDeltas.get(2, 0)));
         currentVelocity = new Pose(globalDeltas.get(0, 0) / (deltaTimeNano / Math.pow(10.0, 9)), globalDeltas.get(1, 0) / (deltaTimeNano / Math.pow(10.0, 9)), globalDeltas.get(2, 0) / (deltaTimeNano / Math.pow(10.0, 9)));
 
         totalHeading += globalDeltas.get(2, 0);

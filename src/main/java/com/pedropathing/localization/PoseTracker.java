@@ -2,18 +2,13 @@ package com.pedropathing.localization;
 //import static com.pedropathing.follower.old.OldFollowerConstants.localizers;
 
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.util.Constants;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import com.pedropathing.localization.localizers.DriveEncoderLocalizer;
-import com.pedropathing.localization.localizers.OTOSLocalizer;
+
 import com.pedropathing.localization.localizers.PinpointLocalizer;
-import com.pedropathing.localization.localizers.ThreeWheelIMULocalizer;
-import com.pedropathing.localization.localizers.ThreeWheelLocalizer;
-import com.pedropathing.localization.localizers.TwoWheelLocalizer;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 
 /**
  * This is the PoseTracker class. This class handles getting pose data from the localizer and returning
@@ -248,7 +243,7 @@ public class PoseTracker {
      */
     public Pose getDeltaPose() {
         Pose returnPose = getPose();
-        returnPose.subtract(previousPose);
+        returnPose.minus(previousPose);
         return returnPose;
     }
 

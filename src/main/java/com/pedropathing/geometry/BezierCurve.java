@@ -4,7 +4,8 @@ package com.pedropathing.geometry;
 import androidx.annotation.NonNull;
 
 import com.pedropathing.follower.old.OldFollowerConstants;
-import com.pedropathing.util.MathFunctions;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 
 import java.util.ArrayList;
 import java.util.Collections;

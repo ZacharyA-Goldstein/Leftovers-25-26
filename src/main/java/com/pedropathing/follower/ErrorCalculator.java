@@ -6,11 +6,11 @@ import static com.pedropathing.follower.old.OldFollowerConstants.lateralZeroPowe
 import com.pedropathing.control.KalmanFilter;
 import com.pedropathing.control.KalmanFilterParameters;
 import com.pedropathing.follower.old.OldFollowerConstants;
-import com.pedropathing.geometry.Path;
-import com.pedropathing.geometry.PathChain;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.geometry.Vector;
-import com.pedropathing.util.MathFunctions;
+import com.pedropathing.math.Vector;
+import com.pedropathing.math.MathFunctions;
 
 import java.util.Arrays;
 

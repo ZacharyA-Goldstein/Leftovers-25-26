@@ -2,8 +2,8 @@ package com.pedropathing.follower.old;
 
 import static com.pedropathing.follower.old.OldFollowerConstants.maxPower;
 
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 
 /**
  * This is the DriveVectorScaler class. This class takes in inputs Vectors for driving, heading

@@ -3,9 +3,9 @@ package com.pedropathing.follower.old;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.util.MathFunctions;
+import com.pedropathing.math.MathFunctions;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.Vector;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.control.KalmanFilterParameters;

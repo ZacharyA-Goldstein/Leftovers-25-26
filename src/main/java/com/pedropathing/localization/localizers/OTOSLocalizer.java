@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.IMU;
 
 /**
@@ -101,7 +101,7 @@ public class OTOSLocalizer implements Localizer {
     public Pose getPose() {
         Pose pose = new Pose(otosPose.x, otosPose.y, otosPose.h);
 
-        Vector vec = pose.getVector();
+        Vector vec = pose.getAsVector();
         vec.rotateVector(startPose.getHeading());
 
         return MathFunctions.addPoses(startPose, new Pose(vec.getXComponent(), vec.getYComponent(), pose.getHeading()));
@@ -124,7 +124,7 @@ public class OTOSLocalizer implements Localizer {
      */
     @Override
     public Vector getVelocityVector() {
-        return getVelocity().getVector();
+        return getVelocity().getAsVector();
     }
 
     /**

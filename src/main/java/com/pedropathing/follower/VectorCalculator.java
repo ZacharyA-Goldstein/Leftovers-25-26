@@ -1,11 +1,13 @@
 package com.pedropathing.follower;
 
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.old.OldFollowerConstants;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Path;
-import com.pedropathing.geometry.PathChain;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.math.Vector;
 import com.pedropathing.control.FilteredPIDFController;
 import com.pedropathing.control.PIDFController;
 
@@ -29,8 +31,8 @@ public class VectorCalculator {
 
     private double previousSecondaryTranslationalIntegral;
     private double previousTranslationalIntegral;
-    private double drivePIDFFeedForward, secondaryDrivePIDFFeedForward, headingPIDFFeedForward, secondaryHeadingPIDFFeedForward, translationalPIDFFeedForward, secondaryTranslationalPIDFFeedForward, drivePIDFSwitch, headingPIDFSwitch, translationalPIDFSwitch;
-    private boolean useSecondaryDrivePID, useSecondaryHeadingPID, useSecondaryTranslationalPID;
+    public static double drivePIDFFeedForward, secondaryDrivePIDFFeedForward, headingPIDFFeedForward, secondaryHeadingPIDFFeedForward, translationalPIDFFeedForward, secondaryTranslationalPIDFFeedForward, drivePIDFSwitch, headingPIDFSwitch, translationalPIDFSwitch;
+    public static boolean useSecondaryDrivePID, useSecondaryHeadingPID, useSecondaryTranslationalPID;
     private double[] teleopDriveValues;
 
     private boolean useDrive = true, useHeading = true, useTranslational = true, useCentripetal = true, teleopDrive = false, followingPathChain = false;
@@ -39,10 +41,17 @@ public class VectorCalculator {
     private int chainIndex;
     private double centripetalScaling;
 
-    private PIDFController secondaryTranslationalPIDF, secondaryTranslationalIntegral, translationalPIDF, translationalIntegral, secondaryHeadingPIDF, headingPIDF;
+    private PIDFController secondaryTranslationalPIDF;
+    private PIDFController secondaryTranslationalIntegral;
+    private PIDFController translationalPIDF;
+    private PIDFController translationalIntegral;
+    private PIDFController secondaryHeadingPIDF;
+
+    private PIDFController headingPIDF;
     private FilteredPIDFController secondaryDrivePIDF, drivePIDF;
 
     public VectorCalculator(com.pedropathing.follower.FollowerConstants constants) {
+        //TODO: need to make it so the coefficents are accessable for tuning
         drivePIDF = new FilteredPIDFController(constants.drivePIDFCoefficients());
         secondaryDrivePIDF = new FilteredPIDFController(constants.secondaryDrivePIDFCoefficients());
         headingPIDF = new PIDFController(constants.headingPIDFCoefficients());
@@ -55,9 +64,14 @@ public class VectorCalculator {
         headingPIDFSwitch = constants.headingPIDFSwitch();
         translationalPIDFSwitch = constants.translationalPIDFSwitch();
         drivePIDFFeedForward = constants.drivePIDFFeedForward();
-
-
-
+        secondaryDrivePIDFFeedForward = constants.secondaryDrivePIDFFeedForward();
+        headingPIDFFeedForward = constants.headingPIDFFeedForward();
+        secondaryHeadingPIDFFeedForward = constants.secondaryHeadingPIDFFeedForward();
+        translationalPIDFFeedForward = constants.translationalPIDFFeedForward();
+        secondaryTranslationalPIDFFeedForward = constants.secondaryTranslationalPIDFFeedForward();
+        useSecondaryDrivePID = constants.useSecondaryDrivePIDF();
+        useSecondaryHeadingPID = constants.useSecondaryHeadingPIDF();
+        useSecondaryTranslationalPID = constants.useSecondaryTranslationalPIDF();
     }
 
     public void update(boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal, boolean teleopDrive, int chainIndex, double maxPowerScaling, boolean followingPathChain, double centripetalScaling, Pose currentPose, Pose closestPose, Vector velocity, Path currentPath, PathChain currentPathChain, double driveError, double headingError) {
@@ -373,6 +387,30 @@ public class VectorCalculator {
 
     public Vector getAverageVelocity() {
         return averageVelocity;
+    }
+
+    public void setDrivePIDFCoefficients(FilteredPIDFCoefficients drivePIDFCoefficients) {
+        this.drivePIDF.setCoefficients(drivePIDFCoefficients);
+    }
+
+    public void setSecondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) {
+        this.secondaryDrivePIDF.setCoefficients(secondaryDrivePIDFCoefficients);
+    }
+
+    public void setHeadingPIDFCoefficients(PIDFCoefficients headingPIDFCoefficients) {
+        this.headingPIDF.setCoefficients(headingPIDFCoefficients);
+    }
+
+    public void setSecondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) {
+        this.secondaryHeadingPIDF.setCoefficients(secondaryHeadingPIDFCoefficients);
+    }
+
+    public void setTranslationalPIDFCoefficients(PIDFCoefficients translationalPIDFCoefficients) {
+        translationalPIDF.setCoefficients(translationalPIDFCoefficients);
+    }
+
+    public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) {
+        this.secondaryTranslationalPIDF.setCoefficients(secondaryTranslationalPIDFCoefficients);
     }
     
 }

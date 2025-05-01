@@ -9,8 +9,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.pedropathing.localization.GoBildaPinpointDriver;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.pedropathing.util.NanoTimer;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -130,7 +130,7 @@ public class PinpointLocalizer implements Localizer {
      */
     @Override
     public Vector getVelocityVector() {
-        return currentVelocity.getVector();
+        return currentVelocity.getAsVector();
     }
 
     /**

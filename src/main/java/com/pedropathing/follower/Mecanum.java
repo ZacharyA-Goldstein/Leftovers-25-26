@@ -1,8 +1,8 @@
 package com.pedropathing.follower;
 
-import static com.pedropathing.util.MathFunctions.findNormalizingScaling;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Vector;
+import static com.pedropathing.math.MathFunctions.findNormalizingScaling;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;

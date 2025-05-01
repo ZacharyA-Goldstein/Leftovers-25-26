@@ -6,9 +6,9 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import com.pedropathing.follower.old.OldFollower;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.geometry.Path;
-import com.pedropathing.geometry.PathChain;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.math.Vector;
 
 /**
  * This is the Drawing class. It handles the drawing of stuff on FTC Dashboard, like the robot.
@@ -120,7 +120,7 @@ public class Drawing {
      */
     public static void drawRobotOnCanvas(Canvas c, Pose t) {
         c.strokeCircle(t.getX(), t.getY(), ROBOT_RADIUS);
-        Vector v = t.getHeadingVector();
+        Vector v = t.getHeadingAsUnitVector();
         v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
         double x1 = t.getX() + v.getXComponent() / 2, y1 = t.getY() + v.getYComponent() / 2;
         double x2 = t.getX() + v.getXComponent(), y2 = t.getY() + v.getYComponent();

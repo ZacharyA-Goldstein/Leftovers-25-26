@@ -1,11 +1,5 @@
 package com.pedropathing.localization.localizers;
 
-import static com.pedropathing.localization.constants.DriveEncoderConstants.*;
-import static com.pedropathing.follower.old.OldFollowerConstants.leftFrontMotorName;
-import static com.pedropathing.follower.old.OldFollowerConstants.leftRearMotorName;
-import static com.pedropathing.follower.old.OldFollowerConstants.rightFrontMotorName;
-import static com.pedropathing.follower.old.OldFollowerConstants.rightRearMotorName;
-
 
 import com.pedropathing.localization.constants.DriveEncoderConstants;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,10 +7,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Encoder;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.geometry.Matrix;
+import com.pedropathing.math.Matrix;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.pedropathing.util.NanoTimer;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -118,7 +112,7 @@ public class DriveEncoderLocalizer implements Localizer {
      */
     @Override
     public Vector getVelocityVector() {
-        return currentVelocity.getVector();
+        return currentVelocity.getAsVector();
     }
 
     /**
@@ -190,7 +184,7 @@ public class DriveEncoderLocalizer implements Localizer {
 
         globalDeltas = Matrix.multiply(Matrix.multiply(prevRotationMatrix, transformation), robotDeltas);
 
-        displacementPose.add(new Pose(globalDeltas.get(0, 0), globalDeltas.get(1, 0), globalDeltas.get(2, 0)));
+        displacementPose.plus(new Pose(globalDeltas.get(0, 0), globalDeltas.get(1, 0), globalDeltas.get(2, 0)));
         currentVelocity = new Pose(globalDeltas.get(0, 0) / (deltaTimeNano / Math.pow(10.0, 9)), globalDeltas.get(1, 0) / (deltaTimeNano / Math.pow(10.0, 9)), globalDeltas.get(2, 0) / (deltaTimeNano / Math.pow(10.0, 9)));
 
         totalHeading += globalDeltas.get(2, 0);

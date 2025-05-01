@@ -1,21 +1,23 @@
 package com.pedropathing.follower;
 
 import static com.pedropathing.follower.old.OldFollowerConstants.automaticHoldEnd;
+import static com.pedropathing.follower.old.OldFollowerConstants.pathEndVelocityConstraint;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.localization.PoseTracker;
 import com.pedropathing.geometry.BezierPoint;
-import com.pedropathing.util.MathFunctions;
-import com.pedropathing.geometry.Path;
-import com.pedropathing.geometry.PathBuilder;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.util.PathCallback;
-import com.pedropathing.geometry.PathChain;
-import com.pedropathing.geometry.Vector;
-import com.pedropathing.util.DashboardPoseTracker;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -578,4 +580,10 @@ public class Follower {
     public Vector getHeadingVector() { return vectorCalculator.getHeadingVector(); }
     public Vector getTranslationalCorrection() { return vectorCalculator.getTranslationalCorrection(); }
     public Vector getCentripetalForceCorrection() { return vectorCalculator.getCentripetalForceCorrection(); }
+    public void setDrivePIDFCoefficients(FilteredPIDFCoefficients drivePIDFCoefficients) { vectorCalculator.setDrivePIDFCoefficients(drivePIDFCoefficients); }
+    public void setSecondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) { vectorCalculator.setSecondaryDrivePIDFCoefficients(secondaryDrivePIDFCoefficients); }
+    public void setHeadingPIDFCoefficients(PIDFCoefficients headingPIDFCoefficients) { vectorCalculator.setHeadingPIDFCoefficients(headingPIDFCoefficients); }
+    public void setSecondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) { vectorCalculator.setSecondaryHeadingPIDFCoefficients(secondaryHeadingPIDFCoefficients); }
+    public void setTranslationalPIDFCoefficients(PIDFCoefficients translationalPIDFCoefficients) { vectorCalculator.setTranslationalPIDFCoefficients(translationalPIDFCoefficients); }
+    public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) { vectorCalculator.setSecondaryTranslationalPIDFCoefficients(secondaryTranslationalPIDFCoefficients); }
 }

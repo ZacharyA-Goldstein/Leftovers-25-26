@@ -1,9 +1,9 @@
 package com.pedropathing.follower;
 
-import com.pedropathing.geometry.Vector;
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-public abstract class MecanumConstants extends DrivetrainConstants {
+public abstract class MecanumConstants {
     public abstract double maxPower();
     public abstract Vector frontLeftVector();
     public abstract String leftFrontMotorName();
