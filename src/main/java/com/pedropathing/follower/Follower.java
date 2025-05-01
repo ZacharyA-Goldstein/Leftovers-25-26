@@ -42,14 +42,10 @@ public class Follower {
     private final int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
     private long[] pathStartTimes;
-
     private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, teleopDrive;
-
     private double globalMaxPower = 1, centripetalScaling;
     private final double holdPointTranslationalScaling, holdPointHeadingScaling, turnHeadingErrorThreshold;
     private long reachedParametricPathEndTime;
-
-    public static boolean drawOnDashboard = true;
     public static boolean useTranslational = true;
     public static boolean useCentripetal = true;
     public static boolean useHeading = true;

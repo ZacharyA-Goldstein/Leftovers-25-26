@@ -42,4 +42,9 @@ public class DriveEncoderConstants {
     /** The direction of the right rear encoder
      * Default Value: Encoder.FORWARD */
     public static double rightRearEncoderDirection = Encoder.FORWARD;
+
+    public static String leftFrontMotorName = "leftFront";
+    public static String leftRearMotorName = "leftRear";
+    public static String rightFrontMotorName = "rightFront";
+    public static String rightRearMotorName = "rightRear";
 }

@@ -1,5 +1,6 @@
 package com.pedropathing.localization.localizers;
 
+import com.pedropathing.localization.constants.OTOSConstants;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -8,8 +9,6 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
 import com.qualcomm.robotcore.hardware.IMU;
-
-import static com.pedropathing.localization.constants.OTOSConstants.*;
 
 /**
  * This is the OTOSLocalizer class. This class extends the Localizer superclass and is a
@@ -54,8 +53,8 @@ public class OTOSLocalizer implements Localizer {
      *
      * @param map the HardwareMap
      */
-    public OTOSLocalizer(HardwareMap map) {
-        this(map, new Pose());
+    public OTOSLocalizer(HardwareMap map, OTOSConstants constants) {
+        this(map, constants, new Pose());
     }
 
     /**
@@ -66,16 +65,16 @@ public class OTOSLocalizer implements Localizer {
      * @param setStartPose the Pose to start from
      */
 
-    public OTOSLocalizer(HardwareMap map, Pose setStartPose) {
+    public OTOSLocalizer(HardwareMap map, OTOSConstants constants, Pose setStartPose) {
         hardwareMap = map;
 
-        otos = hardwareMap.get(SparkFunOTOS.class, hardwareMapName);
+        otos = hardwareMap.get(SparkFunOTOS.class, constants.hardwareMapName);
 
-        otos.setLinearUnit(linearUnit);
-        otos.setAngularUnit(angleUnit);
-        otos.setOffset(offset);
-        otos.setLinearScalar(linearScalar);
-        otos.setAngularScalar(angularScalar);
+        otos.setLinearUnit(constants.linearUnit);
+        otos.setAngularUnit(constants.angleUnit);
+        otos.setOffset(constants.offset);
+        otos.setLinearScalar(constants.linearScalar);
+        otos.setAngularScalar(constants.angularScalar);
 
         otos.calibrateImu();
         otos.resetTracking();

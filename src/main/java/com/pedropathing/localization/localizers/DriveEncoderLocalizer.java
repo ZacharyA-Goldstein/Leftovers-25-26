@@ -7,6 +7,7 @@ import static com.pedropathing.follower.old.OldFollowerConstants.rightFrontMotor
 import static com.pedropathing.follower.old.OldFollowerConstants.rightRearMotorName;
 
 
+import com.pedropathing.localization.constants.DriveEncoderConstants;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -52,8 +53,8 @@ public class DriveEncoderLocalizer implements Localizer {
      *
      * @param map the HardwareMap
      */
-    public DriveEncoderLocalizer(HardwareMap map) {
-        this(map, new Pose());
+    public DriveEncoderLocalizer(HardwareMap map, DriveEncoderConstants constants) {
+        this(map, constants, new Pose());
     }
 
     /**
@@ -63,25 +64,25 @@ public class DriveEncoderLocalizer implements Localizer {
      * @param map the HardwareMap
      * @param setStartPose the Pose to start from
      */
-    public DriveEncoderLocalizer(HardwareMap map, Pose setStartPose) {
+    public DriveEncoderLocalizer(HardwareMap map, DriveEncoderConstants constants, Pose setStartPose) {
         hardwareMap = map;
 
-        FORWARD_TICKS_TO_INCHES = forwardTicksToInches;
-        STRAFE_TICKS_TO_INCHES = strafeTicksToInches;
-        TURN_TICKS_TO_RADIANS = turnTicksToInches;
+        FORWARD_TICKS_TO_INCHES = constants.forwardTicksToInches;
+        STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
+        TURN_TICKS_TO_RADIANS = constants.turnTicksToInches;
 
-        ROBOT_WIDTH = robot_Width;
-        ROBOT_LENGTH = robot_Length;
+        ROBOT_WIDTH = constants.robot_Width;
+        ROBOT_LENGTH = constants.robot_Length;
 
-        leftFront = new Encoder(hardwareMap.get(DcMotorEx.class, leftFrontMotorName));
-        leftRear = new Encoder(hardwareMap.get(DcMotorEx.class, leftRearMotorName));
-        rightRear = new Encoder(hardwareMap.get(DcMotorEx.class, rightRearMotorName));
-        rightFront = new Encoder(hardwareMap.get(DcMotorEx.class, rightFrontMotorName));
+        leftFront = new Encoder(hardwareMap.get(DcMotorEx.class, constants.leftFrontMotorName));
+        leftRear = new Encoder(hardwareMap.get(DcMotorEx.class, constants.leftRearMotorName));
+        rightRear = new Encoder(hardwareMap.get(DcMotorEx.class, constants.rightRearMotorName));
+        rightFront = new Encoder(hardwareMap.get(DcMotorEx.class, constants.rightFrontMotorName));
 
-        leftFront.setDirection(leftFrontEncoderDirection);
-        leftRear.setDirection(leftRearEncoderDirection);
-        rightFront.setDirection(rightFrontEncoderDirection);
-        rightRear.setDirection(rightRearEncoderDirection);
+        leftFront.setDirection(constants.leftFrontEncoderDirection);
+        leftRear.setDirection(constants.leftRearEncoderDirection);
+        rightFront.setDirection(constants.rightFrontEncoderDirection);
+        rightRear.setDirection(constants.rightRearEncoderDirection);
 
         setStartPose(setStartPose);
         timer = new NanoTimer();

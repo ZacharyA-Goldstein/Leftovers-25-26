@@ -1,8 +1,8 @@
 package com.pedropathing.localization.localizers;
 
 
+import com.pedropathing.localization.constants.PinpointConstants;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import static com.pedropathing.localization.constants.PinpointConstants.*;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -64,7 +64,7 @@ public class PinpointLocalizer implements Localizer {
      *
      * @param map the HardwareMap
      */
-    public PinpointLocalizer(HardwareMap map){ this(map, new Pose());}
+    public PinpointLocalizer(HardwareMap map, PinpointConstants constants){ this(map, constants, new Pose());}
 
     /**
      * This creates a new PinpointLocalizer from a HardwareMap and a Pose, with the Pose
@@ -73,23 +73,23 @@ public class PinpointLocalizer implements Localizer {
      * @param map the HardwareMap
      * @param setStartPose the Pose to start from
      */
-    public PinpointLocalizer(HardwareMap map, Pose setStartPose){
+    public PinpointLocalizer(HardwareMap map, PinpointConstants constants, Pose setStartPose){
         hardwareMap = map;
 
-        odo = hardwareMap.get(GoBildaPinpointDriver.class,hardwareMapName);
-        setOffsets(forwardY, strafeX, distanceUnit);
+        odo = hardwareMap.get(GoBildaPinpointDriver.class,constants.hardwareMapName);
+        setOffsets(constants.forwardY, constants.strafeX, constants.distanceUnit);
 
-        if(useYawScalar) {
-            odo.setYawScalar(yawScalar);
+        if(constants.useYawScalar) {
+            odo.setYawScalar(constants.yawScalar);
         }
 
-        if(useCustomEncoderResolution) {
-            odo.setEncoderResolution(customEncoderResolution);
+        if(constants.useCustomEncoderResolution) {
+            odo.setEncoderResolution(constants.customEncoderResolution);
         } else {
-            odo.setEncoderResolution(encoderResolution);
+            odo.setEncoderResolution(constants.encoderResolution);
         }
 
-        odo.setEncoderDirections(forwardEncoderDirection, strafeEncoderDirection);
+        odo.setEncoderDirections(constants.forwardEncoderDirection, constants.strafeEncoderDirection);
 
         resetPinpoint();
 

@@ -1,10 +1,9 @@
 package com.pedropathing.localization.localizers;
 
+import com.pedropathing.localization.constants.TwoWheelConstants;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
-
-import static com.pedropathing.localization.constants.TwoWheelConstants.*;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.pedropathing.localization.Encoder;
@@ -68,8 +67,8 @@ public class TwoWheelLocalizer implements Localizer {
      *
      * @param map the HardwareMap
      */
-    public TwoWheelLocalizer(HardwareMap map) {
-        this(map, new Pose());
+    public TwoWheelLocalizer(HardwareMap map, TwoWheelConstants constants) {
+        this(map, constants, new Pose());
     }
 
     /**
@@ -79,23 +78,23 @@ public class TwoWheelLocalizer implements Localizer {
      * @param map the HardwareMap
      * @param setStartPose the Pose to start from
      */
-    public TwoWheelLocalizer(HardwareMap map, Pose setStartPose) {
-        FORWARD_TICKS_TO_INCHES = forwardTicksToInches;
-        STRAFE_TICKS_TO_INCHES = strafeTicksToInches;
+    public TwoWheelLocalizer(HardwareMap map, TwoWheelConstants constants,Pose setStartPose) {
+        FORWARD_TICKS_TO_INCHES = constants.forwardTicksToInches;
+        STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
 
-        forwardEncoderPose = new Pose(0, forwardY, 0);
-        strafeEncoderPose = new Pose(strafeX, 0, Math.toRadians(90));
+        forwardEncoderPose = new Pose(0, constants.forwardY, 0);
+        strafeEncoderPose = new Pose(constants.strafeX, 0, Math.toRadians(90));
 
         hardwareMap = map;
 
-        imu = hardwareMap.get(IMU.class, IMU_HardwareMapName);
-        imu.initialize(new IMU.Parameters(IMU_Orientation));
+        imu = hardwareMap.get(IMU.class, constants.IMU_HardwareMapName);
+        imu.initialize(new IMU.Parameters(constants.IMU_Orientation));
 
-        forwardEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, forwardEncoder_HardwareMapName));
-        strafeEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, strafeEncoder_HardwareMapName));
+        forwardEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.forwardEncoder_HardwareMapName));
+        strafeEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.strafeEncoder_HardwareMapName));
 
-        forwardEncoder.setDirection(forwardEncoderDirection);
-        strafeEncoder.setDirection(strafeEncoderDirection);
+        forwardEncoder.setDirection(constants.forwardEncoderDirection);
+        strafeEncoder.setDirection(constants.strafeEncoderDirection);
 
         setStartPose(setStartPose);
         timer = new NanoTimer();
