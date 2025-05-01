@@ -16,7 +16,7 @@ import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
 
 /**
- * This is the PoseUpdater class. This class handles getting pose data from the localizer and returning
+ * This is the PoseTracker class. This class handles getting pose data from the localizer and returning
  * the information in a useful way to the Follower.
  *
  * @author Anyi Lin - 10158 Scott's Bots
@@ -25,7 +25,7 @@ import com.pedropathing.geometry.Vector;
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 3/4/2024
  */
-public class PoseUpdater {
+public class PoseTracker {
     private HardwareMap hardwareMap;
 
     private IMU imu;
@@ -52,14 +52,14 @@ public class PoseUpdater {
     private long currentPoseTime;
 
     /**
-     * Creates a new PoseUpdater from a HardwareMap and a Localizer.
+     * Creates a new PoseTracker from a HardwareMap and a Localizer.
      *
      * @param hardwareMap the HardwareMap
      * @param localizer the Localizer
      * @param FConstants the constants for the Follower
      * @param LConstants the constants for the Localizer
      */
-    public PoseUpdater(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
+    public PoseTracker(HardwareMap hardwareMap, Localizer localizer, Class<?> FConstants, Class<?> LConstants) {
         Constants.setConstants(FConstants, LConstants);
 
         this.hardwareMap = hardwareMap;
@@ -76,23 +76,23 @@ public class PoseUpdater {
     }
 
     /**
-     * Creates a new PoseUpdater from a HardwareMap.
+     * Creates a new PoseTracker from a HardwareMap.
      *
      * @param hardwareMap the HardwareMap
      * @param FConstants the constants for the Follower
      * @param LConstants the constants for the Localizer
      */
-    public PoseUpdater(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
+    public PoseTracker(HardwareMap hardwareMap, Class<?> FConstants, Class<?> LConstants) {
         this(hardwareMap, createLocalizer(hardwareMap), FConstants, LConstants);
     }
 
     /**
-     * Creates a new PoseUpdater from a HardwareMap and a Localizer.
+     * Creates a new PoseTracker from a HardwareMap and a Localizer.
      *
      * @param hardwareMap the HardwareMap
      * @param localizer the Localizer
      */
-    public PoseUpdater(HardwareMap hardwareMap, Localizer localizer) {
+    public PoseTracker(HardwareMap hardwareMap, Localizer localizer) {
         this.hardwareMap = hardwareMap;
         this.localizer = localizer;
 
@@ -107,11 +107,11 @@ public class PoseUpdater {
     }
 
     /**
-     * Creates a new PoseUpdater from a HardwareMap.
+     * Creates a new PoseTracker from a HardwareMap.
      *
      * @param hardwareMap the HardwareMap
      */
-    public PoseUpdater(HardwareMap hardwareMap) {
+    public PoseTracker(HardwareMap hardwareMap) {
         this(hardwareMap, createLocalizer(hardwareMap));
     }
 
@@ -243,9 +243,9 @@ public class PoseUpdater {
     }
 
     /**
-     * This resets all offsets set to the PoseUpdater. If you have reset your pose using the
+     * This resets all offsets set to the PoseTracker. If you have reset your pose using the
      * setCurrentPoseUsingOffset(Pose2d set) method, then your pose will be returned to what the
-     * PoseUpdater thinks your pose would be, not the pose you reset to.
+     * PoseTracker thinks your pose would be, not the pose you reset to.
      */
     public void resetOffset() {
         setXOffset(0);

@@ -25,68 +25,43 @@ import com.pedropathing.control.PIDFController;
 import java.util.ArrayList;
 
 public class VectorCalculator {
-    private static VectorCalculator instance;
     private Path currentPath;
     private PathChain currentPathChain;
+    private Pose currentPose, closestPose;
     private double headingError, driveError;
 
     private ArrayList<Vector> velocities = new ArrayList<>();
     private ArrayList<Vector> accelerations = new ArrayList<>();
     private Vector velocity = new Vector();
 
-    private Vector averageVelocity;
-    private Vector averagePreviousVelocity;
-    private Vector averageAcceleration;
-    private Vector secondaryTranslationalIntegralVector;
-    private Vector translationalIntegralVector;
-    private Vector teleopDriveVector;
-    private Vector teleopHeadingVector;
+    private Vector averageVelocity, averagePreviousVelocity, averageAcceleration;
+    private Vector secondaryTranslationalIntegralVector, translationalIntegralVector;
+    private Vector teleopDriveVector, teleopHeadingVector;
 
-    public Vector driveVector;
-    public Vector headingVector;
-    public Vector translationalVector;
-    public Vector centripetalVector;
-    public Vector correctiveVector;
-    private final int AVERAGED_VELOCITY_SAMPLE_NUMBER = 8;;
+    public Vector driveVector, headingVector, translationalVector, centripetalVector, correctiveVector;
+
     private double previousSecondaryTranslationalIntegral;
     private double previousTranslationalIntegral;
     private double[] teleopDriveValues;
 
-    private boolean useDrive = true;
-    private boolean useHeading = true;
-    private boolean useTranslational = true;
-    private boolean useCentripetal = true;
-    private boolean teleopDrive = false;
-    private boolean followingPathChain = false;
+    private boolean useDrive = true, useHeading = true, useTranslational = true, useCentripetal = true, teleopDrive = false, followingPathChain = false;
     private double maxPowerScaling = 1.0;
 
     private int chainIndex;
     private double centripetalScaling;
 
-    private PIDFController secondaryTranslationalPIDF;
-    private PIDFController secondaryTranslationalIntegral;
-    private PIDFController translationalPIDF;
-    private PIDFController translationalIntegral;
-    private PIDFController secondaryHeadingPIDF;
-    private PIDFController headingPIDF;
-    private FilteredPIDFController secondaryDrivePIDF;
-    private FilteredPIDFController drivePIDF;
-    private Pose currentPose, closestPose;
+    private PIDFController secondaryTranslationalPIDF, secondaryTranslationalIntegral, translationalPIDF, translationalIntegral, secondaryHeadingPIDF, headingPIDF;
+    private FilteredPIDFController secondaryDrivePIDF, drivePIDF;
 
-    private VectorCalculator() {
-
-    }
-
-    // Public method to provide access to the instance
-    public static VectorCalculator getInstance() {
-        if (instance == null) {
-            synchronized (VectorCalculator.class) {
-                if (instance == null) {
-                    instance = new VectorCalculator();
-                }
-            }
-        }
-        return instance;
+    public VectorCalculator(com.pedropathing.follower.FollowerConstants constants) {
+        drivePIDF = new FilteredPIDFController(constants.drivePIDFCoefficients());
+        secondaryDrivePIDF = new FilteredPIDFController(constants.secondaryDrivePIDFCoefficients());
+        headingPIDF = new PIDFController(constants.headingPIDFCoefficients());
+        secondaryHeadingPIDF = new PIDFController(constants.secondaryHeadingPIDFCoefficients());
+        translationalPIDF = new PIDFController(constants.translationalPIDFCoefficients());
+        secondaryTranslationalPIDF = new PIDFController(constants.secondaryTranslationalPIDFCoefficients());
+        translationalIntegral = new PIDFController(constants.translationalIntegral());
+        secondaryTranslationalIntegral = new PIDFController(constants.secondaryTranslationalIntegral());
     }
 
     public void update(boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal, boolean teleopDrive, int chainIndex, double maxPowerScaling, boolean followingPathChain, double centripetalScaling, Pose currentPose, Pose closestPose, Vector velocity, Path currentPath, PathChain currentPathChain, double driveError, double headingError) {
@@ -129,6 +104,7 @@ public class VectorCalculator {
         centripetalVector = new Vector();
         correctiveVector = new Vector();
 
+        int AVERAGED_VELOCITY_SAMPLE_NUMBER = 8;
         for (int i = 0; i < AVERAGED_VELOCITY_SAMPLE_NUMBER; i++) {
             velocities.add(new Vector());
         }

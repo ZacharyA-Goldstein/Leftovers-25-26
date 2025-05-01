@@ -1,8 +1,10 @@
 package com.pedropathing.follower;
 
 import com.pedropathing.geometry.Vector;
+import com.pedropathing.util.MathFunctions;
 
 public abstract class Drivetrain {
+
     protected Vector[] vectors;
     protected double maxPowerScaling;
 
@@ -25,4 +27,14 @@ public abstract class Drivetrain {
      * @return this returns an Array of doubles with a length of 4, which contains the wheel powers.
      */
     public abstract double[] getDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading);
+
+    public void setMaxPowerScaling(double maxPowerScaling) {
+        this.maxPowerScaling = MathFunctions.clamp(maxPowerScaling, 0, 1);;
+    }
+
+    public double getMaxPowerScaling() {
+        return maxPowerScaling;
+    }
+
+    public abstract void breakFollowing();
 }

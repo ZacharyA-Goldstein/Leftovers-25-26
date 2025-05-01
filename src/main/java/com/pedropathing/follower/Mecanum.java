@@ -1,9 +1,25 @@
 package com.pedropathing.follower;
 
+import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorDirection;
+import static com.pedropathing.follower.old.FollowerConstants.leftFrontMotorName;
+import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorDirection;
+import static com.pedropathing.follower.old.FollowerConstants.leftRearMotorName;
+import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorDirection;
+import static com.pedropathing.follower.old.FollowerConstants.rightFrontMotorName;
+import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorDirection;
+import static com.pedropathing.follower.old.FollowerConstants.rightRearMotorName;
 import static com.pedropathing.util.MathFunctions.findNormalizingScaling;
 
+import com.pedropathing.util.DashboardPoseTracker;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Vector;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the Mecanum class, a child class of Drivetrain. This class takes in inputs Vectors for driving, heading
@@ -16,6 +32,12 @@ import com.pedropathing.geometry.Vector;
  * @version 1.0, 4/30/2025
  */
 public class Mecanum extends Drivetrain {
+    private DcMotorEx leftFront;
+    private DcMotorEx leftRear;
+    private DcMotorEx rightFront;
+    private DcMotorEx rightRear;
+    private List<DcMotorEx> motors;
+
     // This is ordered left front, left back, right front, right back. These are also normalized.
 
     /**
@@ -23,12 +45,33 @@ public class Mecanum extends Drivetrain {
      * the wheel drive powers necessary to move in the intended direction, given the true movement
      * vector for the front left mecanum wheel.
      *
-     * @param frontLeftVector this is the front left mecanum wheel's preferred drive vector.
+     * @param hardwareMap this is the HardwareMap object that contains the motors and other hardware
+     * @param mecanumConstants this is the MecanumConstants object that contains the names of the motors and directions etc.
      */
-    public Mecanum(Vector frontLeftVector, double maxPowerScaling) {
-        this.maxPowerScaling = maxPowerScaling;
+    public Mecanum(HardwareMap hardwareMap, MecanumConstants mecanumConstants) {
+        this.maxPowerScaling = mecanumConstants.maxPower();
 
-        Vector copiedFrontLeftVector = MathFunctions.normalizeVector(frontLeftVector);
+        leftFront = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftFrontMotorName());
+        leftRear = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftRearMotorName());
+        rightRear = hardwareMap.get(DcMotorEx.class, mecanumConstants.rightRearMotorName());
+        rightFront = hardwareMap.get(DcMotorEx.class, mecanumConstants.rightFrontMotorName());
+        leftFront.setDirection(mecanumConstants.leftFrontMotorDirection());
+        leftRear.setDirection(mecanumConstants.leftRearMotorDirection());
+        rightFront.setDirection(mecanumConstants.rightFrontMotorDirection());
+        rightRear.setDirection(mecanumConstants.rightRearMotorDirection());
+
+        motors = Arrays.asList(leftFront, leftRear, rightFront, rightRear);
+
+        for (DcMotorEx motor : motors) {
+            MotorConfigurationType motorConfigurationType = motor.getMotorType().clone();
+            motorConfigurationType.setAchieveableMaxRPMFraction(1.0);
+            motor.setMotorType(motorConfigurationType);
+        }
+
+        setMotorsToFloat();
+        breakFollowing();
+
+        Vector copiedFrontLeftVector = MathFunctions.normalizeVector(mecanumConstants.frontLeftVector());
         vectors = new Vector[]{
                 new Vector(copiedFrontLeftVector.getMagnitude(), copiedFrontLeftVector.getTheta()),
                 new Vector(copiedFrontLeftVector.getMagnitude(), 2*Math.PI-copiedFrontLeftVector.getTheta()),
@@ -125,6 +168,31 @@ public class Mecanum extends Drivetrain {
         }
 
         return wheelPowers;
+    }
+
+    /**
+     * This sets the motors to the zero power behavior of brake.
+     */
+    private void setMotorsToBrake() {
+        for (DcMotorEx motor : motors) {
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+    }
+
+    /**
+     * This sets the motors to the zero power behavior of float.
+     */
+    private void setMotorsToFloat() {
+        for (DcMotorEx motor : motors) {
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
+    }
+
+    public void breakFollowing() {
+        for (DcMotorEx motor : motors) {
+            motor.setPower(0);
+        }
+        setMotorsToFloat();
     }
 }
 

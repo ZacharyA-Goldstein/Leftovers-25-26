@@ -1,10 +1,10 @@
 package com.pedropathing.util;
 
-import com.pedropathing.localization.PoseUpdater;
+import com.pedropathing.localization.PoseTracker;
 
 /**
  * This is the DashboardPoseTracker class. This tracks the pose history of the robot through a
- * PoseUpdater, adding to the pose history at specified increments of time and storing the history
+ * PoseTracker, adding to the pose history at specified increments of time and storing the history
  * for a specified length of time.
  *
  * @author Anyi Lin - 10158 Scott's Bots
@@ -13,18 +13,18 @@ import com.pedropathing.localization.PoseUpdater;
 public class DashboardPoseTracker {
     private double[] xPositions;
     private double[] yPositions;
-    private PoseUpdater poseUpdater;
+    private PoseTracker poseUpdater;
     private long lastUpdateTime;
     private final int TRACKING_LENGTH = 1500;
     private final long UPDATE_TIME = 50;
     private final int TRACKING_SIZE = TRACKING_LENGTH / (int) UPDATE_TIME;
 
     /**
-     * This creates a new DashboardPoseTracker from a PoseUpdater.
+     * This creates a new DashboardPoseTracker from a PoseTracker.
      *
-     * @param poseUpdater the PoseUpdater
+     * @param poseUpdater the PoseTracker
      */
-    public DashboardPoseTracker(PoseUpdater poseUpdater) {
+    public DashboardPoseTracker(PoseTracker poseUpdater) {
         this.poseUpdater = poseUpdater;
         xPositions = new double[TRACKING_SIZE];
         yPositions = new double[TRACKING_SIZE];

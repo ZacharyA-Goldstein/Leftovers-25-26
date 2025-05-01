@@ -32,6 +32,7 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.pedropathing.localization.PoseTracker;
 import com.pedropathing.util.Constants;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
@@ -44,7 +45,6 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.localization.PoseUpdater;
 import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.util.MathFunctions;
 import com.pedropathing.geometry.Path;
@@ -84,7 +84,7 @@ public class Follower {
 
     private DriveVectorScaler driveVectorScaler;
 
-    public PoseUpdater poseUpdater;
+    public PoseTracker poseUpdater;
     private DashboardPoseTracker dashboardPoseTracker;
 
     private Pose closestPose;
@@ -223,12 +223,12 @@ public class Follower {
 
     /**
      * This initializes the follower.
-     * In this, the DriveVectorScaler and PoseUpdater is instantiated, the drive motors are
+     * In this, the DriveVectorScaler and PoseTracker is instantiated, the drive motors are
      * initialized and their behavior is set, and the variables involved in approximating first and
      * second derivatives for teleop are set.
      */
     public void initialize() {
-        poseUpdater = new PoseUpdater(hardwareMap);
+        poseUpdater = new PoseTracker(hardwareMap);
         driveVectorScaler = new DriveVectorScaler(FollowerConstants.frontLeftVector);
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
@@ -260,14 +260,14 @@ public class Follower {
 
     /**
      * This initializes the follower.
-     * In this, the DriveVectorScaler and PoseUpdater is instantiated, the drive motors are
+     * In this, the DriveVectorScaler and PoseTracker is instantiated, the drive motors are
      * initialized and their behavior is set, and the variables involved in approximating first and
      * second derivatives for teleop are set.
      * @param localizer the localizer you wish to use
      */
 
     public void initialize(Localizer localizer) {
-        poseUpdater = new PoseUpdater(hardwareMap, localizer);
+        poseUpdater = new PoseTracker(hardwareMap, localizer);
         driveVectorScaler = new DriveVectorScaler(FollowerConstants.frontLeftVector);
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
@@ -343,7 +343,7 @@ public class Follower {
     }
 
     /**
-     * This returns the current pose from the PoseUpdater.
+     * This returns the current pose from the PoseTracker.
      *
      * @return returns the pose
      */
@@ -352,7 +352,7 @@ public class Follower {
     }
 
     /**
-     * This sets the current pose in the PoseUpdater without using offsets.
+     * This sets the current pose in the PoseTracker without using offsets.
      *
      * @param pose The pose to set the current pose to.
      */
@@ -462,9 +462,9 @@ public class Follower {
     }
 
     /**
-     * This resets all offsets set to the PoseUpdater. If you have reset your pose using the
+     * This resets all offsets set to the PoseTracker. If you have reset your pose using the
      * setCurrentPoseUsingOffset(Pose set) method, then your pose will be returned to what the
-     * PoseUpdater thinks your pose would be, not the pose you reset to.
+     * PoseTracker thinks your pose would be, not the pose you reset to.
      */
     public void resetOffset() {
         poseUpdater.resetOffset();
@@ -627,7 +627,7 @@ public class Follower {
     }
 
     /**
-     * Calls an update to the PoseUpdater, which updates the robot's current position estimate.
+     * Calls an update to the PoseTracker, which updates the robot's current position estimate.
      */
     public void updatePose() {
         poseUpdater.update();
@@ -638,7 +638,7 @@ public class Follower {
     }
 
     /**
-     * This calls an update to the PoseUpdater, which updates the robot's current position estimate.
+     * This calls an update to the PoseTracker, which updates the robot's current position estimate.
      * This also updates all the Follower's PIDFs, which updates the motor powers.
      */
     public void update() {
