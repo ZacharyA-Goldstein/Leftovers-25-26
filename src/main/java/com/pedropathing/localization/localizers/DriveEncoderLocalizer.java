@@ -102,7 +102,7 @@ public class DriveEncoderLocalizer implements Localizer {
      */
     @Override
     public Pose getVelocity() {
-        return currentVelocity.copy();
+        return currentVelocity;
     }
 
     /**

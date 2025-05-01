@@ -166,10 +166,4 @@ public final class Pose {
     public String toString() {
         return "(" + getX() + ", " + getY() + ", " + Math.toDegrees(getHeading()) + ")";
     }
-
-    public Pose copy() {
-        return new Pose(x,y,heading,coordinateSystem);
-    }
-
-
 }

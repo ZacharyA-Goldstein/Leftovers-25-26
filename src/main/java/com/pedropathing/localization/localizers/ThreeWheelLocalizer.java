@@ -122,7 +122,7 @@ public class ThreeWheelLocalizer implements Localizer {
      */
     @Override
     public Pose getVelocity() {
-        return currentVelocity.copy();
+        return currentVelocity;
     }
 
     /**

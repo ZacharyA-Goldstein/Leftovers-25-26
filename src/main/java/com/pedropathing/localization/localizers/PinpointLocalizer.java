@@ -110,7 +110,7 @@ public class PinpointLocalizer implements Localizer {
      */
     @Override
     public Pose getPose() {
-        return pinpointPose.copy();
+        return pinpointPose;
     }
 
     /**
@@ -120,7 +120,7 @@ public class PinpointLocalizer implements Localizer {
      */
     @Override
     public Pose getVelocity() {
-        return currentVelocity.copy();
+        return currentVelocity;
     }
 
     /**

@@ -51,7 +51,7 @@ public class Drawing {
         if (packet == null) packet = new TelemetryPacket();
 
         packet.fieldOverlay().setStroke(color);
-        Drawing.drawRobotOnCanvas(packet.fieldOverlay(), pose.copy());
+        Drawing.drawRobotOnCanvas(packet.fieldOverlay(), pose);
     }
 
     /**

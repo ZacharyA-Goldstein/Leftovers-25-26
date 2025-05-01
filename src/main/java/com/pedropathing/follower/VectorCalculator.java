@@ -160,12 +160,12 @@ public class VectorCalculator {
 
         if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
             secondaryDrivePIDF.updateError(driveError);
-            driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF() + secondaryDrivePIDFFeedForward * MathFunctions.getSign(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
+            driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF() + secondaryDrivePIDFFeedForward * Math.signum(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
             return MathFunctions.copyVector(driveVector);
         }
 
         drivePIDF.updateError(driveError);
-        driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF() + drivePIDFFeedForward * MathFunctions.getSign(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
+        driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF() + drivePIDFFeedForward * Math.signum(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
         return MathFunctions.copyVector(driveVector);
     }
 
@@ -279,7 +279,7 @@ public class VectorCalculator {
             curvature = (yDoublePrime) / (Math.pow(Math.sqrt(1 + Math.pow(yPrime, 2)), 3));
         }
         if (Double.isNaN(curvature)) return new Vector();
-        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * OldFollowerConstants.mass * Math.pow(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * MathFunctions.getSign(currentPath.getClosestPointNormalVector().getTheta()));
+        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * OldFollowerConstants.mass * Math.pow(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * Math.signum(currentPath.getClosestPointNormalVector().getTheta()));
         return centripetalVector;
     }
 

@@ -135,7 +135,7 @@ public class ThreeWheelIMULocalizer implements Localizer {
      */
     @Override
     public Pose getVelocity() {
-        return currentVelocity.copy();
+        return currentVelocity;
     }
 
     /**
