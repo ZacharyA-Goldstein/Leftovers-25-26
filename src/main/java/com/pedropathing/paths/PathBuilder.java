@@ -1,6 +1,6 @@
 package com.pedropathing.paths;
 
-import com.pedropathing.follower.old.OldFollowerConstants;
+import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -24,7 +24,7 @@ public class PathBuilder {
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
-    private double decelerationStartMultiplier = OldFollowerConstants.decelerationStartMultiplier;
+    private double decelerationStartMultiplier = FollowerConstants.decelerationStartMultiplier;
     private boolean globalLinearHeadingInterpolation = false;
     private double globalStartHeading = 0;
     private double globalEndHeading = 0;

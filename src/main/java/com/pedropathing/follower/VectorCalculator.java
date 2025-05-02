@@ -2,7 +2,6 @@ package com.pedropathing.follower;
 
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
-import com.pedropathing.follower.old.OldFollowerConstants;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
@@ -41,7 +40,7 @@ public class VectorCalculator {
     private double[] teleopDriveValues;
 
     private boolean useDrive = true, useHeading = true, useTranslational = true, useCentripetal = true, teleopDrive = false, followingPathChain = false;
-    private double maxPowerScaling = 1.0;
+    private double maxPowerScaling = 1.0, mass = 10.65;
 
     private int chainIndex;
     private double centripetalScaling;
@@ -55,31 +54,45 @@ public class VectorCalculator {
     private PIDFController headingPIDF;
     private FilteredPIDFController secondaryDrivePIDF, drivePIDF;
 
-    public VectorCalculator(com.pedropathing.follower.FollowerConstants constants) {
-        //TODO: need to make it so the coefficents are accessable for tuning
-        drivePIDF = new FilteredPIDFController(constants.drivePIDFCoefficients());
-        secondaryDrivePIDF = new FilteredPIDFController(constants.secondaryDrivePIDFCoefficients());
-        headingPIDF = new PIDFController(constants.headingPIDFCoefficients());
-        secondaryHeadingPIDF = new PIDFController(constants.secondaryHeadingPIDFCoefficients());
-        translationalPIDF = new PIDFController(constants.translationalPIDFCoefficients());
-        secondaryTranslationalPIDF = new PIDFController(constants.secondaryTranslationalPIDFCoefficients());
-        translationalIntegral = new PIDFController(constants.translationalIntegral());
-        secondaryTranslationalIntegral = new PIDFController(constants.secondaryTranslationalIntegral());
-        drivePIDFSwitch = constants.drivePIDFSwitch();
-        headingPIDFSwitch = constants.headingPIDFSwitch();
-        translationalPIDFSwitch = constants.translationalPIDFSwitch();
-        drivePIDFFeedForward = constants.drivePIDFFeedForward();
-        secondaryDrivePIDFFeedForward = constants.secondaryDrivePIDFFeedForward();
-        headingPIDFFeedForward = constants.headingPIDFFeedForward();
-        secondaryHeadingPIDFFeedForward = constants.secondaryHeadingPIDFFeedForward();
-        translationalPIDFFeedForward = constants.translationalPIDFFeedForward();
-        secondaryTranslationalPIDFFeedForward = constants.secondaryTranslationalPIDFFeedForward();
-        useSecondaryDrivePID = constants.useSecondaryDrivePIDF();
-        useSecondaryHeadingPID = constants.useSecondaryHeadingPIDF();
-        useSecondaryTranslationalPID = constants.useSecondaryTranslationalPIDF();
+    public VectorCalculator() {
+        drivePIDF = new FilteredPIDFController(FollowerConstants.drivePIDFCoefficients);
+        secondaryDrivePIDF = new FilteredPIDFController(FollowerConstants.secondaryDrivePIDFCoefficients);
+        headingPIDF = new PIDFController(FollowerConstants.headingPIDFCoefficients);
+        secondaryHeadingPIDF = new PIDFController(FollowerConstants.secondaryHeadingPIDFCoefficients);
+        translationalPIDF = new PIDFController(FollowerConstants.translationalPIDFCoefficients);
+        secondaryTranslationalPIDF = new PIDFController(FollowerConstants.secondaryTranslationalPIDFCoefficients);
+        translationalIntegral = new PIDFController(FollowerConstants.translationalIntegral);
+        secondaryTranslationalIntegral = new PIDFController(FollowerConstants.secondaryTranslationalIntegral);
+        updateConstants();
+    }
+    
+    public void updateConstants() {
+        drivePIDF.setCoefficients(FollowerConstants.drivePIDFCoefficients);
+        secondaryDrivePIDF.setCoefficients(FollowerConstants.secondaryDrivePIDFCoefficients);
+        headingPIDF.setCoefficients(FollowerConstants.headingPIDFCoefficients);
+        secondaryHeadingPIDF.setCoefficients(FollowerConstants.secondaryHeadingPIDFCoefficients);
+        translationalPIDF.setCoefficients(FollowerConstants.translationalPIDFCoefficients);
+        secondaryTranslationalPIDF.setCoefficients(FollowerConstants.secondaryTranslationalPIDFCoefficients);
+        translationalIntegral.setCoefficients(FollowerConstants.translationalIntegral);
+        secondaryTranslationalIntegral.setCoefficients(FollowerConstants.secondaryTranslationalIntegral);
+        drivePIDFSwitch = FollowerConstants.drivePIDFSwitch;
+        headingPIDFSwitch = FollowerConstants.headingPIDFSwitch;
+        translationalPIDFSwitch = FollowerConstants.translationalPIDFSwitch;
+        drivePIDFFeedForward = FollowerConstants.drivePIDFFeedForward;
+        secondaryDrivePIDFFeedForward = FollowerConstants.secondaryDrivePIDFFeedForward;
+        headingPIDFFeedForward = FollowerConstants.headingPIDFFeedForward;
+        secondaryHeadingPIDFFeedForward = FollowerConstants.secondaryHeadingPIDFFeedForward;
+        translationalPIDFFeedForward = FollowerConstants.translationalPIDFFeedForward;
+        secondaryTranslationalPIDFFeedForward = FollowerConstants.secondaryTranslationalPIDFFeedForward;
+        useSecondaryDrivePID = FollowerConstants.useSecondaryDrivePIDF;
+        useSecondaryHeadingPID = FollowerConstants.useSecondaryHeadingPIDF;
+        useSecondaryTranslationalPID = FollowerConstants.useSecondaryTranslationalPIDF;
+        mass = FollowerConstants.mass;
     }
 
     public void update(boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal, boolean teleopDrive, int chainIndex, double maxPowerScaling, boolean followingPathChain, double centripetalScaling, Pose currentPose, Pose closestPose, Vector velocity, Path currentPath, PathChain currentPathChain, double driveError, double headingError) {
+        updateConstants();
+
         this.useDrive = useDrive;
         this.useHeading = useHeading;
         this.useTranslational = useTranslational;
@@ -284,7 +297,7 @@ public class VectorCalculator {
             curvature = (yDoublePrime) / (Math.pow(Math.sqrt(1 + Math.pow(yPrime, 2)), 3));
         }
         if (Double.isNaN(curvature)) return new Vector();
-        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * OldFollowerConstants.mass * Math.pow(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * Math.signum(currentPath.getClosestPointNormalVector().getTheta()));
+        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * mass * Math.pow(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * Math.signum(currentPath.getClosestPointNormalVector().getTheta()));
         return centripetalVector;
     }
 

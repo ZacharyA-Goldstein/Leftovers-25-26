@@ -52,4 +52,77 @@ public class TwoWheelConstants {
     /** The direction of the strafe encoder
      * Default Value: Encoder.FORWARD */
     public static double strafeEncoderDirection = Encoder.FORWARD;
+
+    /**
+     * This creates a new TwoWheelConstants with default values.
+     */
+    public TwoWheelConstants() {
+        defaults();
+    }
+
+    public TwoWheelConstants forwardTicksToInches(double forwardTicksToInches) {
+        TwoWheelConstants.forwardTicksToInches = forwardTicksToInches;
+        return this;
+    }
+
+    public TwoWheelConstants strafeTicksToInches(double strafeTicksToInches) {
+        TwoWheelConstants.strafeTicksToInches = strafeTicksToInches;
+        return this;
+    }
+
+    public TwoWheelConstants forwardY(double forwardY) {
+        TwoWheelConstants.forwardY = forwardY;
+        return this;
+    }
+
+    public TwoWheelConstants strafeX(double strafeX) {
+        TwoWheelConstants.strafeX = strafeX;
+        return this;
+    }
+
+    public TwoWheelConstants IMU_HardwareMapName(String IMU_HardwareMapName) {
+        TwoWheelConstants.IMU_HardwareMapName = IMU_HardwareMapName;
+        return this;
+    }
+
+    public TwoWheelConstants forwardEncoder_HardwareMapName(String forwardEncoder_HardwareMapName) {
+        TwoWheelConstants.forwardEncoder_HardwareMapName = forwardEncoder_HardwareMapName;
+        return this;
+    }
+
+    public TwoWheelConstants strafeEncoder_HardwareMapName(String strafeEncoder_HardwareMapName) {
+        TwoWheelConstants.strafeEncoder_HardwareMapName = strafeEncoder_HardwareMapName;
+        return this;
+    }
+
+    public TwoWheelConstants IMU_Orientation(RevHubOrientationOnRobot IMU_Orientation) {
+        TwoWheelConstants.IMU_Orientation = IMU_Orientation;
+        return this;
+    }
+
+    public TwoWheelConstants forwardEncoderDirection(double forwardEncoderDirection) {
+        TwoWheelConstants.forwardEncoderDirection = forwardEncoderDirection;
+        return this;
+    }
+
+    public TwoWheelConstants strafeEncoderDirection(double strafeEncoderDirection) {
+        TwoWheelConstants.strafeEncoderDirection = strafeEncoderDirection;
+        return this;
+    }
+
+    /**
+     * This sets the default values for the TwoWheelConstants.
+     */
+    public void defaults() {
+        forwardTicksToInches = .001989436789;
+        strafeTicksToInches = .001989436789;
+        forwardY = 1;
+        strafeX = -2.5;
+        IMU_HardwareMapName = "imu";
+        forwardEncoder_HardwareMapName = "leftFront";
+        strafeEncoder_HardwareMapName = "rightRear";
+        IMU_Orientation = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.LEFT);
+        forwardEncoderDirection = Encoder.REVERSE;
+        strafeEncoderDirection = Encoder.FORWARD;
+    }
 }

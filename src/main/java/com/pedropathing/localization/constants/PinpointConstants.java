@@ -62,4 +62,80 @@ public class PinpointConstants {
     /** The Encoder Direction for the Strafe Encoder (Deadwheel)
      * Default Value: GoBildaPinpointDriver.EncoderDirection.FORWARD */
     public static GoBildaPinpointDriver.EncoderDirection strafeEncoderDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+
+    /**
+     * This creates a new PinpointConstants with default values.
+     */
+    public PinpointConstants() {
+        defaults();
+    }
+
+    public PinpointConstants forwardY(double forwardY) {
+        PinpointConstants.forwardY = forwardY;
+        return this;
+    }
+
+    public PinpointConstants strafeX(double strafeX) {
+        PinpointConstants.strafeX = strafeX;
+        return this;
+    }
+
+    public PinpointConstants distanceUnit(DistanceUnit distanceUnit) {
+        PinpointConstants.distanceUnit = distanceUnit;
+        return this;
+    }
+
+    public PinpointConstants hardwareMapName(String hardwareMapName) {
+        PinpointConstants.hardwareMapName = hardwareMapName;
+        return this;
+    }
+
+    public PinpointConstants useYawScalar(boolean useYawScalar) {
+        PinpointConstants.useYawScalar = useYawScalar;
+        return this;
+    }
+
+    public PinpointConstants yawScalar(double yawScalar) {
+        PinpointConstants.yawScalar = yawScalar;
+        return this;
+    }
+
+    public PinpointConstants useCustomEncoderResolution(boolean useCustomEncoderResolution) {
+        PinpointConstants.useCustomEncoderResolution = useCustomEncoderResolution;
+        return this;
+    }
+
+    public PinpointConstants encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods encoderResolution) {
+        PinpointConstants.encoderResolution = encoderResolution;
+        return this;
+    }
+
+    public PinpointConstants customEncoderResolution(double customEncoderResolution) {
+        PinpointConstants.customEncoderResolution = customEncoderResolution;
+        return this;
+    }
+
+    public PinpointConstants forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection forwardEncoderDirection) {
+        PinpointConstants.forwardEncoderDirection = forwardEncoderDirection;
+        return this;
+    }
+
+    public PinpointConstants strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection strafeEncoderDirection) {
+        PinpointConstants.strafeEncoderDirection = strafeEncoderDirection;
+        return this;
+    }
+
+    public void defaults() {
+        forwardY = 1;
+        strafeX = -2.5;
+        distanceUnit = DistanceUnit.INCH;
+        hardwareMapName = "pinpoint";
+        useYawScalar = false;
+        yawScalar = 1.0;
+        useCustomEncoderResolution = false;
+        encoderResolution = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
+        customEncoderResolution = 13.26291192;
+        forwardEncoderDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
+        strafeEncoderDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+    }
 }

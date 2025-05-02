@@ -41,18 +41,18 @@ public class Mecanum extends Drivetrain {
      * @param mecanumConstants this is the MecanumConstants object that contains the names of the motors and directions etc.
      */
     public Mecanum(HardwareMap hardwareMap, MecanumConstants mecanumConstants) {
-        this.maxPowerScaling = mecanumConstants.maxPower();
-        this.motorCachingThreshold = mecanumConstants.motorCachingThreshold();
-        this.useBrakeModeInTeleOp = mecanumConstants.useBrakeModeInTeleOp();
+        this.maxPowerScaling = MecanumConstants.maxPower;
+        this.motorCachingThreshold = MecanumConstants.motorCachingThreshold;
+        this.useBrakeModeInTeleOp = MecanumConstants.useBrakeModeInTeleOp;
 
-        leftFront = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftFrontMotorName());
-        leftRear = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftRearMotorName());
-        rightRear = hardwareMap.get(DcMotorEx.class, mecanumConstants.rightRearMotorName());
-        rightFront = hardwareMap.get(DcMotorEx.class, mecanumConstants.rightFrontMotorName());
-        leftFront.setDirection(mecanumConstants.leftFrontMotorDirection());
-        leftRear.setDirection(mecanumConstants.leftRearMotorDirection());
-        rightFront.setDirection(mecanumConstants.rightFrontMotorDirection());
-        rightRear.setDirection(mecanumConstants.rightRearMotorDirection());
+        leftFront = hardwareMap.get(DcMotorEx.class, MecanumConstants.leftFrontMotorName);
+        leftRear = hardwareMap.get(DcMotorEx.class, MecanumConstants.leftRearMotorName);
+        rightRear = hardwareMap.get(DcMotorEx.class, MecanumConstants.rightRearMotorName);
+        rightFront = hardwareMap.get(DcMotorEx.class, MecanumConstants.rightFrontMotorName);
+        leftFront.setDirection(MecanumConstants.leftFrontMotorDirection);
+        leftRear.setDirection(MecanumConstants.leftRearMotorDirection);
+        rightFront.setDirection(MecanumConstants.rightFrontMotorDirection);
+        rightRear.setDirection(MecanumConstants.rightRearMotorDirection);
 
         motors = Arrays.asList(leftFront, leftRear, rightFront, rightRear);
 
@@ -65,7 +65,7 @@ public class Mecanum extends Drivetrain {
         setMotorsToFloat();
         breakFollowing();
 
-        Vector copiedFrontLeftVector = MathFunctions.normalizeVector(mecanumConstants.frontLeftVector());
+        Vector copiedFrontLeftVector = MathFunctions.normalizeVector(MecanumConstants.frontLeftVector);
         vectors = new Vector[]{
                 new Vector(copiedFrontLeftVector.getMagnitude(), copiedFrontLeftVector.getTheta()),
                 new Vector(copiedFrontLeftVector.getMagnitude(), 2*Math.PI-copiedFrontLeftVector.getTheta()),
@@ -206,6 +206,14 @@ public class Mecanum extends Drivetrain {
 
     public void getAndRunDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading) {
         runPowers(getDrivePowers(correctivePower, headingPower, pathingPower, robotHeading));
+    }
+
+    public double xMovement() {
+        return MecanumConstants.xMovement;
+    }
+
+    public double yMovement() {
+        return MecanumConstants.yMovement;
     }
 
 

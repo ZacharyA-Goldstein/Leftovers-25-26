@@ -1,6 +1,6 @@
 package com.pedropathing.paths;
 
-import com.pedropathing.follower.old.OldFollowerConstants;
+import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
@@ -52,32 +52,32 @@ public class Path {
     // Decreasing this will cause the deceleration at the end of the Path to be slower, making the
     // robot slower but reducing risk of end-of-path overshoots or localization slippage.
     // This can be set individually for each Path, but this is the default.
-    private double zeroPowerAccelerationMultiplier = OldFollowerConstants.zeroPowerAccelerationMultiplier;
+    private double zeroPowerAccelerationMultiplier = FollowerConstants.zeroPowerAccelerationMultiplier;
 
     // When the robot is at the end of its current Path or PathChain and the velocity goes
     // this value, then end the Path. This is in inches/second.
     // This can be custom set for each Path.
-    private double pathEndVelocityConstraint = OldFollowerConstants.pathEndVelocityConstraint;
+    private double pathEndVelocityConstraint = FollowerConstants.pathEndVelocityConstraint;
 
     // When the robot is at the end of its current Path or PathChain and the translational error
     // goes below this value, then end the Path. This is in inches.
     // This can be custom set for each Path.
-    private double pathEndTranslationalConstraint = OldFollowerConstants.pathEndTranslationalConstraint;
+    private double pathEndTranslationalConstraint = FollowerConstants.pathEndTranslationalConstraint;
 
     // When the robot is at the end of its current Path or PathChain and the heading error goes
     // below this value, then end the Path. This is in radians.
     // This can be custom set for each Path.
-    private double pathEndHeadingConstraint = OldFollowerConstants.pathEndHeadingConstraint;
+    private double pathEndHeadingConstraint = FollowerConstants.pathEndHeadingConstraint;
 
     // When the t-value of the closest point to the robot on the Path is greater than this value,
     // then the Path is considered at its end.
     // This can be custom set for each Path.
-    private double pathEndTValueConstraint = OldFollowerConstants.pathEndTValueConstraint;
+    private double pathEndTValueConstraint = FollowerConstants.pathEndTValueConstraint;
 
     // When the Path is considered at its end parametrically, then the Follower has this many
     // milliseconds to further correct by default.
     // This can be custom set for each Path.
-    private double pathEndTimeoutConstraint = OldFollowerConstants.pathEndTimeoutConstraint;
+    private double pathEndTimeoutConstraint = FollowerConstants.pathEndTimeoutConstraint;
 
     /**
      * Creates a new Path from a BezierCurve. The default heading interpolation is tangential.

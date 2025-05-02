@@ -40,4 +40,50 @@ public class OTOSConstants {
     /** The angular scalar of the OTOS sensor
      * Default Value: 1.0 */
     public static double angularScalar = 1.0;
+
+    /**
+     * This creates a new OTOSConstants with default values.
+     */
+    public OTOSConstants() {
+        defaults();
+    }
+
+    public OTOSConstants hardwareMapName(String hardwareMapName) {
+        OTOSConstants.hardwareMapName = hardwareMapName;
+        return this;
+    }
+
+    public OTOSConstants linearUnit(DistanceUnit linearUnit) {
+        OTOSConstants.linearUnit = linearUnit;
+        return this;
+    }
+
+    public OTOSConstants angleUnit(AngleUnit angleUnit) {
+        OTOSConstants.angleUnit = angleUnit;
+        return this;
+    }
+
+    public OTOSConstants offset(SparkFunOTOS.Pose2D offset) {
+        OTOSConstants.offset = offset;
+        return this;
+    }
+
+    public OTOSConstants linearScalar(double linearScalar) {
+        OTOSConstants.linearScalar = linearScalar;
+        return this;
+    }
+
+    public OTOSConstants angularScalar(double angularScalar) {
+        OTOSConstants.angularScalar = angularScalar;
+        return this;
+    }
+
+    public void defaults() {
+        hardwareMapName = "sensor_otos";
+        linearUnit = DistanceUnit.INCH;
+        angleUnit = AngleUnit.RADIANS;
+        offset = new SparkFunOTOS.Pose2D(0, 0, Math.PI / 2);
+        linearScalar = 1.0;
+        angularScalar = 1.0;
+    }
 }

@@ -1,8 +1,5 @@
 package com.pedropathing.follower;
 
-import static com.pedropathing.follower.old.OldFollowerConstants.automaticHoldEnd;
-import static com.pedropathing.follower.old.OldFollowerConstants.pathEndVelocityConstraint;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
@@ -32,11 +29,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 @Config
 public class Follower {
-
-    private final Drivetrain drivetrain;
-    private final VectorCalculator vectorCalculator;
-    private final ErrorCalculator errorCalculator;
     public PoseTracker poseTracker;
+    private final ErrorCalculator errorCalculator;
+    private final VectorCalculator vectorCalculator;
+    private final Drivetrain drivetrain;
 
     private Pose closestPose, currentPose;
     private Path currentPath;
@@ -46,6 +42,7 @@ public class Follower {
     private int chainIndex;
     private long[] pathStartTimes;
     private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, teleopDrive;
+    private final boolean automaticHoldEnd;
     private double globalMaxPower = 1, centripetalScaling;
     private final double holdPointTranslationalScaling, holdPointHeadingScaling, turnHeadingErrorThreshold;
     private long reachedParametricPathEndTime;
@@ -62,14 +59,15 @@ public class Follower {
     public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
         poseTracker = new PoseTracker(hardwareMap, localizer);
         errorCalculator = ErrorCalculator.getInstance();
-        vectorCalculator = new VectorCalculator(constants);
+        vectorCalculator = new VectorCalculator();
         this.drivetrain = drivetrain;
 
-        BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT();
-        holdPointTranslationalScaling = constants.holdPointTranslationalScaling();
-        holdPointHeadingScaling = constants.holdPointHeadingScaling();
-        centripetalScaling = constants.centripetalScaling();
-        turnHeadingErrorThreshold = constants.turnHeadingErrorThreshold();
+        BEZIER_CURVE_SEARCH_LIMIT = FollowerConstants.BEZIER_CURVE_SEARCH_LIMIT;
+        holdPointTranslationalScaling = FollowerConstants.holdPointTranslationalScaling;
+        holdPointHeadingScaling = FollowerConstants.holdPointHeadingScaling;
+        centripetalScaling = FollowerConstants.centripetalScaling;
+        turnHeadingErrorThreshold = FollowerConstants.turnHeadingErrorThreshold;
+        automaticHoldEnd = FollowerConstants.automaticHoldEnd;
 
         breakFollowing();
     }
@@ -128,7 +126,6 @@ public class Follower {
         return poseTracker.getVelocity();
     }
 
-
     /**
      * This sets the starting pose. Do not run this after moving at all.
      *
@@ -153,8 +150,6 @@ public class Follower {
         currentPath.setConstantHeadingInterpolation(heading);
         closestPose = currentPath.getClosestPoint(poseTracker.getPose(), 1);
     }
-
-
 
     /**
      * This holds a Point.
@@ -261,7 +256,7 @@ public class Follower {
 
     /** Calls an update to the ErrorCalculator, which updates the robot's current error. */
     public void updateErrors() {
-        errorCalculator.update(currentPose, currentPath, currentPathChain, followingPathChain, poseTracker.getVelocity(), chainIndex);
+        errorCalculator.update(currentPose, currentPath, currentPathChain, followingPathChain, poseTracker.getVelocity(), chainIndex, drivetrain.xMovement());
     }
 
     /** Calls an update to the VectorCalculator, which updates the robot's current vectors to correct. */

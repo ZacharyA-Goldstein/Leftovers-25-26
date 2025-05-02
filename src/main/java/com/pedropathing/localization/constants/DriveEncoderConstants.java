@@ -3,48 +3,107 @@ package com.pedropathing.localization.constants;
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.Encoder;
 
-/**
- * This is the DriveEncoderConstants class. It holds many constants and parameters for the Drive Encoder Localizer.
- * @author Baron Henderson - 20077 The Indubitables
- * @version 1.0, 12/24/2024
- */
-
 @Config
 public class DriveEncoderConstants {
 
-    /** The number of inches per ticks of the encoder for forward movement
-     * Default Value: 1 */
     public static double forwardTicksToInches = 1;
-
-    /** The number of inches per ticks of the encoder for lateral movement (strafing)
-     * Default Value: 1 */
     public static double strafeTicksToInches = 1;
-
-    /** The number of inches per ticks of the encoder for turning
-     * Default Value: 1 */
     public static double turnTicksToInches = 1;
 
     public static double robot_Width = 1;
     public static double robot_Length = 1;
 
-    /** The direction of the left front encoder
-     * Default Value: Encoder.REVERSE */
     public static double leftFrontEncoderDirection = Encoder.REVERSE;
-
-    /** The direction of the right front encoder
-     * Default Value: Encoder.FORWARD */
     public static double rightFrontEncoderDirection = Encoder.FORWARD;
-
-    /** The direction of the left rear encoder
-     * Default Value: Encoder.REVERSE */
     public static double leftRearEncoderDirection = Encoder.REVERSE;
-
-    /** The direction of the right rear encoder
-     * Default Value: Encoder.FORWARD */
     public static double rightRearEncoderDirection = Encoder.FORWARD;
 
     public static String leftFrontMotorName = "leftFront";
     public static String leftRearMotorName = "leftRear";
     public static String rightFrontMotorName = "rightFront";
     public static String rightRearMotorName = "rightRear";
+
+    public DriveEncoderConstants forwardTicksToInches(double forwardTicksToInches) {
+        DriveEncoderConstants.forwardTicksToInches = forwardTicksToInches;
+        return this;
+    }
+
+    public DriveEncoderConstants strafeTicksToInches(double strafeTicksToInches) {
+        DriveEncoderConstants.strafeTicksToInches = strafeTicksToInches;
+        return this;
+    }
+
+    public DriveEncoderConstants turnTicksToInches(double turnTicksToInches) {
+        DriveEncoderConstants.turnTicksToInches = turnTicksToInches;
+        return this;
+    }
+
+    public DriveEncoderConstants robotWidth(double robot_Width) {
+        DriveEncoderConstants.robot_Width = robot_Width;
+        return this;
+    }
+
+    public DriveEncoderConstants robotLength(double robot_Length) {
+        DriveEncoderConstants.robot_Length = robot_Length;
+        return this;
+    }
+
+    public DriveEncoderConstants leftFrontEncoderDirection(double leftFrontEncoderDirection) {
+        DriveEncoderConstants.leftFrontEncoderDirection = leftFrontEncoderDirection;
+        return this;
+    }
+
+    public DriveEncoderConstants rightFrontEncoderDirection(double rightFrontEncoderDirection) {
+        DriveEncoderConstants.rightFrontEncoderDirection = rightFrontEncoderDirection;
+        return this;
+    }
+
+    public DriveEncoderConstants leftRearEncoderDirection(double leftRearEncoderDirection) {
+        DriveEncoderConstants.leftRearEncoderDirection = leftRearEncoderDirection;
+        return this;
+    }
+
+    public DriveEncoderConstants rightRearEncoderDirection(double rightRearEncoderDirection) {
+        DriveEncoderConstants.rightRearEncoderDirection = rightRearEncoderDirection;
+        return this;
+    }
+
+    public DriveEncoderConstants leftFrontMotorName(String leftFrontMotorName) {
+        DriveEncoderConstants.leftFrontMotorName = leftFrontMotorName;
+        return this;
+    }
+
+    public DriveEncoderConstants leftRearMotorName(String leftRearMotorName) {
+        DriveEncoderConstants.leftRearMotorName = leftRearMotorName;
+        return this;
+    }
+
+    public DriveEncoderConstants rightFrontMotorName(String rightFrontMotorName) {
+        DriveEncoderConstants.rightFrontMotorName = rightFrontMotorName;
+        return this;
+    }
+
+    public DriveEncoderConstants rightRearMotorName(String rightRearMotorName) {
+        DriveEncoderConstants.rightRearMotorName = rightRearMotorName;
+        return this;
+    }
+
+    public void defaults() {
+        forwardTicksToInches = 1;
+        strafeTicksToInches = 1;
+        turnTicksToInches = 1;
+
+        robot_Width = 1;
+        robot_Length = 1;
+
+        leftFrontEncoderDirection = Encoder.REVERSE;
+        rightFrontEncoderDirection = Encoder.FORWARD;
+        leftRearEncoderDirection = Encoder.REVERSE;
+        rightRearEncoderDirection = Encoder.FORWARD;
+
+        leftFrontMotorName = "leftFront";
+        leftRearMotorName = "leftRear";
+        rightFrontMotorName = "rightFront";
+        rightRearMotorName = "rightRear";
+    }
 }

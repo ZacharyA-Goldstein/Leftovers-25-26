@@ -1,5 +1,6 @@
 package com.pedropathing.follower;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 
@@ -14,8 +15,13 @@ import com.pedropathing.control.PIDFCoefficients;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 5/1/2025
  */
+@Config
 public class FollowerConstants {
 
+    /**
+     * Translational PIDF coefficients
+     * Default Value: new CustomPIDFCoefficients(0.1,0,0,0);
+     */
     public static PIDFCoefficients translationalPIDFCoefficients = new PIDFCoefficients(
             0.1,
             0,
@@ -210,105 +216,83 @@ public class FollowerConstants {
      */
     public static double centripetalScaling = 0.0005;
 
-    public static PIDFCoefficients translationalPIDFCoefficients() {
-        return translationalPIDFCoefficients;
-    }
+    /**
+     * This is the default value for the automatic hold end. If this is set to true, the Follower will
+     * automatically hold the end when it reaches the end of the Path.
+     * Default Value: true
+     */
+    public static boolean automaticHoldEnd = true;
 
-    public static PIDFCoefficients translationalIntegral() {
-        return translationalIntegral;
-    }
 
-    public static double translationalPIDFFeedForward() {
-        return translationalPIDFFeedForward;
-    }
+    /**
+     * This is the mass of the robot. This is used to calculate the centripetal force.
+     * Default Value: 10.65
+     */
+    public static double mass = 10.65;
 
-    public static PIDFCoefficients headingPIDFCoefficients() {
-        return headingPIDFCoefficients;
-    }
+    /** Acceleration of the drivetrain when power is cut in inches/second^2 (should be negative)
+     * if not negative, then the robot thinks that its going to go faster under 0 power
+     *  Default Value: -34.62719
+     * @implNote This value is found via 'ForwardZeroPowerAccelerationTuner'*/
+    public static double forwardZeroPowerAcceleration = -34.62719;
 
-    public static double headingPIDFFeedForward() {
-        return headingPIDFFeedForward;
-    }
+    /** Acceleration of the drivetrain when power is cut in inches/second^2 (should be negative)
+     * if not negative, then the robot thinks that its going to go faster under 0 power
+     *  Default Value: -78.15554
+     * @implNote This value is found via 'LateralZeroPowerAccelerationTuner'*/
+    public static double lateralZeroPowerAcceleration = -78.15554;
 
-    public static FilteredPIDFCoefficients drivePIDFCoefficients() {
-        return drivePIDFCoefficients;
-    }
+    /** A multiplier for the zero power acceleration to change the speed the robot decelerates at
+     * the end of paths.
+     * Increasing this will cause the robot to try to decelerate faster, at the risk of overshoots
+     * or localization slippage.
+     * Decreasing this will cause the deceleration at the end of the Path to be slower, making the
+     * robot slower but reducing risk of end-of-path overshoots or localization slippage.
+     * This can be set individually for each Path, but this is the default.
+     *  Default Value: 4
+     */
+    public static double zeroPowerAccelerationMultiplier = 4;
 
-    public static double drivePIDFFeedForward() {
-        return drivePIDFFeedForward;
-    }
 
-    public static PIDFCoefficients secondaryTranslationalPIDFCoefficients() {
-        return secondaryTranslationalPIDFCoefficients;
-    }
+    /** When the robot is at the end of its current Path or PathChain and the velocity goes below
+     * this value, then end the Path. This is in inches/second.
+     * This can be custom set for each Path.
+     *  Default Value: 0.1 */
+    public static double pathEndVelocityConstraint = 0.1;
 
-    public static PIDFCoefficients secondaryTranslationalIntegral() {
-        return secondaryTranslationalIntegral;
-    }
+    /** When the robot is at the end of its current Path or PathChain and the translational error
+     * goes below this value, then end the Path. This is in inches.
+     * This can be custom set for each Path.
+     *  Default Value: 0.1 */
+    public static double pathEndTranslationalConstraint = 0.1;
 
-    public static double translationalPIDFSwitch() {
-        return translationalPIDFSwitch;
-    }
+    /** When the robot is at the end of its current Path or PathChain and the heading error goes
+     * below this value, then end the Path. This is in radians.
+     * This can be custom set for each Path.
+     *  Default Value: 0.007 */
+    public static double pathEndHeadingConstraint = 0.007;
 
-    public static double secondaryTranslationalPIDFFeedForward() {
-        return secondaryTranslationalPIDFFeedForward;
-    }
+    /** When the t-value of the closest point to the robot on the Path is greater than this value,
+     * then the Path is considered at its end.
+     * This can be custom set for each Path.
+     *  Default Value: 0.995 */
+    public static double pathEndTValueConstraint = 0.995;
 
-    public static double headingPIDFSwitch() {
-        return headingPIDFSwitch;
-    }
+    /** When the Path is considered at its end parametrically, then the Follower has this many
+     * milliseconds to further correct by default.
+     * This can be custom set for each Path.
+     *  Default Value: 500 */
+    public static double pathEndTimeoutConstraint = 500;
 
-    public static PIDFCoefficients secondaryHeadingPIDFCoefficients() {
-        return secondaryHeadingPIDFCoefficients;
-    }
+    /** This is how many steps the BezierCurve class uses to approximate the length of a BezierCurve.
+     * @see #BEZIER_CURVE_SEARCH_LIMIT
+     *  Default Value: 1000 */
+    public static int APPROXIMATION_STEPS = 1000;
 
-    public static double secondaryHeadingPIDFFeedForward() {
-        return secondaryHeadingPIDFFeedForward;
-    }
-
-    public static double drivePIDFSwitch() {
-        return drivePIDFSwitch;
-    }
-
-    public static FilteredPIDFCoefficients secondaryDrivePIDFCoefficients() {
-        return secondaryDrivePIDFCoefficients;
-    }
-
-    public static double secondaryDrivePIDFFeedForward() {
-        return secondaryDrivePIDFFeedForward;
-    }
-
-    public static int BEZIER_CURVE_SEARCH_LIMIT() {
-        return BEZIER_CURVE_SEARCH_LIMIT;
-    }
-
-    public static double holdPointTranslationalScaling() {
-        return holdPointTranslationalScaling;
-    }
-
-    public static double holdPointHeadingScaling() {
-        return holdPointHeadingScaling;
-    }
-
-    public static double centripetalScaling() {
-        return centripetalScaling;
-    }
-
-    public static double turnHeadingErrorThreshold() {
-        return turnHeadingErrorThreshold;
-    }
-
-    public static boolean useSecondaryDrivePIDF() {
-        return useSecondaryDrivePIDF;
-    }
-
-    public static boolean useSecondaryTranslationalPIDF() {
-        return useSecondaryTranslationalPIDF;
-    }
-
-    public static boolean useSecondaryHeadingPIDF() {
-        return useSecondaryHeadingPIDF;
-    }
+    /**
+     * Multiplier for when the path should start its deceleration
+     */
+    public static double decelerationStartMultiplier = 1;
 
     /**
      * This constructor is empty but on creation it will set the default values for the constants.
@@ -443,6 +427,66 @@ public class FollowerConstants {
         return this;
     }
 
+    public FollowerConstants automaticHoldEnd(boolean automaticHoldEnd) {
+        FollowerConstants.automaticHoldEnd = automaticHoldEnd;
+        return this;
+    }
+
+    public FollowerConstants mass(double mass) {
+        FollowerConstants.mass = mass;
+        return this;
+    }
+
+    public FollowerConstants forwardZeroPowerAcceleration(double forwardZeroPowerAcceleration) {
+        FollowerConstants.forwardZeroPowerAcceleration = forwardZeroPowerAcceleration;
+        return this;
+    }
+
+    public FollowerConstants lateralZeroPowerAcceleration(double lateralZeroPowerAcceleration) {
+        FollowerConstants.lateralZeroPowerAcceleration = lateralZeroPowerAcceleration;
+        return this;
+    }
+
+    public FollowerConstants zeroPowerAccelerationMultiplier(double zeroPowerAccelerationMultiplier) {
+        FollowerConstants.zeroPowerAccelerationMultiplier = zeroPowerAccelerationMultiplier;
+        return this;
+    }
+
+    public FollowerConstants pathEndVelocityConstraint(double pathEndVelocityConstraint) {
+        FollowerConstants.pathEndVelocityConstraint = pathEndVelocityConstraint;
+        return this;
+    }
+
+    public FollowerConstants pathEndTranslationalConstraint(double pathEndTranslationalConstraint) {
+        FollowerConstants.pathEndTranslationalConstraint = pathEndTranslationalConstraint;
+        return this;
+    }
+
+    public FollowerConstants pathEndHeadingConstraint(double pathEndHeadingConstraint) {
+        FollowerConstants.pathEndHeadingConstraint = pathEndHeadingConstraint;
+        return this;
+    }
+
+    public FollowerConstants pathEndTValueConstraint(double pathEndTValueConstraint) {
+        FollowerConstants.pathEndTValueConstraint = pathEndTValueConstraint;
+        return this;
+    }
+
+    public FollowerConstants pathEndTimeoutConstraint(double pathEndTimeoutConstraint) {
+        FollowerConstants.pathEndTimeoutConstraint = pathEndTimeoutConstraint;
+        return this;
+    }
+
+    public FollowerConstants APPROXIMATION_STEPS(int APPROXIMATION_STEPS) {
+        FollowerConstants.APPROXIMATION_STEPS = APPROXIMATION_STEPS;
+        return this;
+    }
+
+    public FollowerConstants decelerationStartMultiplier(double decelerationStartMultiplier) {
+        FollowerConstants.decelerationStartMultiplier = decelerationStartMultiplier;
+        return this;
+    }
+
     public void defaults() {
         translationalPIDFCoefficients.setCoefficients(0.1, 0, 0, 0);
         translationalIntegral.setCoefficients(0, 0, 0, 0);
@@ -478,5 +522,11 @@ public class FollowerConstants {
         translationalPIDFSwitch = 3;
         turnHeadingErrorThreshold = 0.01;
         centripetalScaling = 0.0005;
+
+        automaticHoldEnd = true;
+        mass = 10.65;
+
+        forwardZeroPowerAcceleration = -41.278;
+        lateralZeroPowerAcceleration = -59.7819;
     }
 }

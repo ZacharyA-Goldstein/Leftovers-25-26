@@ -1,6 +1,6 @@
 package com.pedropathing.paths;
 
-import com.pedropathing.follower.old.OldFollowerConstants;
+import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.PathCallback;
 
@@ -28,7 +28,7 @@ public class PathChain {
         LAST_PATH
     }
     private DecelerationType decelerationType = DecelerationType.LAST_PATH;
-    private double decelerationStartMultiplier = OldFollowerConstants.decelerationStartMultiplier;
+    private double decelerationStartMultiplier = FollowerConstants.decelerationStartMultiplier;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
 
     /**

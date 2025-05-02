@@ -59,4 +59,86 @@ public class ThreeWheelConstants {
     /** The direction of the Strafe Encoder
      * Default Value: Encoder.FORWARD */
     public static double strafeEncoderDirection = Encoder.FORWARD;
+
+    /**
+     * This creates a new ThreeWheelConstants with default values.
+     */
+    public ThreeWheelConstants() {
+        defaults();
+    }
+
+    public ThreeWheelConstants forwardTicksToInches(double forwardTicksToInches) {
+        ThreeWheelConstants.forwardTicksToInches = forwardTicksToInches;
+        return this;
+    }
+
+    public ThreeWheelConstants strafeTicksToInches(double strafeTicksToInches) {
+        ThreeWheelConstants.strafeTicksToInches = strafeTicksToInches;
+        return this;
+    }
+
+    public ThreeWheelConstants turnTicksToInches(double turnTicksToInches) {
+        ThreeWheelConstants.turnTicksToInches = turnTicksToInches;
+        return this;
+    }
+
+    public ThreeWheelConstants leftY(double leftY) {
+        ThreeWheelConstants.leftY = leftY;
+        return this;
+    }
+
+    public ThreeWheelConstants rightY(double rightY) {
+        ThreeWheelConstants.rightY = rightY;
+        return this;
+    }
+
+    public ThreeWheelConstants strafeX(double strafeX) {
+        ThreeWheelConstants.strafeX = strafeX;
+        return this;
+    }
+
+    public ThreeWheelConstants leftEncoder_HardwareMapName(String leftEncoder_HardwareMapName) {
+        ThreeWheelConstants.leftEncoder_HardwareMapName = leftEncoder_HardwareMapName;
+        return this;
+    }
+
+    public ThreeWheelConstants rightEncoder_HardwareMapName(String rightEncoder_HardwareMapName) {
+        ThreeWheelConstants.rightEncoder_HardwareMapName = rightEncoder_HardwareMapName;
+        return this;
+    }
+
+    public ThreeWheelConstants strafeEncoder_HardwareMapName(String strafeEncoder_HardwareMapName) {
+        ThreeWheelConstants.strafeEncoder_HardwareMapName = strafeEncoder_HardwareMapName;
+        return this;
+    }
+
+    public ThreeWheelConstants leftEncoderDirection(double leftEncoderDirection) {
+        ThreeWheelConstants.leftEncoderDirection = leftEncoderDirection;
+        return this;
+    }
+
+    public ThreeWheelConstants rightEncoderDirection(double rightEncoderDirection) {
+        ThreeWheelConstants.rightEncoderDirection = rightEncoderDirection;
+        return this;
+    }
+
+    public ThreeWheelConstants strafeEncoderDirection(double strafeEncoderDirection) {
+        ThreeWheelConstants.strafeEncoderDirection = strafeEncoderDirection;
+        return this;
+    }
+
+    public void defaults() {
+        forwardTicksToInches = .001989436789;
+        strafeTicksToInches = .001989436789;
+        turnTicksToInches = .001989436789;
+        leftY = 1;
+        rightY = -1;
+        strafeX = -2.5;
+        leftEncoder_HardwareMapName = "leftFront";
+        rightEncoder_HardwareMapName = "rightRear";
+        strafeEncoder_HardwareMapName = "rightFront";
+        leftEncoderDirection = Encoder.REVERSE;
+        rightEncoderDirection = Encoder.REVERSE;
+        strafeEncoderDirection = Encoder.FORWARD;
+    }
 }

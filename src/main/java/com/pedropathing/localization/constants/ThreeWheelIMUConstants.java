@@ -69,4 +69,97 @@ public class ThreeWheelIMUConstants {
      * Default Value: Encoder.FORWARD */
     public static double strafeEncoderDirection = Encoder.FORWARD;
 
+    /**
+     * This creates a new ThreeWheelIMUConstants with default values.
+     */
+    public ThreeWheelIMUConstants() {
+        defaults();
+    }
+
+    public ThreeWheelIMUConstants forwardTicksToInches(double forwardTicksToInches) {
+        ThreeWheelIMUConstants.forwardTicksToInches = forwardTicksToInches;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants strafeTicksToInches(double strafeTicksToInches) {
+        ThreeWheelIMUConstants.strafeTicksToInches = strafeTicksToInches;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants turnTicksToInches(double turnTicksToInches) {
+        ThreeWheelIMUConstants.turnTicksToInches = turnTicksToInches;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants leftY(double leftY) {
+        ThreeWheelIMUConstants.leftY = leftY;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants rightY(double rightY) {
+        ThreeWheelIMUConstants.rightY = rightY;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants strafeX(double strafeX) {
+        ThreeWheelIMUConstants.strafeX = strafeX;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants IMU_HardwareMapName(String IMU_HardwareMapName) {
+        ThreeWheelIMUConstants.IMU_HardwareMapName = IMU_HardwareMapName;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants leftEncoder_HardwareMapName(String leftEncoder_HardwareMapName) {
+        ThreeWheelIMUConstants.leftEncoder_HardwareMapName = leftEncoder_HardwareMapName;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants rightEncoder_HardwareMapName(String rightEncoder_HardwareMapName) {
+        ThreeWheelIMUConstants.rightEncoder_HardwareMapName = rightEncoder_HardwareMapName;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants strafeEncoder_HardwareMapName(String strafeEncoder_HardwareMapName) {
+        ThreeWheelIMUConstants.strafeEncoder_HardwareMapName = strafeEncoder_HardwareMapName;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants IMU_Orientation(RevHubOrientationOnRobot IMU_Orientation) {
+        ThreeWheelIMUConstants.IMU_Orientation = IMU_Orientation;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants leftEncoderDirection(double leftEncoderDirection) {
+        ThreeWheelIMUConstants.leftEncoderDirection = leftEncoderDirection;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants rightEncoderDirection(double rightEncoderDirection) {
+        ThreeWheelIMUConstants.rightEncoderDirection = rightEncoderDirection;
+        return this;
+    }
+
+    public ThreeWheelIMUConstants strafeEncoderDirection(double strafeEncoderDirection) {
+        ThreeWheelIMUConstants.strafeEncoderDirection = strafeEncoderDirection;
+        return this;
+    }
+
+    public void defaults() {
+        forwardTicksToInches = .001989436789;
+        strafeTicksToInches = .001989436789;
+        turnTicksToInches = .001989436789;
+        leftY = 1;
+        rightY = -1;
+        strafeX = -2.5;
+        IMU_HardwareMapName = "imu";
+        leftEncoder_HardwareMapName = "leftFront";
+        rightEncoder_HardwareMapName = "rightRear";
+        strafeEncoder_HardwareMapName = "rightFront";
+        IMU_Orientation = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.LEFT);
+        leftEncoderDirection = Encoder.REVERSE;
+        rightEncoderDirection = Encoder.REVERSE;
+        strafeEncoderDirection = Encoder.FORWARD;
+    }
 }

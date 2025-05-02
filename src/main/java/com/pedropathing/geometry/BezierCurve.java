@@ -3,7 +3,7 @@ package com.pedropathing.geometry;
 
 import androidx.annotation.NonNull;
 
-import com.pedropathing.follower.old.OldFollowerConstants;
+import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 
@@ -31,7 +31,7 @@ public class BezierCurve {
 
     private Vector endTangent = new Vector();
 
-    private final int APPROXIMATION_STEPS = OldFollowerConstants.APPROXIMATION_STEPS;
+    private final int APPROXIMATION_STEPS = FollowerConstants.APPROXIMATION_STEPS;
 
     private final int DASHBOARD_DRAWING_APPROXIMATION_STEPS = 100;
 
