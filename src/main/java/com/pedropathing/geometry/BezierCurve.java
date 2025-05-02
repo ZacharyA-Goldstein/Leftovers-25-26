@@ -31,7 +31,7 @@ public class BezierCurve {
 
     private Vector endTangent = new Vector();
 
-    private final int APPROXIMATION_STEPS = FollowerConstants.APPROXIMATION_STEPS;
+    private final int APPROXIMATION_STEPS = 1000;
 
     private final int DASHBOARD_DRAWING_APPROXIMATION_STEPS = 100;
 

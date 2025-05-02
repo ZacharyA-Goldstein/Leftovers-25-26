@@ -16,8 +16,7 @@ import java.util.Arrays;
  * @author Baron Henderson - 20077 The Indubitables
  */
 public class ErrorCalculator {
-
-    private static ErrorCalculator instance;
+    private FollowerConstants constants;
     private final KalmanFilter driveKalmanFilter;
     private Pose closestPose, currentPose;
     private Path currentPath;
@@ -27,27 +26,16 @@ public class ErrorCalculator {
     private int chainIndex;
     private double rawDriveError, previousRawDriveError, driveError, headingError, xMovement;
     private Vector velocityVector = new Vector();
-
-    // Private constructor to prevent instantiation
-    private ErrorCalculator() {
+    
+    public ErrorCalculator(FollowerConstants constants) {
+        this.constants = constants;
+        
         KalmanFilterParameters driveKalmanFilterParameters = new KalmanFilterParameters(
                 6,
                 1);
 
         driveKalmanFilter = new KalmanFilter(driveKalmanFilterParameters);
 
-    }
-
-    // Public method to provide access to the instance
-    public static ErrorCalculator getInstance() {
-        if (instance == null) {
-            synchronized (ErrorCalculator.class) {
-                if (instance == null) {
-                    instance = new ErrorCalculator();
-                }
-            }
-        }
-        return instance;
     }
 
     public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Vector velocity, int chainIndex, double xMovement) {
@@ -98,15 +86,15 @@ public class ErrorCalculator {
 
         double forwardVelocity = MathFunctions.dotProduct(forwardHeadingVector, velocity);
         double forwardDistanceToGoal = MathFunctions.dotProduct(forwardHeadingVector, distanceToGoalVector);
-        double forwardVelocityGoal = Math.signum(forwardDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * FollowerConstants.forwardZeroPowerAcceleration * (forwardDistanceToGoal <= 0 ? 1 : -1) * forwardDistanceToGoal));
-        double forwardVelocityZeroPowerDecay = forwardVelocity - Math.signum(forwardDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(forwardVelocity, 2) + 2 * FollowerConstants.forwardZeroPowerAcceleration * Math.abs(forwardDistanceToGoal)));
+        double forwardVelocityGoal = Math.signum(forwardDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * constants.forwardZeroPowerAcceleration * (forwardDistanceToGoal <= 0 ? 1 : -1) * forwardDistanceToGoal));
+        double forwardVelocityZeroPowerDecay = forwardVelocity - Math.signum(forwardDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(forwardVelocity, 2) + 2 * constants.forwardZeroPowerAcceleration * Math.abs(forwardDistanceToGoal)));
 
         Vector lateralHeadingVector = new Vector(1.0, currentPose.getHeading() - Math.PI / 2);
         double lateralVelocity = MathFunctions.dotProduct(lateralHeadingVector, velocity);
         double lateralDistanceToGoal = MathFunctions.dotProduct(lateralHeadingVector, distanceToGoalVector);
 
-        double lateralVelocityGoal = Math.signum(lateralDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * FollowerConstants.lateralZeroPowerAcceleration * (lateralDistanceToGoal <= 0 ? 1 : -1) * lateralDistanceToGoal));
-        double lateralVelocityZeroPowerDecay = lateralVelocity - Math.signum(lateralDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(lateralVelocity, 2) + 2 * FollowerConstants.lateralZeroPowerAcceleration * Math.abs(lateralDistanceToGoal)));
+        double lateralVelocityGoal = Math.signum(lateralDistanceToGoal) * Math.sqrt(Math.abs(-2 * currentPath.getZeroPowerAccelerationMultiplier() * constants.lateralZeroPowerAcceleration * (lateralDistanceToGoal <= 0 ? 1 : -1) * lateralDistanceToGoal));
+        double lateralVelocityZeroPowerDecay = lateralVelocity - Math.signum(lateralDistanceToGoal) * Math.sqrt(Math.abs(Math.pow(lateralVelocity, 2) + 2 * constants.lateralZeroPowerAcceleration * Math.abs(lateralDistanceToGoal)));
 
         Vector forwardVelocityError = new Vector(forwardVelocityGoal - forwardVelocityZeroPowerDecay - forwardVelocity, forwardHeadingVector.getTheta());
         Vector lateralVelocityError = new Vector(lateralVelocityGoal - lateralVelocityZeroPowerDecay - lateralVelocity, lateralHeadingVector.getTheta());
@@ -142,7 +130,7 @@ public class ErrorCalculator {
 
                 distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
 
-                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(xMovement, 2) / FollowerConstants.forwardZeroPowerAcceleration)) {
+                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(xMovement, 2) / constants.forwardZeroPowerAcceleration)) {
                     return -1;
                 }
             } else {

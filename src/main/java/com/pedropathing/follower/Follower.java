@@ -3,6 +3,7 @@ package com.pedropathing.follower;
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Localizer;
@@ -27,8 +28,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.1.0, 5/1/2025
  */
+
 @Config
 public class Follower {
+    private final FollowerConstants constants;
     public PoseTracker poseTracker;
     private final ErrorCalculator errorCalculator;
     private final VectorCalculator vectorCalculator;
@@ -57,17 +60,19 @@ public class Follower {
      * @param hardwareMap HardwareMap required
      */
     public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
+        this.constants = constants;
+
         poseTracker = new PoseTracker(hardwareMap, localizer);
-        errorCalculator = ErrorCalculator.getInstance();
-        vectorCalculator = new VectorCalculator();
+        errorCalculator = new ErrorCalculator(constants);
+        vectorCalculator = new VectorCalculator(constants);
         this.drivetrain = drivetrain;
 
-        BEZIER_CURVE_SEARCH_LIMIT = FollowerConstants.BEZIER_CURVE_SEARCH_LIMIT;
-        holdPointTranslationalScaling = FollowerConstants.holdPointTranslationalScaling;
-        holdPointHeadingScaling = FollowerConstants.holdPointHeadingScaling;
-        centripetalScaling = FollowerConstants.centripetalScaling;
-        turnHeadingErrorThreshold = FollowerConstants.turnHeadingErrorThreshold;
-        automaticHoldEnd = FollowerConstants.automaticHoldEnd;
+        BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
+        holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
+        holdPointHeadingScaling = constants.holdPointHeadingScaling;
+        centripetalScaling = constants.centripetalScaling;
+        turnHeadingErrorThreshold = constants.turnHeadingErrorThreshold;
+        automaticHoldEnd = constants.automaticHoldEnd;
 
         breakFollowing();
     }
@@ -449,6 +454,14 @@ public class Follower {
     public double getCurrentPathNumber() {
         if (!followingPathChain) return 0;
         return chainIndex;
+    }
+
+    /**
+     * This returns a new PathBuilder object for easily building PathChains.
+     * @return returns a new PathBuilder object.
+     */
+    public PathBuilder pathBuilder(PathConstraints constraints) {
+        return new PathBuilder(constraints);
     }
 
     /**

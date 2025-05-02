@@ -24,7 +24,7 @@ public class PathBuilder {
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
-    private double decelerationStartMultiplier = FollowerConstants.decelerationStartMultiplier;
+    private double decelerationStartMultiplier;
     private boolean globalLinearHeadingInterpolation = false;
     private double globalStartHeading = 0;
     private double globalEndHeading = 0;
@@ -32,14 +32,28 @@ public class PathBuilder {
     private boolean reversedLinearInterpol = false;
 
     /**
-     * This is an empty constructor for the PathBuilder class so it can get started.
+     * This is an constructor for the PathBuilder class so it can get started with specific constraints.
      * The PathBuilder allows for easier construction of PathChains.
      * The proper usage is using an instance of the Follower class:
      * Follower follower = new Follower(hardwareMap);
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder() {}
+    public PathBuilder(PathConstraints constraints) {
+        this.decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+    }
+
+    /**
+     * This is an empty constructor for the PathBuilder class so it can get started, it will use the default constraints.
+     * The PathBuilder allows for easier construction of PathChains.
+     * The proper usage is using an instance of the Follower class:
+     * Follower follower = new Follower(hardwareMap);
+     * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
+     * Of course, you can split up the method calls onto separate lines for readability.
+     */
+    public PathBuilder() {
+        this(PathConstraints.defaultConstraints);
+    }
 
     /**
      * This adds a Path to the PathBuilder.

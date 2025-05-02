@@ -28,7 +28,7 @@ public class PathChain {
         LAST_PATH
     }
     private DecelerationType decelerationType = DecelerationType.LAST_PATH;
-    private double decelerationStartMultiplier = FollowerConstants.decelerationStartMultiplier;
+    private double decelerationStartMultiplier;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
 
     /**
@@ -40,6 +40,21 @@ public class PathChain {
      * @param paths the specified Paths.
      */
     public PathChain(Path... paths) {
+        this(PathConstraints.defaultConstraints, paths);
+    }
+
+    /**
+     * This creates a new PathChain from some specified Paths and a PathConstraints.
+     *
+     * IMPORTANT NOTE: Order matters here. The order in which the Paths are input is the order in
+     * which they will be run.
+     *
+     * @param paths the specified Paths.
+     * @param constraints the PathConstraints for the PathChain.
+     */
+    public PathChain(PathConstraints constraints, Path... paths) {
+        decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+
         for (Path path : paths) {
             pathChain.add(path);
             length += path.length();
@@ -55,6 +70,20 @@ public class PathChain {
      * @param paths the ArrayList of Paths.
      */
     public PathChain(ArrayList<Path> paths) {
+        this(PathConstraints.defaultConstraints, paths);
+    }
+
+    /**
+     * This creates a new PathChain from an ArrayList of Paths.
+     *
+     * IMPORTANT NOTE: Order matters here. The order in which the Paths are input is the order in
+     * which they will be run.
+     *
+     * @param paths the ArrayList of Paths.
+     * @param constraints the PathConstraints for the PathChain.
+     */
+    public PathChain(PathConstraints constraints, ArrayList<Path> paths) {
+        decelerationStartMultiplier = constraints.decelerationStartMultiplier;
         pathChain = paths;
     }
 

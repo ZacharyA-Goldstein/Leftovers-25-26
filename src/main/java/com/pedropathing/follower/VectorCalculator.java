@@ -18,6 +18,8 @@ import java.util.ArrayList;
  * @author Baron Henderson - 20077 The Indubitables
  */
 public class VectorCalculator {
+    private final FollowerConstants constants;
+
     private Path currentPath;
     private PathChain currentPathChain;
     private Pose currentPose, closestPose;
@@ -54,40 +56,41 @@ public class VectorCalculator {
     private PIDFController headingPIDF;
     private FilteredPIDFController secondaryDrivePIDF, drivePIDF;
 
-    public VectorCalculator() {
-        drivePIDF = new FilteredPIDFController(FollowerConstants.drivePIDFCoefficients);
-        secondaryDrivePIDF = new FilteredPIDFController(FollowerConstants.secondaryDrivePIDFCoefficients);
-        headingPIDF = new PIDFController(FollowerConstants.headingPIDFCoefficients);
-        secondaryHeadingPIDF = new PIDFController(FollowerConstants.secondaryHeadingPIDFCoefficients);
-        translationalPIDF = new PIDFController(FollowerConstants.translationalPIDFCoefficients);
-        secondaryTranslationalPIDF = new PIDFController(FollowerConstants.secondaryTranslationalPIDFCoefficients);
-        translationalIntegral = new PIDFController(FollowerConstants.translationalIntegral);
-        secondaryTranslationalIntegral = new PIDFController(FollowerConstants.secondaryTranslationalIntegral);
+    public VectorCalculator(FollowerConstants constants) {
+        this.constants = constants;
+        drivePIDF = new FilteredPIDFController(constants.drivePIDFCoefficients);
+        secondaryDrivePIDF = new FilteredPIDFController(constants.secondaryDrivePIDFCoefficients);
+        headingPIDF = new PIDFController(constants.headingPIDFCoefficients);
+        secondaryHeadingPIDF = new PIDFController(constants.secondaryHeadingPIDFCoefficients);
+        translationalPIDF = new PIDFController(constants.translationalPIDFCoefficients);
+        secondaryTranslationalPIDF = new PIDFController(constants.secondaryTranslationalPIDFCoefficients);
+        translationalIntegral = new PIDFController(constants.translationalIntegral);
+        secondaryTranslationalIntegral = new PIDFController(constants.secondaryTranslationalIntegral);
         updateConstants();
     }
     
     public void updateConstants() {
-        drivePIDF.setCoefficients(FollowerConstants.drivePIDFCoefficients);
-        secondaryDrivePIDF.setCoefficients(FollowerConstants.secondaryDrivePIDFCoefficients);
-        headingPIDF.setCoefficients(FollowerConstants.headingPIDFCoefficients);
-        secondaryHeadingPIDF.setCoefficients(FollowerConstants.secondaryHeadingPIDFCoefficients);
-        translationalPIDF.setCoefficients(FollowerConstants.translationalPIDFCoefficients);
-        secondaryTranslationalPIDF.setCoefficients(FollowerConstants.secondaryTranslationalPIDFCoefficients);
-        translationalIntegral.setCoefficients(FollowerConstants.translationalIntegral);
-        secondaryTranslationalIntegral.setCoefficients(FollowerConstants.secondaryTranslationalIntegral);
-        drivePIDFSwitch = FollowerConstants.drivePIDFSwitch;
-        headingPIDFSwitch = FollowerConstants.headingPIDFSwitch;
-        translationalPIDFSwitch = FollowerConstants.translationalPIDFSwitch;
-        drivePIDFFeedForward = FollowerConstants.drivePIDFFeedForward;
-        secondaryDrivePIDFFeedForward = FollowerConstants.secondaryDrivePIDFFeedForward;
-        headingPIDFFeedForward = FollowerConstants.headingPIDFFeedForward;
-        secondaryHeadingPIDFFeedForward = FollowerConstants.secondaryHeadingPIDFFeedForward;
-        translationalPIDFFeedForward = FollowerConstants.translationalPIDFFeedForward;
-        secondaryTranslationalPIDFFeedForward = FollowerConstants.secondaryTranslationalPIDFFeedForward;
-        useSecondaryDrivePID = FollowerConstants.useSecondaryDrivePIDF;
-        useSecondaryHeadingPID = FollowerConstants.useSecondaryHeadingPIDF;
-        useSecondaryTranslationalPID = FollowerConstants.useSecondaryTranslationalPIDF;
-        mass = FollowerConstants.mass;
+        drivePIDF.setCoefficients(constants.drivePIDFCoefficients);
+        secondaryDrivePIDF.setCoefficients(constants.secondaryDrivePIDFCoefficients);
+        headingPIDF.setCoefficients(constants.headingPIDFCoefficients);
+        secondaryHeadingPIDF.setCoefficients(constants.secondaryHeadingPIDFCoefficients);
+        translationalPIDF.setCoefficients(constants.translationalPIDFCoefficients);
+        secondaryTranslationalPIDF.setCoefficients(constants.secondaryTranslationalPIDFCoefficients);
+        translationalIntegral.setCoefficients(constants.translationalIntegral);
+        secondaryTranslationalIntegral.setCoefficients(constants.secondaryTranslationalIntegral);
+        drivePIDFSwitch = constants.drivePIDFSwitch;
+        headingPIDFSwitch = constants.headingPIDFSwitch;
+        translationalPIDFSwitch = constants.translationalPIDFSwitch;
+        drivePIDFFeedForward = constants.drivePIDFFeedForward;
+        secondaryDrivePIDFFeedForward = constants.secondaryDrivePIDFFeedForward;
+        headingPIDFFeedForward = constants.headingPIDFFeedForward;
+        secondaryHeadingPIDFFeedForward = constants.secondaryHeadingPIDFFeedForward;
+        translationalPIDFFeedForward = constants.translationalPIDFFeedForward;
+        secondaryTranslationalPIDFFeedForward = constants.secondaryTranslationalPIDFFeedForward;
+        useSecondaryDrivePID = constants.useSecondaryDrivePIDF;
+        useSecondaryHeadingPID = constants.useSecondaryHeadingPIDF;
+        useSecondaryTranslationalPID = constants.useSecondaryTranslationalPIDF;
+        mass = constants.mass;
     }
 
     public void update(boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal, boolean teleopDrive, int chainIndex, double maxPowerScaling, boolean followingPathChain, double centripetalScaling, Pose currentPose, Pose closestPose, Vector velocity, Path currentPath, PathChain currentPathChain, double driveError, double headingError) {
