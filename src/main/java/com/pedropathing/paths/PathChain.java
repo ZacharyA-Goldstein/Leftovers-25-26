@@ -19,6 +19,7 @@ import java.util.Arrays;
  * @version 1.0, 3/11/2024
  */
 public class PathChain {
+    private PathConstraints constraints;
     private ArrayList<Path> pathChain = new ArrayList<>();
     private double length = 0;
 
@@ -53,9 +54,11 @@ public class PathChain {
      * @param constraints the PathConstraints for the PathChain.
      */
     public PathChain(PathConstraints constraints, Path... paths) {
+        this.constraints = constraints;
         decelerationStartMultiplier = constraints.decelerationStartMultiplier;
 
         for (Path path : paths) {
+            path.setConstraints(constraints);
             pathChain.add(path);
             length += path.length();
         }
@@ -83,7 +86,13 @@ public class PathChain {
      * @param constraints the PathConstraints for the PathChain.
      */
     public PathChain(PathConstraints constraints, ArrayList<Path> paths) {
+        this.constraints = constraints;
         decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+
+        for (Path path : paths) {
+            path.setConstraints(constraints);
+        }
+
         pathChain = paths;
     }
 
@@ -167,5 +176,12 @@ public class PathChain {
     public Pose endPoint() {
         Path last = pathChain.get(pathChain.size() - 1);
         return last.getLastControlPoint();
+    }
+
+    public void setConstraintsForAll(PathConstraints constraints) {
+        this.constraints = constraints;
+        for (Path path : pathChain) {
+            path.setConstraints(constraints);
+        }
     }
 }

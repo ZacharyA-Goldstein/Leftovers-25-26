@@ -25,7 +25,7 @@ public class Path {
     }
 
     private final BezierCurve curve;
-
+    private PathConstraints constraints;
     private double startHeading;
     private double endHeading;
     private double closestPointCurvature;
@@ -92,6 +92,7 @@ public class Path {
         pathEndHeadingConstraint = constraints.headingConstraint;
         pathEndTValueConstraint = constraints.tValueConstraint;
         pathEndTimeoutConstraint = constraints.timeoutConstraint;
+        this.constraints = constraints;
         this.curve = curve;
     }
 
@@ -586,5 +587,15 @@ public class Path {
 
     public Path getReversed() {
         return new Path(curve.getReversed());
+    }
+
+    public void setConstraints(PathConstraints constraints) {
+        this.constraints = constraints;
+        zeroPowerAccelerationMultiplier = constraints.zeroPowerAccelerationMultiplier;
+        pathEndVelocityConstraint = constraints.velocityConstraint;
+        pathEndTranslationalConstraint = constraints.translationalConstraint;
+        pathEndHeadingConstraint = constraints.headingConstraint;
+        pathEndTValueConstraint = constraints.tValueConstraint;
+        pathEndTimeoutConstraint = constraints.timeoutConstraint;
     }
 }

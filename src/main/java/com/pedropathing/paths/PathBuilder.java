@@ -30,6 +30,7 @@ public class PathBuilder {
     private double globalEndHeading = 0;
     private double percentPathStart = 0;
     private boolean reversedLinearInterpol = false;
+    private PathConstraints constraints;
 
     /**
      * This is an constructor for the PathBuilder class so it can get started with specific constraints.
@@ -41,6 +42,7 @@ public class PathBuilder {
      */
     public PathBuilder(PathConstraints constraints) {
         this.decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+        this.constraints = constraints;
     }
 
     /**
@@ -62,6 +64,7 @@ public class PathBuilder {
      * @return This returns itself with the updated data.
      */
     public PathBuilder addPath(Path path) {
+        path.setConstraints(constraints);
         this.paths.add(path);
         return this;
     }
@@ -73,9 +76,10 @@ public class PathBuilder {
      * @return This returns itself with the updated data.
      */
     public PathBuilder addPath(BezierCurve curve) {
-        this.paths.add(new Path(curve));
+        this.paths.add(new Path(curve, constraints));
         return this;
     }
+
 
 
     /**
@@ -87,6 +91,8 @@ public class PathBuilder {
     public PathBuilder addBezierCurve(ArrayList<Pose> controlPoints) {
         return addPath(new BezierCurve(controlPoints));
     }
+
+
 
     /**
      * This adds a default Path defined by a specified BezierLine to the PathBuilder.
@@ -363,5 +369,42 @@ public class PathBuilder {
                 turnedRadians += pathDelta;
             }
         }
+    }
+
+    /**
+     * This sets the constraints to be the default PathBuilder.
+     *
+     * @param constraints The constraints to set.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setConstraints(PathConstraints constraints) {
+        this.constraints = constraints;
+        return this;
+    }
+
+    /**
+     * This sets the constraints for all of the paths.
+     *
+     * @param constraints The constraints to set.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setConstraintsForAll(PathConstraints constraints) {
+        this.constraints = constraints;
+        for (Path path : paths) {
+            path.setConstraints(constraints);
+        }
+        return this;
+    }
+
+    /**
+     * This sets the constraints for the last path.
+     *
+     * @param constraints The constraints to set.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setConstraintsForLast(PathConstraints constraints) {
+        this.constraints = constraints;
+        paths.get(paths.size() - 1).setConstraints(constraints);
+        return this;
     }
 }

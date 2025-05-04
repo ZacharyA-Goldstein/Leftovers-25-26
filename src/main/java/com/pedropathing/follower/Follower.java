@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 public class Follower {
     private final FollowerConstants constants;
+    private PathConstraints pathConstraints;
     public PoseTracker poseTracker;
     private final ErrorCalculator errorCalculator;
     private final VectorCalculator vectorCalculator;
@@ -59,9 +60,14 @@ public class Follower {
     /**
      * This creates a new Follower given a HardwareMap.
      * @param hardwareMap HardwareMap required
+     * @param constants FollowerConstants to use
+     * @param localizer Localizer to use
+     * @param drivetrain Drivetrain to use
+     * @param pathConstraints PathConstraints to use
      */
-    public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
+    public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain, PathConstraints pathConstraints) {
         this.constants = constants;
+        this.pathConstraints = pathConstraints;
 
         poseTracker = new PoseTracker(hardwareMap, localizer);
         errorCalculator = new ErrorCalculator(constants);
@@ -76,6 +82,17 @@ public class Follower {
         automaticHoldEnd = constants.automaticHoldEnd;
 
         breakFollowing();
+    }
+
+    /**
+     * This creates a new Follower given a HardwareMap.
+     * @param hardwareMap HardwareMap required
+     * @param constants FollowerConstants to use
+     * @param localizer Localizer to use
+     * @param drivetrain Drivetrain to use
+     */
+    public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
+        this(hardwareMap, constants, localizer, drivetrain, PathConstraints.defaultConstraints);
     }
 
     public void setCentripetalScaling(double set) {
@@ -252,6 +269,13 @@ public class Follower {
         breakFollowing();
         teleopDrive = true;
         drivetrain.startTeleopDrive();
+    }
+
+    /**
+     * This sets the Teleop drive movement vectors
+     */
+    public void setTeleopDriveVectors(double forward, double strafe, double turn, boolean isRobotCentric) {
+        vectorCalculator.setTeleOpMovementVectors(forward, strafe, turn, isRobotCentric);
     }
 
     /** Calls an update to the PoseTracker, which updates the robot's current position estimate. */
