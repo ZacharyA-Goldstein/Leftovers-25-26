@@ -149,7 +149,11 @@ public class ErrorCalculator {
 
                 distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
 
-                if (distanceToGoal >= Math.abs(currentPathChain.getDecelerationStartMultiplier() * 3/2 * Math.pow(xMovement, 2) / constants.forwardZeroPowerAcceleration)) {
+                double stoppingDistance = Kinematics.getStoppingDistance(
+                    xMovement, constants.forwardZeroPowerAcceleration
+                );
+                if (distanceToGoal >= stoppingDistance
+                    * currentPathChain.getDecelerationStartMultiplier() * 3/2) {
                     return -1;
                 }
             } else {

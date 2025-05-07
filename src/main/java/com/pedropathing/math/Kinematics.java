@@ -109,24 +109,4 @@ public final class Kinematics {
     ) {
         return getDistanceToVelocity(velocity, deceleration, 0);
     }
-
-    /**
-     * Calculate the distance needed to stop at a given velocity with the deceleration.
-     * Returns true if the robot would overshoot the target distance.
-     *
-     * <pre>
-     * v<sub>f</sub><sup>2</sup> = v<sub>i</sub><sup>2</sup> + 2·a·d
-     * Solve for d
-     * d = -(v<sub>f</sub><sup>2</sup> - v<sub>i</sub><sup>2</sup>) / (2·a)
-     * distanceToTarget > d
-     * </pre>
-     *
-     * @param velocity Negative or positive.
-     * @param deceleration Negative.
-     * @param distance Positive.
-     */
-    public static boolean isOvershooting(double velocity, double deceleration, double distance) {
-        double stoppingDistance = getStoppingDistance(velocity, deceleration);
-        return stoppingDistance >= distance;
-    }
 }
