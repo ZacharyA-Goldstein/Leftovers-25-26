@@ -14,7 +14,7 @@ import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathBuilder;
-import com.pedropathing.util.PathCallback;
+import com.pedropathing.paths.PathCallback;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -401,7 +401,7 @@ public class Follower {
     /** This checks if any PathCallbacks should be run right now, and runs them if applicable. */
     public void updateCallbacks() {
         for (PathCallback callback : currentPathChain.getCallbacks()) {
-            if (!callback.hasBeenRun()) {
+            if (!callback.isCompleted()) {
                 if (callback.getType() == PathCallback.PARAMETRIC) {
                     if (chainIndex == callback.getIndex() && (getCurrentTValue() >= callback.getStartCondition() || MathFunctions.roughlyEquals(getCurrentTValue(), callback.getStartCondition()))) {
                         callback.run();
@@ -410,7 +410,6 @@ public class Follower {
                     if (chainIndex >= callback.getIndex() && System.currentTimeMillis() - pathStartTimes[callback.getIndex()] > callback.getStartCondition()) {
                         callback.run();
                     }
-
                 }
             }
         }

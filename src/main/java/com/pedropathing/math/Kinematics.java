@@ -70,7 +70,7 @@ public final class Kinematics {
     }
 
     /**
-     * Calculates the distance needed to reach a velocity with the deceleration.
+     * Calculate the distance needed to reach a velocity with the deceleration.
      *
      * <pre>
      * v<sub>f</sub><sup>2</sup> = v<sub>i</sub><sup>2</sup> + 2·a·d
@@ -90,7 +90,7 @@ public final class Kinematics {
     }
 
     /**
-     * Calculates the distance needed to stop at a given velocity with the deceleration.
+     * Calculate the distance needed to stop at a given velocity with the deceleration.
      *
      * <pre>
      * v<sub>f</sub><sup>2</sup> = v<sub>i</sub><sup>2</sup> + 2·a·d
