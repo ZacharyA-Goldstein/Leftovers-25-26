@@ -6,7 +6,6 @@ package com.pedropathing.math;
  *
  * <pre>
  * v<sub>f</sub><sup>2</sup> = v<sub>i</sub><sup>2</sup> + 2·a·d
- * v<sub>f</sub> = v<sub>i</sub> + a·△t
  * </pre>
  * Where:<br>
  * <ul>
