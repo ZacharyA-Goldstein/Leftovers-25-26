@@ -55,6 +55,7 @@ public class Follower {
     public static boolean useHeading = true;
     public static boolean useDrive = true;
     private ElapsedTime zeroVelocityDetectedTimer;
+    private Runnable resetFollowing = null;
 
     /**
      * This creates a new Follower given a HardwareMap.
@@ -256,11 +257,46 @@ public class Follower {
     }
 
     /**
-     * Resumes pathing
+     * Resumes pathing, can only be called after pausePathFollowing()
      */
     public void resumePathFollowing() {
-        isBusy = true;
-        closestPose = currentPath.getClosestPoint(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
+        if (resetFollowing != null) {
+            resetFollowing.run();
+            resetFollowing = null;
+            isBusy = true;
+            closestPose = currentPath.getClosestPoint(poseTracker.getPose(), constants.BEZIER_CURVE_SEARCH_LIMIT);
+        }
+    }
+
+    /**
+     * Pauses pathing, can only be restarted with resumePathFollowing
+     */
+    public void pausePathFollowing() {
+        isBusy = false;
+
+        boolean prevHoldEnd = holdPositionAtEnd;
+
+        if (followingPathChain && currentPathChain != null) {
+            PathChain lastChain = currentPathChain;
+            int lastIndex = chainIndex;
+
+            resetFollowing = () -> {
+                followingPathChain = true;
+                chainIndex = lastIndex;
+                currentPathChain = lastChain;
+                holdPositionAtEnd = prevHoldEnd;
+                currentPath = currentPathChain.getPath(lastIndex);
+            };
+        } else if (currentPath != null) {
+            Path lastPath = currentPath;
+
+            resetFollowing = () -> {
+                holdPositionAtEnd = prevHoldEnd;
+                currentPath = lastPath;
+            };
+        }
+
+        holdPoint(getPose());
     }
 
     /**
