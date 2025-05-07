@@ -45,7 +45,6 @@ public class Follower {
 
     private final int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
-    private long[] pathStartTimes;
     private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, teleopDrive;
     private final boolean automaticHoldEnd;
     private double globalMaxPower = 1, centripetalScaling;
@@ -241,8 +240,6 @@ public class Follower {
         drivetrain.setMaxPowerScaling(maxPower);
         breakFollowing();
         holdPositionAtEnd = holdEnd;
-        pathStartTimes = new long[pathChain.size()];
-        pathStartTimes[0] = System.currentTimeMillis();
         isBusy = true;
         followingPathChain = true;
         chainIndex = 0;
@@ -262,8 +259,6 @@ public class Follower {
      * Resumes pathing
      */
     public void resumePathFollowing() {
-        pathStartTimes = new long[currentPathChain.size()];
-        pathStartTimes[0] = System.currentTimeMillis();
         isBusy = true;
         closestPose = currentPath.getClosestPoint(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
     }
@@ -360,7 +355,6 @@ public class Follower {
         if (followingPathChain && chainIndex < currentPathChain.size() - 1) {
             // Not at last path, keep going
             breakFollowing();
-            pathStartTimes[chainIndex] = System.currentTimeMillis();
             isBusy = true;
             followingPathChain = true;
             chainIndex++;

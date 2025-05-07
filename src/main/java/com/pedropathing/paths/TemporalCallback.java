@@ -2,13 +2,14 @@ package com.pedropathing.paths;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * This is the TemporalCallback class. This class handles callbacks that occur a given amount of time after a Path in a PathChain has begun running.
  *
  * @author Havish Sripada - 12808 RevAmped Robotics
  */
 public class TemporalCallback implements PathCallback {
-    private ElapsedTime elapsedTime;
     private double startCondition;
     private Runnable runnable;
     private double startTime = 0;
@@ -28,12 +29,12 @@ public class TemporalCallback implements PathCallback {
 
     @Override
     public boolean isReady() {
-        return System.currentTimeMillis() - startTime >= startCondition;
+        return TimeUnit.NANOSECONDS.convert(System.nanoTime(), TimeUnit.MILLISECONDS) - startTime >= startCondition;
     }
 
     @Override
     public void initialize() {
-        startTime = System.currentTimeMillis();
+        startTime = TimeUnit.NANOSECONDS.convert(System.nanoTime(), TimeUnit.MILLISECONDS);
     }
 
     @Override
