@@ -250,6 +250,12 @@ public class Follower {
         currentPath = pathChain.getPath(chainIndex);
         closestPose = currentPath.getClosestPoint(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         currentPathChain.resetCallbacks();
+
+        for (PathCallback callback : currentPathChain.getCallbacks()) {
+            if (callback.getPathIndex() == chainIndex) {
+                callback.initialize();
+            }
+        }
     }
 
     /**
@@ -361,6 +367,13 @@ public class Follower {
             currentPath = currentPathChain.getPath(chainIndex);
             closestPose = currentPath.getClosestPoint(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
             updateErrorAndVectors();
+
+            for (PathCallback callback : currentPathChain.getCallbacks()) {
+                if (callback.getPathIndex() == chainIndex) {
+                    callback.initialize();
+                }
+            }
+
             return;
         }
         // At last path, run some end detection stuff
@@ -401,16 +414,8 @@ public class Follower {
     /** This checks if any PathCallbacks should be run right now, and runs them if applicable. */
     public void updateCallbacks() {
         for (PathCallback callback : currentPathChain.getCallbacks()) {
-            if (!callback.isCompleted()) {
-                if (callback.getType() == PathCallback.PARAMETRIC) {
-                    if (chainIndex == callback.getIndex() && (getCurrentTValue() >= callback.getStartCondition() || MathFunctions.roughlyEquals(getCurrentTValue(), callback.getStartCondition()))) {
-                        callback.run();
-                    }
-                } else {
-                    if (chainIndex >= callback.getIndex() && System.currentTimeMillis() - pathStartTimes[callback.getIndex()] > callback.getStartCondition()) {
-                        callback.run();
-                    }
-                }
+            if (!callback.isCompleted() && callback.isReady()) {
+                callback.run();
             }
         }
     }
@@ -485,7 +490,7 @@ public class Follower {
      * @return returns a new PathBuilder object.
      */
     public PathBuilder pathBuilder(PathConstraints constraints) {
-        return new PathBuilder(constraints);
+        return new PathBuilder(constraints, this);
     }
 
     /**
@@ -493,7 +498,7 @@ public class Follower {
      * @return returns a new PathBuilder object.
      */
     public PathBuilder pathBuilder() {
-        return new PathBuilder();
+        return new PathBuilder(this);
     }
 
     /**

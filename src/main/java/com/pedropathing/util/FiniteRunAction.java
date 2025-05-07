@@ -1,5 +1,7 @@
 package com.pedropathing.util;
 
+import com.pedropathing.paths.PathCallback;
+
 /**
  * This is the FiniteRunAction class. It handles running Runnables once (or a specified number of times), until a reset is called.
  * It also forms the basis of the PathCallback class. Basically, if you want to run a certain action
@@ -105,5 +107,10 @@ public class FiniteRunAction implements PathCallback {
 
     public boolean isInitialized() {
         return initialized;
+    }
+
+    @Override
+    public int getPathIndex() {
+        return callback.getPathIndex();
     }
 }

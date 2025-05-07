@@ -1,9 +1,11 @@
 package com.pedropathing.paths;
 
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
+import com.pedropathing.util.FiniteRunAction;
 
 import java.util.ArrayList;
 
@@ -19,6 +21,7 @@ import java.util.ArrayList;
  * @version 1.0, 3/11/2024
  */
 public class PathBuilder {
+    private Follower follower;
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
@@ -38,9 +41,10 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder(PathConstraints constraints) {
+    public PathBuilder(PathConstraints constraints, Follower follower) {
         this.decelerationStartMultiplier = constraints.decelerationStartMultiplier;
         this.constraints = constraints;
+        this.follower = follower;
     }
 
     /**
@@ -51,8 +55,8 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder() {
-        this(PathConstraints.defaultConstraints);
+    public PathBuilder(Follower follower) {
+        this(PathConstraints.defaultConstraints, follower);
     }
 
     /**
@@ -249,7 +253,7 @@ public class PathBuilder {
      * @return This returns itself with the updated data.
      */
     public PathBuilder addTemporalCallback(double time, Runnable runnable) {
-        this.callbacks.add(new PathCallback(time, runnable, PathCallback.TIME, paths.size() - 1));
+        this.callbacks.add(new FiniteRunAction(new TemporalCallback(paths.size() - 1, time, runnable)));
         return this;
     }
 
@@ -262,7 +266,12 @@ public class PathBuilder {
      * @return This returns itself with the updated data.
      */
     public PathBuilder addParametricCallback(double t, Runnable runnable) {
-        this.callbacks.add(new PathCallback(t, runnable, PathCallback.PARAMETRIC, paths.size() - 1));
+        this.callbacks.add(new FiniteRunAction(new ParametricCallback(paths.size() - 1, t, follower, runnable)));
+        return this;
+    }
+
+    public PathBuilder addCallback(PathCallback callback) {
+        this.callbacks.add(callback);
         return this;
     }
 
