@@ -271,6 +271,11 @@ public class PathBuilder {
     }
 
     public PathBuilder addCallback(PathCallback callback) {
+        this.callbacks.add(new FiniteRunAction(callback));
+        return this;
+    }
+
+    public PathBuilder addLoopedCallback(PathCallback callback) {
         this.callbacks.add(callback);
         return this;
     }
