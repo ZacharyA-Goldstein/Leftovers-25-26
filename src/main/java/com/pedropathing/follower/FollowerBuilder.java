@@ -14,6 +14,7 @@ import com.pedropathing.localization.localizers.OTOSLocalizer;
 import com.pedropathing.localization.localizers.PinpointLocalizer;
 import com.pedropathing.localization.localizers.ThreeWheelIMULocalizer;
 import com.pedropathing.localization.localizers.ThreeWheelLocalizer;
+import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /** This is the FollowerBuilder.
@@ -23,6 +24,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
  */
 public class FollowerBuilder {
     private final FollowerConstants constants;
+    private PathConstraints constraints;
     private final HardwareMap hardwareMap;
     private Localizer localizer;
     private Drivetrain drivetrain;
@@ -30,6 +32,7 @@ public class FollowerBuilder {
     public FollowerBuilder(FollowerConstants constants, HardwareMap hardwareMap) {
         this.constants = constants;
         this.hardwareMap = hardwareMap;
+        constraints = PathConstraints.defaultConstraints;
     }
 
     public FollowerBuilder setLocalizer(Localizer localizer) {
@@ -70,7 +73,12 @@ public class FollowerBuilder {
         return setDrivetrain(new Mecanum(hardwareMap, mecanumConstants));
     }
 
+    public FollowerBuilder pathConstraints(PathConstraints pathConstraints) {
+        this.constraints = pathConstraints;
+        return this;
+    }
+
     public Follower build() {
-        return new Follower(hardwareMap, constants, localizer, drivetrain);
+        return new Follower(hardwareMap, constants, localizer, drivetrain, constraints);
     }
 }

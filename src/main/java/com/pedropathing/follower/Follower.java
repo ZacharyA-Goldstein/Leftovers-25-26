@@ -5,6 +5,7 @@ import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.paths.PathConstraints;
+import com.pedropathing.util.DashboardPoseTracker;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Localizer;
@@ -38,6 +39,7 @@ public class Follower {
     private final ErrorCalculator errorCalculator;
     private final VectorCalculator vectorCalculator;
     private final Drivetrain drivetrain;
+    private final DashboardPoseTracker dashboardPoseTracker;
 
     private Pose closestPose, currentPose;
     private Path currentPath;
@@ -73,6 +75,8 @@ public class Follower {
         errorCalculator = new ErrorCalculator(constants);
         vectorCalculator = new VectorCalculator(constants);
         this.drivetrain = drivetrain;
+
+        dashboardPoseTracker = new DashboardPoseTracker(poseTracker);
 
         BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
         holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
@@ -272,9 +276,18 @@ public class Follower {
     }
 
     /**
+     * This starts teleop drive control.
+     */
+    public void startTeleopDrive(boolean useBrakeMode) {
+        breakFollowing();
+        teleopDrive = true;
+        drivetrain.startTeleopDrive(useBrakeMode);
+    }
+
+    /**
      * This sets the Teleop drive movement vectors
      */
-    public void setTeleopDriveVectors(double forward, double strafe, double turn, boolean isRobotCentric) {
+    public void setTeleOpDrive(double forward, double strafe, double turn, boolean isRobotCentric) {
         vectorCalculator.setTeleOpMovementVectors(forward, strafe, turn, isRobotCentric);
     }
 
@@ -282,6 +295,7 @@ public class Follower {
     public void updatePose() {
         poseTracker.update();
         currentPose = poseTracker.getPose();
+        dashboardPoseTracker.update();
     }
 
     /** Calls an update to the ErrorCalculator, which updates the robot's current error. */
@@ -636,6 +650,14 @@ public class Follower {
     public Vector getHeadingVector() { return vectorCalculator.getHeadingVector(); }
     public Vector getTranslationalCorrection() { return vectorCalculator.getTranslationalCorrection(); }
     public Vector getCentripetalForceCorrection() { return vectorCalculator.getCentripetalForceCorrection(); }
+    public PathConstraints getConstraints() { return pathConstraints; }
+    public void setConstraints(PathConstraints pathConstraints) { this.pathConstraints = pathConstraints; }
+    public Drivetrain getDrivetrain() { return drivetrain; }
+    public PoseTracker getPoseTracker() { return poseTracker; }
+    public ErrorCalculator getErrorCalculator() { return errorCalculator; }
+    public VectorCalculator getVectorCalculator() { return vectorCalculator; }
+    public DashboardPoseTracker getDashboardPoseTracker() { return dashboardPoseTracker; }
+
     public void setDrivePIDFCoefficients(FilteredPIDFCoefficients drivePIDFCoefficients) { vectorCalculator.setDrivePIDFCoefficients(drivePIDFCoefficients); }
     public void setSecondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) { vectorCalculator.setSecondaryDrivePIDFCoefficients(secondaryDrivePIDFCoefficients); }
     public void setHeadingPIDFCoefficients(PIDFCoefficients headingPIDFCoefficients) { vectorCalculator.setHeadingPIDFCoefficients(headingPIDFCoefficients); }

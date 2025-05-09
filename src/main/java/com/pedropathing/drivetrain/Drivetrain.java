@@ -43,6 +43,7 @@ public abstract class Drivetrain {
     public abstract void getAndRunDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading);
 
     public abstract void startTeleopDrive();
+    public abstract void startTeleopDrive(boolean brakeMode);
 
     public abstract double xMovement();
 

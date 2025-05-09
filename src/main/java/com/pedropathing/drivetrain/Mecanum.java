@@ -207,6 +207,15 @@ public class Mecanum extends Drivetrain {
         }
     }
 
+    @Override
+    public void startTeleopDrive(boolean brakeMode) {
+        if(brakeMode) {
+            setMotorsToBrake();
+        } else {
+            setMotorsToFloat();
+        }
+    }
+
     public void getAndRunDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading) {
         runPowers(getDrivePowers(correctivePower, headingPower, pathingPower, robotHeading));
     }
