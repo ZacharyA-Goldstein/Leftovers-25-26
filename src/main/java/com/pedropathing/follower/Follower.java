@@ -15,7 +15,7 @@ import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathBuilder;
-import com.pedropathing.util.PathCallback;
+import com.pedropathing.paths.PathCallback;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -47,7 +47,6 @@ public class Follower {
 
     private final int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
-    private long[] pathStartTimes;
     private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, teleopDrive;
     private final boolean automaticHoldEnd;
     private double globalMaxPower = 1, centripetalScaling;
@@ -58,6 +57,7 @@ public class Follower {
     public static boolean useHeading = true;
     public static boolean useDrive = true;
     private ElapsedTime zeroVelocityDetectedTimer;
+    private Runnable resetFollowing = null;
 
     /**
      * This creates a new Follower given a HardwareMap.
@@ -245,8 +245,6 @@ public class Follower {
         drivetrain.setMaxPowerScaling(maxPower);
         breakFollowing();
         holdPositionAtEnd = holdEnd;
-        pathStartTimes = new long[pathChain.size()];
-        pathStartTimes[0] = System.currentTimeMillis();
         isBusy = true;
         followingPathChain = true;
         chainIndex = 0;
@@ -254,16 +252,55 @@ public class Follower {
         currentPath = pathChain.getPath(chainIndex);
         closestPose = currentPath.getClosestPoint(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         currentPathChain.resetCallbacks();
+
+        for (PathCallback callback : currentPathChain.getCallbacks()) {
+            if (callback.getPathIndex() == chainIndex) {
+                callback.initialize();
+            }
+        }
     }
 
     /**
-     * Resumes pathing
+     * Resumes pathing, can only be called after pausePathFollowing()
      */
     public void resumePathFollowing() {
-        pathStartTimes = new long[currentPathChain.size()];
-        pathStartTimes[0] = System.currentTimeMillis();
-        isBusy = true;
-        closestPose = currentPath.getClosestPoint(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
+        if (resetFollowing != null) {
+            resetFollowing.run();
+            resetFollowing = null;
+            isBusy = true;
+            closestPose = currentPath.getClosestPoint(poseTracker.getPose(), constants.BEZIER_CURVE_SEARCH_LIMIT);
+        }
+    }
+
+    /**
+     * Pauses pathing, can only be restarted with resumePathFollowing
+     */
+    public void pausePathFollowing() {
+        isBusy = false;
+
+        boolean prevHoldEnd = holdPositionAtEnd;
+
+        if (followingPathChain && currentPathChain != null) {
+            PathChain lastChain = currentPathChain;
+            int lastIndex = chainIndex;
+
+            resetFollowing = () -> {
+                followingPathChain = true;
+                chainIndex = lastIndex;
+                currentPathChain = lastChain;
+                holdPositionAtEnd = prevHoldEnd;
+                currentPath = currentPathChain.getPath(lastIndex);
+            };
+        } else if (currentPath != null) {
+            Path lastPath = currentPath;
+
+            resetFollowing = () -> {
+                holdPositionAtEnd = prevHoldEnd;
+                currentPath = lastPath;
+            };
+        }
+
+        holdPoint(getPose());
     }
 
     /**
@@ -368,13 +405,19 @@ public class Follower {
         if (followingPathChain && chainIndex < currentPathChain.size() - 1) {
             // Not at last path, keep going
             breakFollowing();
-            pathStartTimes[chainIndex] = System.currentTimeMillis();
             isBusy = true;
             followingPathChain = true;
             chainIndex++;
             currentPath = currentPathChain.getPath(chainIndex);
             closestPose = currentPath.getClosestPoint(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
             updateErrorAndVectors();
+
+            for (PathCallback callback : currentPathChain.getCallbacks()) {
+                if (callback.getPathIndex() == chainIndex) {
+                    callback.initialize();
+                }
+            }
+
             return;
         }
         // At last path, run some end detection stuff
@@ -415,17 +458,8 @@ public class Follower {
     /** This checks if any PathCallbacks should be run right now, and runs them if applicable. */
     public void updateCallbacks() {
         for (PathCallback callback : currentPathChain.getCallbacks()) {
-            if (!callback.hasBeenRun()) {
-                if (callback.getType() == PathCallback.PARAMETRIC) {
-                    if (chainIndex == callback.getIndex() && (getCurrentTValue() >= callback.getStartCondition() || MathFunctions.roughlyEquals(getCurrentTValue(), callback.getStartCondition()))) {
-                        callback.run();
-                    }
-                } else {
-                    if (chainIndex >= callback.getIndex() && System.currentTimeMillis() - pathStartTimes[callback.getIndex()] > callback.getStartCondition()) {
-                        callback.run();
-                    }
-
-                }
+            if (!callback.isCompleted() && callback.isReady()) {
+                callback.run();
             }
         }
     }
@@ -500,7 +534,7 @@ public class Follower {
      * @return returns a new PathBuilder object.
      */
     public PathBuilder pathBuilder(PathConstraints constraints) {
-        return new PathBuilder(constraints);
+        return new PathBuilder(constraints, this);
     }
 
     /**
@@ -508,7 +542,7 @@ public class Follower {
      * @return returns a new PathBuilder object.
      */
     public PathBuilder pathBuilder() {
-        return new PathBuilder();
+        return new PathBuilder(this);
     }
 
     /**

@@ -1,8 +1,6 @@
 package com.pedropathing.paths;
 
-import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.util.PathCallback;
 
 import java.util.ArrayList;
 import java.util.Arrays;

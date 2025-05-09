@@ -100,7 +100,6 @@ public class PinpointLocalizer implements Localizer {
         currentVelocity = new Pose();
         deltaTimeNano = 1;
         previousHeading = setStartPose.getHeading();
-
     }
 
     /**
