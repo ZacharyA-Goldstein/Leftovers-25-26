@@ -43,7 +43,12 @@ public class ErrorCalculator {
         this.currentPose = currentPose;
         this.velocityVector = velocity;
         this.currentPath = currentPath;
-        this.closestPose = this.currentPath.getClosestPoint(currentPose, 10);
+
+        if (!(currentPath == null))
+            this.closestPose = this.currentPath.getClosestPoint(currentPose, 10);
+        else
+            this.closestPose = currentPose;
+
         this.currentPathChain = currentPathChain;
         this.followingPathChain = followingPathChain;
         this.chainIndex = chainIndex;
