@@ -337,7 +337,7 @@ public class Follower {
 
     /** Calls an update to the ErrorCalculator, which updates the robot's current error. */
     public void updateErrors() {
-        errorCalculator.update(currentPose, currentPath, currentPathChain, followingPathChain, poseTracker.getVelocity(), chainIndex, drivetrain.xMovement());
+        errorCalculator.update(currentPose, currentPath, currentPathChain, followingPathChain, closestPose, poseTracker.getVelocity(), chainIndex, drivetrain.xMovement());
     }
 
     /** Calls an update to the VectorCalculator, which updates the robot's current vectors to correct. */

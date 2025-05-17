@@ -39,16 +39,11 @@ public class ErrorCalculator {
 
     }
 
-    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Vector velocity, int chainIndex, double xMovement) {
+    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Pose closestPose, Vector velocity, int chainIndex, double xMovement) {
         this.currentPose = currentPose;
         this.velocityVector = velocity;
         this.currentPath = currentPath;
-
-        if (!(currentPath == null))
-            this.closestPose = this.currentPath.getClosestPoint(currentPose, 10);
-        else
-            this.closestPose = currentPose;
-
+        this.closestPose = closestPose;
         this.currentPathChain = currentPathChain;
         this.followingPathChain = followingPathChain;
         this.chainIndex = chainIndex;
@@ -74,6 +69,10 @@ public class ErrorCalculator {
      * @return This returns the raw heading error as a double.
      */
     public double getHeadingError() {
+        if (currentPath == null) {
+            return 0;
+        }
+
         headingError = MathFunctions.getTurnDirection(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal()) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal());
         return headingError;
     }
@@ -85,6 +84,10 @@ public class ErrorCalculator {
      * @return returns the projected velocity.
      */
     public double getDriveVelocityError(double distanceToGoal) {
+        if (currentPath == null) {
+            return 0;
+        }
+
         Vector distanceToGoalVector = MathFunctions.scalarMultiplyVector(MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector()), distanceToGoal);
         Vector velocity = new Vector(MathFunctions.dotProduct(velocityVector, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta());
 
@@ -142,6 +145,11 @@ public class ErrorCalculator {
 
     public double getDriveError() {
         double distanceToGoal;
+
+        if (currentPath == null) {
+            return 0;
+        }
+
         if (!currentPath.isAtParametricEnd()) {
             if (followingPathChain && currentPathChain.getDecelerationType() == PathChain.DecelerationType.GLOBAL) {
                 double remainingLength = 0;
