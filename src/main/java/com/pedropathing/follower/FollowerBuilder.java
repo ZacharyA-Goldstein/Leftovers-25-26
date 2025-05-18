@@ -63,7 +63,7 @@ public class FollowerBuilder {
     }
 
     public FollowerBuilder twoWheelLocalizer(TwoWheelConstants lConstants) {
-        return setLocalelLocalizer(hardwareMap, lConstants));
+        return setLocalizer(new TwoWheelLocalizer(hardwareMap, lConstants));
     }
 
     public FollowerBuilder setDrivetrain(Drivetrain drivetrain) {
