@@ -9,11 +9,13 @@ import com.pedropathing.localization.constants.OTOSConstants;
 import com.pedropathing.localization.constants.PinpointConstants;
 import com.pedropathing.localization.constants.ThreeWheelConstants;
 import com.pedropathing.localization.constants.ThreeWheelIMUConstants;
+import com.pedropathing.localization.constants.TwoWheelConstants;
 import com.pedropathing.localization.localizers.DriveEncoderLocalizer;
 import com.pedropathing.localization.localizers.OTOSLocalizer;
 import com.pedropathing.localization.localizers.PinpointLocalizer;
 import com.pedropathing.localization.localizers.ThreeWheelIMULocalizer;
 import com.pedropathing.localization.localizers.ThreeWheelLocalizer;
+import com.pedropathing.localization.localizers.TwoWheelLocalizer;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -60,8 +62,8 @@ public class FollowerBuilder {
         return setLocalizer(new ThreeWheelLocalizer(hardwareMap, lConstants));
     }
 
-    public FollowerBuilder twoWheelLocalizer(ThreeWheelConstants lConstants) {
-        return setLocalizer(new ThreeWheelLocalizer(hardwareMap, lConstants));
+    public FollowerBuilder twoWheelLocalizer(TwoWheelConstants lConstants) {
+        return setLocalizer(new TwoWheelLocalizer(hardwareMap, lConstants));
     }
 
     public FollowerBuilder setDrivetrain(Drivetrain drivetrain) {
