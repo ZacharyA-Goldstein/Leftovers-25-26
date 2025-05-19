@@ -1,6 +1,5 @@
 package com.pedropathing.localization.constants;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.GoBildaPinpointDriver;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;

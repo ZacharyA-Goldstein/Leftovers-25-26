@@ -19,22 +19,7 @@ tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaJavadoc") {
 			sourceRoots.from(file("src/main/kotlin"), file("src/main/java"))
 			reportUndocumented.set(true)
 			skipDeprecated.set(false)
-			jdkVersion.set(8) // or adjust based on your requirements
-			perPackageOption {
-				matchingRegex.set("com\\.acmerobotics\\.roadrunner\\.ftc.*")
-				suppress.set(true) // Exclude this package
-			}
-		}
-	}
-}
-
-tasks.dokkaHtml {
-	dokkaSourceSets {
-		named("main") {
-			perPackageOption {
-				matchingRegex.set("com\\.acmerobotics\\.roadrunner\\.ftc.*")
-				suppress.set(true) // Exclude this package
-			}
+			jdkVersion.set(8)
 		}
 	}
 }
@@ -46,7 +31,7 @@ val defaultMinSdkVersion1 by extra(23)
 repositories {
 	mavenCentral()
 	google()
-	maven("https://maven.brott.dev/")
+	maven("https://mymaven.bylazar.com/releases")
 }
 
 android {
@@ -74,12 +59,13 @@ android {
 }
 
 dependencies {
+	implementation("androidx.annotation:annotation-jvm:1.9.1")
 	compileOnly("org.firstinspires.ftc:RobotCore:10.2.0")
 	compileOnly("org.firstinspires.ftc:Hardware:10.2.0")
 	compileOnly("org.firstinspires.ftc:FtcCommon:10.2.0")
 	compileOnly("org.firstinspires.ftc:RobotServer:10.2.0")
 	compileOnly("org.firstinspires.ftc:OnBotJava:10.2.0")
-	compileOnly("com.acmerobotics.dashboard:dashboard:0.4.16")
+	compileOnly("com.bylazar:ftcontrol:0.5.0")
 
 	implementation("org.apache.commons:commons-math3:3.6.1")
 	dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.20")
@@ -93,7 +79,7 @@ publishing {
 		register<MavenPublication>("release") {
 			groupId = "com.pedropathing"
 			artifactId = "dev"
-			version = "1.1.0-devlocal3"
+			version = "1.1.0-devlocal4"
 
 			afterEvaluate {
 				from(components["release"])

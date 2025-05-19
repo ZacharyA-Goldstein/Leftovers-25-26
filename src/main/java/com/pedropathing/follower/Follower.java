@@ -1,6 +1,5 @@
 package com.pedropathing.follower;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.drivetrain.Drivetrain;
@@ -30,16 +29,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.1.0, 5/1/2025
  */
-
-@Config
 public class Follower {
-    private final FollowerConstants constants;
-    private PathConstraints pathConstraints;
-    public PoseTracker poseTracker;
-    private final ErrorCalculator errorCalculator;
-    private final VectorCalculator vectorCalculator;
-    private final Drivetrain drivetrain;
-    private final DashboardPoseTracker dashboardPoseTracker;
+    public static FollowerConstants constants;
+    public static PathConstraints pathConstraints;
+    public static PoseTracker poseTracker;
+    public static ErrorCalculator errorCalculator;
+    public static VectorCalculator vectorCalculator;
+    public static Drivetrain drivetrain;
+    public static DashboardPoseTracker dashboardPoseTracker;
 
     private Pose closestPose, currentPose;
     private Path currentPath;

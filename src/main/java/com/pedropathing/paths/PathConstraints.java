@@ -5,31 +5,31 @@ public final class PathConstraints {
      * this value, then end the Path. This is in inches/second.
      * This can be custom set for each Path.
      *  Default Value: 0.1 */
-    public double velocityConstraint;
+    public static double velocityConstraint;
 
     /** When the robot is at the end of its current Path or PathChain and the translational error
      * goes below this value, then end the Path. This is in inches.
      * This can be custom set for each Path.
      *  Default Value: 0.1 */
-    public double translationalConstraint;
+    public static double translationalConstraint;
 
     /** When the robot is at the end of its current Path or PathChain and the heading error goes
      * below this value, then end the Path. This is in radians.
      * This can be custom set for each Path.
      *  Default Value: 0.007 */
-    public double headingConstraint;
+    public static double headingConstraint;
 
     /** When the t-value of the closest point to the robot on the Path is greater than this value,
      * then the Path is considered at its end.
      * This can be custom set for each Path.
      *  Default Value: 0.995 */
-    public double tValueConstraint;
+    public static double tValueConstraint;
 
     /** When the Path is considered at its end parametrically, then the Follower has this many
      * milliseconds to further correct by default.
      * This can be custom set for each Path.
      *  Default Value: 100 */
-    public double timeoutConstraint;
+    public static double timeoutConstraint;
 
     /** A multiplier for the zero power acceleration to change the speed the robot decelerates at
      * the end of paths.
@@ -40,7 +40,7 @@ public final class PathConstraints {
      * This can be set individually for each Path, but this is the default.
      *  Default Value: 4
      */
-    public double zeroPowerAccelerationMultiplier;
+    public static double zeroPowerAccelerationMultiplier;
 
     /**
      * Multiplier for when the path should start its deceleration

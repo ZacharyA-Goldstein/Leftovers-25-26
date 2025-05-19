@@ -1,9 +1,8 @@
 package com.pedropathing.util;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.canvas.Canvas;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
+import com.bylazar.ftcontrol.panels.json.Canvas;
+import com.bylazar.ftcontrol.panels.json.TelemetryPacket;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -48,10 +47,10 @@ public class Drawing {
      * @param color the color to draw the robot with
      */
     public static void drawRobot(Pose pose, String color) {
-        if (packet == null) packet = new TelemetryPacket();
-
-        packet.fieldOverlay().setStroke(color);
-        Drawing.drawRobotOnCanvas(packet.fieldOverlay(), pose);
+//        if (packet == null) packet = new TelemetryPacket();
+//
+//        packet.fieldOverlay().setStroke(color);
+//        Drawing.drawRobotOnCanvas(packet.fieldOverlay(), pose);
     }
 
     /**
@@ -62,10 +61,10 @@ public class Drawing {
      * @param color the color to draw the Path with
      */
     public static void drawPath(Path path, String color) {
-        if (packet == null) packet = new TelemetryPacket();
-
-        packet.fieldOverlay().setStroke(color);
-        Drawing.drawPath(packet.fieldOverlay(), path.getDashboardDrawingPoints());
+//        if (packet == null) packet = new TelemetryPacket();
+//
+//        packet.fieldOverlay().setStroke(color);
+//        Drawing.drawPath(packet.fieldOverlay(), path.getDashboardDrawingPoints());
     }
 
     /**
@@ -89,10 +88,10 @@ public class Drawing {
      * @param color the color to draw the pose history with
      */
     public static void drawPoseHistory(DashboardPoseTracker poseTracker, String color) {
-        if (packet == null) packet = new TelemetryPacket();
-
-        packet.fieldOverlay().setStroke(color);
-        packet.fieldOverlay().strokePolyline(poseTracker.getXPositionsArray(), poseTracker.getYPositionsArray());
+//        if (packet == null) packet = new TelemetryPacket();
+//
+//        packet.fieldOverlay().setStroke(color);
+//        packet.fieldOverlay().strokePolyline(poseTracker.getXPositionsArray(), poseTracker.getYPositionsArray());
     }
 
     /**
@@ -101,12 +100,13 @@ public class Drawing {
      * @return returns if the operation was successful.
      */
     public static boolean sendPacket() {
-        if (packet != null) {
-            FtcDashboard.getInstance().sendTelemetryPacket(packet);
-            packet = null;
-            return true;
-        }
-        return false;
+//        if (packet != null) {
+//            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+//            packet = null;
+//            return true;
+//        }
+//        return false;
+        return true;
     }
 
 
@@ -119,12 +119,12 @@ public class Drawing {
      * @param t the Pose to draw at
      */
     public static void drawRobotOnCanvas(Canvas c, Pose t) {
-        c.strokeCircle(t.getX(), t.getY(), ROBOT_RADIUS);
-        Vector v = t.getHeadingAsUnitVector();
-        v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
-        double x1 = t.getX() + v.getXComponent() / 2, y1 = t.getY() + v.getYComponent() / 2;
-        double x2 = t.getX() + v.getXComponent(), y2 = t.getY() + v.getYComponent();
-        c.strokeLine(x1, y1, x2, y2);
+//        c.strokeCircle(t.getX(), t.getY(), ROBOT_RADIUS);
+//        Vector v = t.getHeadingAsUnitVector();
+//        v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
+//        double x1 = t.getX() + v.getXComponent() / 2, y1 = t.getY() + v.getYComponent() / 2;
+//        double x2 = t.getX() + v.getXComponent(), y2 = t.getY() + v.getYComponent();
+//        c.strokeLine(x1, y1, x2, y2);
     }
 
     /**
@@ -134,6 +134,6 @@ public class Drawing {
      * @param points the Points to draw
      */
     public static void drawPath(Canvas c, double[][] points) {
-        c.strokePolyline(points[0], points[1]);
+        //c.strokePolyline(points[0], points[1]);
     }
 }
