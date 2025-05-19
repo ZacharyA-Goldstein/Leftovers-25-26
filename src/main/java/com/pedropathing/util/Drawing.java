@@ -2,16 +2,21 @@ package com.pedropathing.util;
 
 
 import com.bylazar.ftcontrol.panels.json.Canvas;
+import com.bylazar.ftcontrol.panels.json.Circle;
+import com.bylazar.ftcontrol.panels.json.Line;
+import com.bylazar.ftcontrol.panels.json.Look;
+import com.bylazar.ftcontrol.panels.json.Point;
 import com.bylazar.ftcontrol.panels.json.TelemetryPacket;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.math.Vector;
 
 /**
- * This is the Drawing class. It handles the drawing of stuff on FTC Dashboard, like the robot.
+ * This is the Drawing class. It handles the drawing of stuff on Panels Dashboard, like the robot.
  *
+ * @author Lazar - 19234
  * @author Logan Nash
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 4/22/2024
@@ -20,6 +25,8 @@ public class Drawing {
     public static final double ROBOT_RADIUS = 9;
 
     private static TelemetryPacket packet;
+
+    private static Canvas canvas;
 
     /**
      * This draws everything that will be used in the Follower's telemetryDebug() method. This takes
@@ -43,28 +50,66 @@ public class Drawing {
      * This adds instructions to the current packet to draw a robot at a specified Pose with a specified
      * color. If no packet exists, then a new one is created.
      *
-     * @param pose the Pose to draw the robot at
+     * @param pose  the Pose to draw the robot at
      * @param color the color to draw the robot with
      */
     public static void drawRobot(Pose pose, String color) {
-//        if (packet == null) packet = new TelemetryPacket();
-//
-//        packet.fieldOverlay().setStroke(color);
-//        Drawing.drawRobotOnCanvas(packet.fieldOverlay(), pose);
+        if (canvas == null) canvas = new Canvas();
+        canvas.add(
+                new Circle(
+                        new Point(pose.getX(), pose.getY()),
+                        ROBOT_RADIUS
+                ).withLook(
+                        new Look(
+                                "", color, 0.0, 1.0
+                        )
+                )
+        );
+
+        Vector v = pose.getHeadingAsUnitVector();
+        v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
+        double x1 = pose.getX() + v.getXComponent() / 2, y1 = pose.getY() + v.getYComponent() / 2;
+        double x2 = pose.getX() + v.getXComponent(), y2 = pose.getY() + v.getYComponent();
+
+        canvas.add(
+                new Line(
+                        new Point(x1, y1),
+                        new Point(x2, y2)
+                ).withLook(
+                        new Look(
+                                "", color, 0.0, 1.0
+                        )
+                )
+        );
     }
 
     /**
      * This adds instructions to the current packet to draw a Path with a specified color. If no
      * packet exists, then a new one is created.
      *
-     * @param path the Path to draw
+     * @param path  the Path to draw
      * @param color the color to draw the Path with
      */
     public static void drawPath(Path path, String color) {
-//        if (packet == null) packet = new TelemetryPacket();
-//
-//        packet.fieldOverlay().setStroke(color);
-//        Drawing.drawPath(packet.fieldOverlay(), path.getDashboardDrawingPoints());
+        if (canvas == null) canvas = new Canvas();
+
+        double[][] points = path.getDashboardDrawingPoints();
+
+        canvas.add(new Line(
+                        new Point(
+                                points[0][0],
+                                points[0][1]
+                        ),
+                        new Point(
+                                points[1][0],
+                                points[1][1]
+                        )
+                ).withLook(
+                        new Look(
+                                "", color, 0.0, 1.0
+                        )
+                )
+        );
     }
 
     /**
@@ -72,7 +117,7 @@ public class Drawing {
      * specified color. If no packet exists, then a new one is created.
      *
      * @param pathChain the PathChain to draw
-     * @param color the color to draw the PathChain with
+     * @param color     the color to draw the PathChain with
      */
     public static void drawPath(PathChain pathChain, String color) {
         for (int i = 0; i < pathChain.size(); i++) {
@@ -85,13 +130,31 @@ public class Drawing {
      * packet exists, then a new one is created.
      *
      * @param poseTracker the DashboardPoseTracker to get the pose history from
-     * @param color the color to draw the pose history with
+     * @param color       the color to draw the pose history with
      */
     public static void drawPoseHistory(DashboardPoseTracker poseTracker, String color) {
-//        if (packet == null) packet = new TelemetryPacket();
-//
-//        packet.fieldOverlay().setStroke(color);
-//        packet.fieldOverlay().strokePolyline(poseTracker.getXPositionsArray(), poseTracker.getYPositionsArray());
+        if (canvas == null) canvas = new Canvas();
+
+        int size = poseTracker.getXPositionsArray().length;
+        for (int i = 0; i < size - 1; i++) {
+
+            canvas.add(
+                    new Line(
+                            new Point(
+                                    poseTracker.getXPositionsArray()[i],
+                                    poseTracker.getYPositionsArray()[i]
+                            ),
+                            new Point(
+                                    poseTracker.getXPositionsArray()[i + 1],
+                                    poseTracker.getYPositionsArray()[i + 1]
+                            )
+                    ).withLook(
+                            new Look(
+                                    "", color, 0.0, 1.0
+                            )
+                    )
+            );
+        }
     }
 
     /**
@@ -100,40 +163,13 @@ public class Drawing {
      * @return returns if the operation was successful.
      */
     public static boolean sendPacket() {
-//        if (packet != null) {
-//            FtcDashboard.getInstance().sendTelemetryPacket(packet);
-//            packet = null;
-//            return true;
-//        }
-//        return false;
-        return true;
-    }
-
-
-
-    /**
-     * This draws a robot on the Dashboard at a specified Pose. This is more useful for drawing the
-     * actual robot, since the Pose contains the direction the robot is facing as well as its position.
-     *
-     * @param c the Canvas on the Dashboard on which this will draw at
-     * @param t the Pose to draw at
-     */
-    public static void drawRobotOnCanvas(Canvas c, Pose t) {
-//        c.strokeCircle(t.getX(), t.getY(), ROBOT_RADIUS);
-//        Vector v = t.getHeadingAsUnitVector();
-//        v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
-//        double x1 = t.getX() + v.getXComponent() / 2, y1 = t.getY() + v.getYComponent() / 2;
-//        double x2 = t.getX() + v.getXComponent(), y2 = t.getY() + v.getYComponent();
-//        c.strokeLine(x1, y1, x2, y2);
-    }
-
-    /**
-     * This draws a Path on the Dashboard from a specified Array of Points.
-     *
-     * @param c the Canvas on the Dashboard on which this will draw
-     * @param points the Points to draw
-     */
-    public static void drawPath(Canvas c, double[][] points) {
-        //c.strokePolyline(points[0], points[1]);
+        if (canvas != null) {
+//            Panels.getTelemetry().debug(canvas);
+//            TODO: draw
+            canvas.clear();
+            canvas = null;
+            return true;
+        }
+        return false;
     }
 }
