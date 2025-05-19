@@ -32,6 +32,7 @@ repositories {
 	mavenCentral()
 	google()
 	maven("https://mymaven.bylazar.com/releases")
+	mavenLocal()
 }
 
 android {
@@ -65,7 +66,7 @@ dependencies {
 	compileOnly("org.firstinspires.ftc:FtcCommon:10.2.0")
 	compileOnly("org.firstinspires.ftc:RobotServer:10.2.0")
 	compileOnly("org.firstinspires.ftc:OnBotJava:10.2.0")
-	compileOnly("com.bylazar:ftcontrol:0.5.6")
+	compileOnly("com.bylazar:ftcontrol:0.5.7")
 
 	implementation("org.apache.commons:commons-math3:3.6.1")
 	dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.20")
