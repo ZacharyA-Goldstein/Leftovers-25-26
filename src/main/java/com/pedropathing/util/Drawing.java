@@ -1,12 +1,12 @@
 package com.pedropathing.util;
 
 
+import com.bylazar.ftcontrol.panels.Panels;
 import com.bylazar.ftcontrol.panels.json.Canvas;
 import com.bylazar.ftcontrol.panels.json.Circle;
 import com.bylazar.ftcontrol.panels.json.Line;
 import com.bylazar.ftcontrol.panels.json.Look;
 import com.bylazar.ftcontrol.panels.json.Point;
-import com.bylazar.ftcontrol.panels.json.TelemetryPacket;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
@@ -17,53 +17,50 @@ import com.pedropathing.paths.PathChain;
  * This is the Drawing class. It handles the drawing of stuff on Panels Dashboard, like the robot.
  *
  * @author Lazar - 19234
- * @author Logan Nash
- * @author Anyi Lin - 10158 Scott's Bots
- * @version 1.0, 4/22/2024
+ * @version 1.1, 5/19/2025
  */
 public class Drawing {
     public static final double ROBOT_RADIUS = 9;
+    private static final Canvas canvas = new Canvas();
 
-    private static TelemetryPacket packet;
-
-    private static Canvas canvas;
+    private static final Look robotLook = new Look(
+            "", "#3F51B5", 0.0, 1.0
+    );
+    private static final Look historyLook = new Look(
+            "", "#4CAF50", 0.0, 1.0
+    );
 
     /**
      * This draws everything that will be used in the Follower's telemetryDebug() method. This takes
      * a Follower as an input, so an instance of the DashbaordDrawingHandler class is not needed.
      *
-     * @param follower
+     * @param follower Pedro Follower instance.
      */
     public static void drawDebug(Follower follower) {
         if (follower.getCurrentPath() != null) {
-            drawPath(follower.getCurrentPath(), "#3F51B5");
+            drawPath(follower.getCurrentPath(), robotLook);
             Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
-            drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), "#3F51B5");
+            drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), robotLook);
         }
-        drawPoseHistory(follower.getDashboardPoseTracker(), "#4CAF50");
-        drawRobot(follower.getPose(), "#4CAF50");
+        drawPoseHistory(follower.getDashboardPoseTracker(), historyLook);
+        drawRobot(follower.getPose(), historyLook);
 
         sendPacket();
     }
 
     /**
-     * This adds instructions to the current packet to draw a robot at a specified Pose with a specified
-     * color. If no packet exists, then a new one is created.
+     * This draws a robot at a specified Pose with a specified
+     * look. The heading is represented as a line.
      *
-     * @param pose  the Pose to draw the robot at
-     * @param color the color to draw the robot with
+     * @param pose the Pose to draw the robot at
+     * @param look the parameters used to draw the robot with
      */
-    public static void drawRobot(Pose pose, String color) {
-        if (canvas == null) canvas = new Canvas();
+    public static void drawRobot(Pose pose, Look look) {
         canvas.add(
                 new Circle(
                         new Point(pose.getX(), pose.getY()),
                         ROBOT_RADIUS
-                ).withLook(
-                        new Look(
-                                "", color, 0.0, 1.0
-                        )
-                )
+                ).withLook(look)
         );
 
         Vector v = pose.getHeadingAsUnitVector();
@@ -75,24 +72,17 @@ public class Drawing {
                 new Line(
                         new Point(x1, y1),
                         new Point(x2, y2)
-                ).withLook(
-                        new Look(
-                                "", color, 0.0, 1.0
-                        )
-                )
+                ).withLook(look)
         );
     }
 
     /**
-     * This adds instructions to the current packet to draw a Path with a specified color. If no
-     * packet exists, then a new one is created.
+     * This draws a Path with a specified look.
      *
-     * @param path  the Path to draw
-     * @param color the color to draw the Path with
+     * @param path the Path to draw
+     * @param look the parameters used to draw the Path with
      */
-    public static void drawPath(Path path, String color) {
-        if (canvas == null) canvas = new Canvas();
-
+    public static void drawPath(Path path, Look look) {
         double[][] points = path.getDashboardDrawingPoints();
 
         canvas.add(new Line(
@@ -104,37 +94,30 @@ public class Drawing {
                                 points[1][0],
                                 points[1][1]
                         )
-                ).withLook(
-                        new Look(
-                                "", color, 0.0, 1.0
-                        )
-                )
+                ).withLook(look)
         );
     }
 
     /**
-     * This adds instructions to the current packet to draw all the Paths in a PathChain with a
-     * specified color. If no packet exists, then a new one is created.
+     * This draws all the Paths in a PathChain with a
+     * specified look.
      *
      * @param pathChain the PathChain to draw
-     * @param color     the color to draw the PathChain with
+     * @param look      the parameters used to draw the PathChain with
      */
-    public static void drawPath(PathChain pathChain, String color) {
+    public static void drawPath(PathChain pathChain, Look look) {
         for (int i = 0; i < pathChain.size(); i++) {
-            drawPath(pathChain.getPath(i), color);
+            drawPath(pathChain.getPath(i), look);
         }
     }
 
     /**
-     * This adds instructions to the current packet to draw the pose history of the robot. If no
-     * packet exists, then a new one is created.
+     * This draws the pose history of the robot.
      *
      * @param poseTracker the DashboardPoseTracker to get the pose history from
-     * @param color       the color to draw the pose history with
+     * @param look        the parameters used to draw the pose history with
      */
-    public static void drawPoseHistory(DashboardPoseTracker poseTracker, String color) {
-        if (canvas == null) canvas = new Canvas();
-
+    public static void drawPoseHistory(DashboardPoseTracker poseTracker, Look look) {
         int size = poseTracker.getXPositionsArray().length;
         for (int i = 0; i < size - 1; i++) {
 
@@ -148,26 +131,20 @@ public class Drawing {
                                     poseTracker.getXPositionsArray()[i + 1],
                                     poseTracker.getYPositionsArray()[i + 1]
                             )
-                    ).withLook(
-                            new Look(
-                                    "", color, 0.0, 1.0
-                            )
-                    )
+                    ).withLook(look)
             );
         }
     }
 
     /**
-     * This tries to send the current packet to FTC Dashboard.
+     * This tries to send the current packet to FTControl Panels.
      *
-     * @return returns if the operation was successful.
+     * @return returns if the operation found data to send.
      */
     public static boolean sendPacket() {
-        if (canvas != null) {
-//            Panels.getTelemetry().debug(canvas);
-//            TODO: draw
+        if (!canvas.isEmpty()) {
+            Panels.getTelemetry().sendCanvas(canvas);
             canvas.clear();
-            canvas = null;
             return true;
         }
         return false;
