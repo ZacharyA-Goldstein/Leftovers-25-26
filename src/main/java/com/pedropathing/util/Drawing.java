@@ -3,6 +3,7 @@ package com.pedropathing.util;
 
 import com.bylazar.ftcontrol.panels.Panels;
 import com.bylazar.ftcontrol.panels.json.Canvas;
+import com.bylazar.ftcontrol.panels.json.CanvasRotation;
 import com.bylazar.ftcontrol.panels.json.Circle;
 import com.bylazar.ftcontrol.panels.json.Line;
 import com.bylazar.ftcontrol.panels.json.Look;
@@ -21,7 +22,7 @@ import com.pedropathing.paths.PathChain;
  */
 public class Drawing {
     public static final double ROBOT_RADIUS = 9;
-    private static final Canvas canvas = new Canvas().withOffsets(-24 * 3, 24 * 3);
+    private static final Canvas canvas = new Canvas().withOffsets(-24 * 3, 24 * 3, CanvasRotation.DEG_270);
 
     private static final Look robotLook = new Look(
             "", "#3F51B5", 0.0, 1.0

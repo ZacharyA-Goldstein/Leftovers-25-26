@@ -67,9 +67,8 @@ dependencies {
 	compileOnly("org.firstinspires.ftc:FtcCommon:10.2.0")
 	compileOnly("org.firstinspires.ftc:RobotServer:10.2.0")
 	compileOnly("org.firstinspires.ftc:OnBotJava:10.2.0")
-	compileOnly("com.bylazar:ftcontrol:0.5.7")
+	compileOnly("com.bylazar:ftcontrol:0.5.9")
 	compileOnly("com.acmerobotics.dashboard:dashboard:0.4.16")
-
 	implementation("org.apache.commons:commons-math3:3.6.1")
 	dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.20")
 	dokkaGfmPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.20")
@@ -82,7 +81,7 @@ publishing {
 		register<MavenPublication>("release") {
 			groupId = "com.pedropathing"
 			artifactId = "dev"
-			version = "1.1.0-devlocal8"
+			version = "1.1.0-dev4"
 
 			afterEvaluate {
 				from(components["release"])
