@@ -1,5 +1,7 @@
 package com.pedropathing.follower;
 
+import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.ftcontrol.panels.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.drivetrain.Drivetrain;
@@ -29,6 +31,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.1.0, 5/1/2025
  */
+@Configurable
 public class Follower {
     public static FollowerConstants constants;
     public static PathConstraints pathConstraints;

@@ -77,6 +77,15 @@ public class Drawing {
     }
 
     /**
+     * This draws a robot at a specified Pose. The heading is represented as a line.
+     *
+     * @param pose the Pose to draw the robot at
+     */
+    public static void drawRobot(Pose pose) {
+        drawRobot(pose, robotLook);
+    }
+
+    /**
      * This draws a Path with a specified look.
      *
      * @param path the Path to draw
@@ -134,6 +143,15 @@ public class Drawing {
                     ).withLook(look)
             );
         }
+    }
+
+    /**
+     * This draws the pose history of the robot.
+     *
+     * @param poseTracker the DashboardPoseTracker to get the pose history from
+     */
+    public static void drawPoseHistory(DashboardPoseTracker poseTracker) {
+        drawPoseHistory(poseTracker, historyLook);
     }
 
     /**
