@@ -1,6 +1,5 @@
 package com.pedropathing.paths;
 
-import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
@@ -19,32 +18,15 @@ import java.util.ArrayList;
  * @version 1.0, 3/10/2024
  */
 public class Path {
-    @FunctionalInterface
-    public interface CustomHeadingInterpolationFunction {
-        double run(double t);
-    }
-
     private final BezierCurve curve;
     private PathConstraints constraints;
-    private double startHeading;
-    private double endHeading;
     private double closestPointCurvature;
     private double closestPointTValue = 0;
-    private double linearInterpolationEndTime;
-    private CustomHeadingInterpolationFunction headingInterpolFunction;
+    private HeadingInterpolator headingInterpolator;
     private Vector closestPointTangentVector;
     private Vector closestPointNormalVector;
-
-    private boolean reversedHeadingInterpolation = false;
-
-    public enum HeadingInterpolation {
-        CONSTANT,
-        LINEAR,
-        TANGENT,
-        CUSTOM
-    }
-    private HeadingInterpolation headingInterpolation = HeadingInterpolation.TANGENT;
-
+    private Pose closestPose;
+    
     // A multiplier for the zero power acceleration to change the speed the robot decelerates at
     // the end of paths.
     // Increasing this will cause the robot to try to decelerate faster, at the risk of overshoots
@@ -117,10 +99,7 @@ public class Path {
      *                     This will be reached at the end of the Path if no end time is specified.
      */
     public void setLinearHeadingInterpolation(double startHeading, double endHeading) {
-        linearInterpolationEndTime = 1;
-        headingInterpolation = HeadingInterpolation.LINEAR;
-        this.startHeading = startHeading;
-        this.endHeading = endHeading;
+        this.headingInterpolator = HeadingInterpolator.linear(startHeading, endHeading);
     }
 
     /**
@@ -137,10 +116,7 @@ public class Path {
      *                     This value ranges from [0, 1] since Bezier curves are parametric functions.
      */
     public void setLinearHeadingInterpolation(double startHeading, double endHeading, double endTime) {
-        linearInterpolationEndTime = MathFunctions.clamp(endTime, 0.000000001, 1);
-        headingInterpolation = HeadingInterpolation.LINEAR;
-        this.startHeading = startHeading;
-        this.endHeading = endHeading;
+        this.headingInterpolator = HeadingInterpolator.linear(startHeading, endHeading, endTime);
     }
 
     /**
@@ -157,11 +133,10 @@ public class Path {
      *                     This value ranges from [0, 1] since Bezier curves are parametric functions.
      */
     public void setLinearHeadingInterpolation(double startHeading, double endHeading, double endTime, boolean reversed) {
-        linearInterpolationEndTime = MathFunctions.clamp(endTime, 0.000000001, 1);
-        headingInterpolation = HeadingInterpolation.LINEAR;
-        this.startHeading = startHeading;
-        this.endHeading = endHeading;
-        reversedHeadingInterpolation = reversed;
+        this.headingInterpolator = HeadingInterpolator.linear(startHeading, endHeading, endTime);
+        if (reversed) {
+            reverseHeadingInterpolation();
+        }
     }
 
     /**
@@ -170,10 +145,7 @@ public class Path {
      * @param setHeading the constant heading for the Path.
      */
     public void setConstantHeadingInterpolation(double setHeading) {
-        linearInterpolationEndTime = 1;
-        headingInterpolation = HeadingInterpolation.CONSTANT;
-        startHeading = MathFunctions.normalizeAngle(setHeading);
-        endHeading = MathFunctions.normalizeAngle(setHeading);
+        this.headingInterpolator = HeadingInterpolator.constant(setHeading);
     }
 
     /**
@@ -216,36 +188,23 @@ public class Path {
         closestPointTangentVector = curve.getDerivative(closestPointTValue);
         closestPointNormalVector = curve.getApproxSecondDerivative(closestPointTValue);
         closestPointCurvature = curve.getCurvature(closestPointTValue);
-
-        return new Pose(closestPoint.getX(), closestPoint.getY(), getClosestPointHeadingGoal());
+        
+        closestPose = closestPoint;
+        return closestPose;
     }
 
     /**
-     * This sets whether to follow the tangent heading facing away from (reverse) or towards the
-     * tangent. This will also set your heading interpolation to tangential.
-     *
-     * @param set sets tangential heading reversed or not.
+     * Reverse the direction of the heading interpolation.
      */
-    public void setReversed(boolean set) {
-        headingInterpolation = HeadingInterpolation.TANGENT;
-        reversedHeadingInterpolation = set;
-    }
-
-    /**
-     * Returns if the path is being followed in reverse
-     *
-     * @return returns if reverse tangential heading is being used.
-     */
-    public boolean isReversed() {
-        return reversedHeadingInterpolation;
+    public void reverseHeadingInterpolation() {
+        this.headingInterpolator = headingInterpolator.reverse();
     }
 
     /**
      * This sets the heading interpolation to tangential.
      */
     public void setTangentHeadingInterpolation() {
-        headingInterpolation = HeadingInterpolation.TANGENT;
-        reversedHeadingInterpolation = false;
+        this.headingInterpolator = HeadingInterpolator.tangent;
     }
 
     /**
@@ -331,49 +290,15 @@ public class Path {
      * @return returns the heading goal at the closest Point.
      */
     public double getClosestPointHeadingGoal() {
-        if (headingInterpolation == HeadingInterpolation.TANGENT) {
-            if (reversedHeadingInterpolation) {
-                return MathFunctions.normalizeAngle(closestPointTangentVector.getTheta() + Math.PI);
-            }
-
-            return closestPointTangentVector.getTheta();
-        } else {
-            return getHeadingGoal(closestPointTValue);
-        }
+        return getHeadingGoal(new PathPoint(closestPointTValue, closestPose));
     }
-
-    /**
-     * This gets the heading goal at a specified t-value.
-     *
-     * @param t the specified t-value.
-     * @return returns the heading goal at the specified t-value.
-     */
-    public double getHeadingGoal(double t) {
-        if (headingInterpolation == HeadingInterpolation.TANGENT) {
-            if (reversedHeadingInterpolation)
-                return MathFunctions.normalizeAngle(curve.getDerivative(t).getTheta() + Math.PI);
-            return curve.getDerivative(t).getTheta();
-        } else if (headingInterpolation == HeadingInterpolation.CONSTANT) {
-            return startHeading;
-        } else if (headingInterpolation == HeadingInterpolation.LINEAR) {
-            if (t > linearInterpolationEndTime) {
-                return MathFunctions.normalizeAngle(endHeading);
-            }
-
-            if (reversedHeadingInterpolation) {
-                return MathFunctions.normalizeAngle(startHeading - MathFunctions.getTurnDirection(startHeading, endHeading) * (MathFunctions.getSmallestAngleDifference(endHeading, startHeading)) * (t / linearInterpolationEndTime));
-            }
-
-            return MathFunctions.normalizeAngle(startHeading + MathFunctions.getTurnDirection(startHeading, endHeading) * MathFunctions.getSmallestAngleDifference(endHeading, startHeading) * (t / linearInterpolationEndTime));
-        }
-
-        double target = headingInterpolFunction.run(t);
-        return MathFunctions.normalizeAngle(target);
+    
+    public double getHeadingGoal(PathPoint closestPoint) {
+        return this.headingInterpolator.interpolate(closestPoint);
     }
-
-    public void setCustomHeadingInterpolation(CustomHeadingInterpolationFunction headingInterpolFunction) {
-        this.headingInterpolFunction = headingInterpolFunction;
-        headingInterpolation = HeadingInterpolation.CUSTOM;
+    
+    public void setHeadingInterpolation(HeadingInterpolator interpolator) {
+        this.headingInterpolator = interpolator;
     }
 
     /**
@@ -576,13 +501,14 @@ public class Path {
      * This gets the heading interpolation.
      * @return This returns the heading interpolation.
      */
-
-    public HeadingInterpolation getHeadingInterpolation() {
-        return headingInterpolation;
+    public HeadingInterpolator getHeadingInterpolator() {
+        return headingInterpolator;
     }
 
     public Pose endPose() {
-        return new Pose(curve.getLastControlPoint().getX(), curve.getLastControlPoint().getY(), endHeading);
+        Pose lastControlPoint = curve.getLastControlPoint();
+        return new Pose(lastControlPoint.getX(), lastControlPoint.getY(),
+            getHeadingGoal(new PathPoint(1, lastControlPoint)));
     }
 
     public Path getReversed() {
