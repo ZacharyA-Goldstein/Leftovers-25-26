@@ -6,6 +6,7 @@ package com.pedropathing.math;
  *
  * <pre>
  * v<sub>f</sub><sup>2</sup> = v<sub>i</sub><sup>2</sup> + 2·a·d
+ * v<sub>f</sub> = v<sub>i</sub> + a·△t
  * </pre>
  * Where:<br>
  * <ul>
@@ -70,7 +71,7 @@ public final class Kinematics {
     }
 
     /**
-     * Calculate the distance needed to reach a velocity with the deceleration.
+     * Calculates the distance needed to reach a velocity with the deceleration.
      *
      * <pre>
      * v<sub>f</sub><sup>2</sup> = v<sub>i</sub><sup>2</sup> + 2·a·d
@@ -90,7 +91,7 @@ public final class Kinematics {
     }
 
     /**
-     * Calculate the distance needed to stop at a given velocity with the deceleration.
+     * Calculates the distance needed to stop at a given velocity with the deceleration.
      *
      * <pre>
      * v<sub>f</sub><sup>2</sup> = v<sub>i</sub><sup>2</sup> + 2·a·d
@@ -107,5 +108,25 @@ public final class Kinematics {
         double deceleration
     ) {
         return getDistanceToVelocity(velocity, deceleration, 0);
+    }
+
+    /**
+     * Calculate the distance needed to stop at a given velocity with the deceleration.
+     * Returns true if the robot would overshoot the target distance.
+     *
+     * <pre>
+     * v<sub>f</sub><sup>2</sup> = v<sub>i</sub><sup>2</sup> + 2·a·d
+     * Solve for d
+     * d = -(v<sub>f</sub><sup>2</sup> - v<sub>i</sub><sup>2</sup>) / (2·a)
+     * distanceToTarget > d
+     * </pre>
+     *
+     * @param velocity Negative or positive.
+     * @param deceleration Negative.
+     * @param distance Positive.
+     */
+    public static boolean isOvershooting(double velocity, double deceleration, double distance) {
+        double stoppingDistance = getStoppingDistance(velocity, deceleration);
+        return stoppingDistance >= distance;
     }
 }
