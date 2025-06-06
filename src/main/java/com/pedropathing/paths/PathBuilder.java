@@ -149,13 +149,10 @@ public class PathBuilder {
 
     /**
      * This sets a reversed or tangent heading interpolation on the last Path added to the PathBuilder.
-     *
-     * @param set This sets the heading to reversed tangent following if this parameter is true.
-     *         Conversely, this sets a tangent following if this parameter is false.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setReversed(boolean set) {
-        this.paths.get(paths.size() - 1).setReversed(set);
+    public PathBuilder setReversed() {
+        this.paths.get(paths.size() - 1).reverseHeadingInterpolation();
         return this;
     }
 
@@ -173,8 +170,8 @@ public class PathBuilder {
      * This sets the heading interpolation to custom on the last Path added to the PathBuilder.
      * @param function A function that describes the target heading as a function of t, the parametric variable. Use a lambda expression here.
      */
-    public PathBuilder setCustomHeadingInterpolation(Path.CustomHeadingInterpolationFunction function) {
-        this.paths.get(paths.size() - 1).setCustomHeadingInterpolation(function);
+    public PathBuilder setCustomHeadingInterpolation(HeadingInterpolator function) {
+        this.paths.get(paths.size() - 1).setHeadingInterpolation(function);
         return this;
     }
 

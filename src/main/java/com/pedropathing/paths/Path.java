@@ -296,6 +296,10 @@ public class Path {
     public double getHeadingGoal(PathPoint closestPoint) {
         return this.headingInterpolator.interpolate(closestPoint);
     }
+
+    public double getHeadingGoal(double t) {
+        return this.headingInterpolator.interpolate(new PathPoint(t, getPoint(t)));
+    }
     
     public void setHeadingInterpolation(HeadingInterpolator interpolator) {
         this.headingInterpolator = interpolator;

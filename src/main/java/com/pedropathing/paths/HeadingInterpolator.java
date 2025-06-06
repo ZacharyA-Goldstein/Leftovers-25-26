@@ -36,9 +36,8 @@ public interface HeadingInterpolator {
     /**
      * Offsets the heading interpolator by a given amount.
      */
-    default HeadingInterpolator offset(double offsetDeg) {
-        double headingOffsetRadians = Math.toRadians(offsetDeg);
-        return closestPoint -> this.interpolate(closestPoint) + headingOffsetRadians;
+    default HeadingInterpolator offset(double offsetRad) {
+        return closestPoint -> this.interpolate(closestPoint) + MathFunctions.normalizeAngle(offsetRad);
     }
     
     /**
@@ -59,29 +58,26 @@ public interface HeadingInterpolator {
     /**
      * A constant heading along a path.
      */
-    static HeadingInterpolator constant(double headingDeg) {
-        double headingRadians = MathFunctions.normalizeAngle(Math.toRadians(headingDeg));
-        return path -> headingRadians;
+    static HeadingInterpolator constant(double headingRad) {
+        return path -> MathFunctions.normalizeAngle(headingRad);
     }
     
     /**
      * The robot will transition from the start heading to the end heading.
      */
-    static HeadingInterpolator linear(double startHeadingDeg, double endHeadingDeg) {
-        return linear(startHeadingDeg, endHeadingDeg, 1);
+    static HeadingInterpolator linear(double startHeadingRad, double endHeadingRad) {
+        return linear(startHeadingRad, endHeadingRad, 1);
     }
     
     /**
      * The robot will transition from the start heading to the end heading by endT.
      */
-    static HeadingInterpolator linear(double startHeadingDeg, double endHeadingDeg, double endT) {
+    static HeadingInterpolator linear(double startHeadingRad, double endHeadingRad, double endT) {
         return closestPoint -> {
             double clampedEndT = MathFunctions.clamp(endT, 0.0001, 1);
             double t = Math.min(closestPoint.tValue / clampedEndT, 1.0);
-            double startHeading = Math.toRadians(startHeadingDeg);
-            double endHeading = Math.toRadians(endHeadingDeg);
-            double deltaHeading = MathFunctions.normalizeAngle(endHeading - startHeading);
-            return startHeading + deltaHeading * t;
+            double deltaHeading = MathFunctions.normalizeAngle(endHeadingRad - startHeadingRad);
+            return startHeadingRad + deltaHeading * t;
         };
     }
     

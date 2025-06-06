@@ -4,7 +4,7 @@ import org.jetbrains.dokka.plugability.configuration
 plugins {
 	id("org.jetbrains.kotlin.android") version "1.9.20"
 	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20"
-	id("com.android.library") version "8.1.2"
+	id("com.android.library") version "8.1.4"
 
 	`maven-publish`
 
@@ -38,7 +38,7 @@ repositories {
 
 android {
 	namespace = "com.pedropathing.pedropathing"
-	compileSdk = 32
+	compileSdk = 34
 
 	compileOptions {
 		sourceCompatibility = JavaVersion.VERSION_1_8
