@@ -25,7 +25,7 @@ public class Path {
     private PathConstraints constraints;
     private double closestPointCurvature;
     private double closestPointTValue = 0;
-    private HeadingInterpolator headingInterpolator;
+    private HeadingInterpolator headingInterpolator = HeadingInterpolator.tangent;
     private Vector closestPointTangentVector;
     private Vector closestPointNormalVector;
     private Pose closestPose;
