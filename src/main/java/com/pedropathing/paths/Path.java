@@ -1,8 +1,5 @@
 package com.pedropathing.paths;
 
-import static com.pedropathing.follower.Follower.constants;
-
-import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
