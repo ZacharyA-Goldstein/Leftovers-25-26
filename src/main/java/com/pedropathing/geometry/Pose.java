@@ -161,6 +161,7 @@ public final class Pose {
             return new double[]{r, (2 * Math.PI) + Math.atan(y / x)};
         }
     }
+
     @NonNull
     @Override
     public String toString() {

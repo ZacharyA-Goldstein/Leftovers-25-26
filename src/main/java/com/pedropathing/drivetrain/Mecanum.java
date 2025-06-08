@@ -230,8 +230,7 @@ public class Mecanum extends Drivetrain {
 
     public String debugString() {
         return "Mecanum{" +
-                "constants=" + constants +
-                ", leftFront=" + leftFront +
+                " leftFront=" + leftFront +
                 ", leftRear=" + leftRear +
                 ", rightFront=" + rightFront +
                 ", rightRear=" + rightRear +
