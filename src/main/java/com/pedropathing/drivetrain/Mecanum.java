@@ -227,5 +227,18 @@ public class Mecanum extends Drivetrain {
     public double yMovement() {
         return constants.yMovement;
     }
+
+    public String debugString() {
+        return "Mecanum{" +
+                "constants=" + constants +
+                ", leftFront=" + leftFront +
+                ", leftRear=" + leftRear +
+                ", rightFront=" + rightFront +
+                ", rightRear=" + rightRear +
+                ", motors=" + motors +
+                ", motorCachingThreshold=" + motorCachingThreshold +
+                ", useBrakeModeInTeleOp=" + useBrakeModeInTeleOp +
+                '}';
+    }
 }
 

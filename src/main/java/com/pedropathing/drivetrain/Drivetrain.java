@@ -49,4 +49,6 @@ public abstract class Drivetrain {
 
     public abstract double yMovement();
 
+    public abstract String debugString();
+
 }

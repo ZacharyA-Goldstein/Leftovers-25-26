@@ -2,6 +2,7 @@ package com.pedropathing.follower;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.ftcontrol.panels.configurables.annotations.Configurable;
+import com.bylazar.ftcontrol.panels.integration.TelemetryManager;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.drivetrain.Drivetrain;
@@ -32,15 +33,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.1.0, 5/1/2025
  */
-@Configurable
 public class Follower {
-    public static FollowerConstants constants;
-    public static PathConstraints pathConstraints;
-    public static PoseTracker poseTracker;
-    public static ErrorCalculator errorCalculator;
-    public static VectorCalculator vectorCalculator;
-    public static Drivetrain drivetrain;
-    public static DashboardPoseTracker dashboardPoseTracker;
+    public FollowerConstants constants;
+    public PathConstraints pathConstraints;
+    public PoseTracker poseTracker;
+    public ErrorCalculator errorCalculator;
+    public VectorCalculator vectorCalculator;
+    public Drivetrain drivetrain;
+    public DashboardPoseTracker dashboardPoseTracker;
 
     private Pose currentPose;
     private PathPoint closestPose;
@@ -54,10 +54,10 @@ public class Follower {
     private double globalMaxPower = 1, centripetalScaling;
     private final double holdPointTranslationalScaling, holdPointHeadingScaling, turnHeadingErrorThreshold;
     private long reachedParametricPathEndTime;
-    public static boolean useTranslational = true;
-    public static boolean useCentripetal = true;
-    public static boolean useHeading = true;
-    public static boolean useDrive = true;
+    public boolean useTranslational = true;
+    public boolean useCentripetal = true;
+    public boolean useHeading = true;
+    public boolean useDrive = true;
     private ElapsedTime zeroVelocityDetectedTimer;
     private Runnable resetFollowing = null;
 
@@ -700,4 +700,13 @@ public class Follower {
     public void setSecondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) { vectorCalculator.setSecondaryHeadingPIDFCoefficients(secondaryHeadingPIDFCoefficients); }
     public void setTranslationalPIDFCoefficients(PIDFCoefficients translationalPIDFCoefficients) { vectorCalculator.setTranslationalPIDFCoefficients(translationalPIDFCoefficients); }
     public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) { vectorCalculator.setSecondaryTranslationalPIDFCoefficients(secondaryTranslationalPIDFCoefficients); }
+
+    public void debug(TelemetryManager telemetryManager) {
+        telemetryManager.debug(
+                poseTracker.debugString() + "\n" +
+                        errorCalculator.debugString() + "\n" +
+                        vectorCalculator.debugString() + "\n" +
+                        drivetrain.debugString()
+        );
+    }
 }

@@ -433,5 +433,14 @@ public class VectorCalculator {
     public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) {
         this.secondaryTranslationalPIDF.setCoefficients(secondaryTranslationalPIDFCoefficients);
     }
-    
+
+    public String debugString() {
+        return "Drive Vector: " + driveVector.toString() + "\n" +
+                "Heading Vector: " + headingVector.toString() + "\n" +
+                "Translational Vector: " + translationalVector.toString() + "\n" +
+                "Centripetal Vector: " + centripetalVector.toString() + "\n" +
+                "Corrective Vector: " + correctiveVector.toString() + "\n" +
+                "Teleop Drive Vector: " + teleopDriveVector.toString() + "\n" +
+                "Teleop Heading Vector: " + teleopHeadingVector.toString();
+    }
 }

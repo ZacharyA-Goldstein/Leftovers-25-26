@@ -347,4 +347,17 @@ public class PoseTracker {
     public void resetIMU() throws InterruptedException {
         localizer.resetIMU();
     }
+
+    public String debugString() {
+        return "PoseTracker{" +
+                "currentPose=" + currentPose +
+                ", previousPose=" + previousPose +
+                ", currentVelocity=" + currentVelocity +
+                ", previousVelocity=" + previousVelocity +
+                ", currentAcceleration=" + currentAcceleration +
+                ", xOffset=" + xOffset +
+                ", yOffset=" + yOffset +
+                ", headingOffset=" + headingOffset +
+                '}';
+    }
 }
