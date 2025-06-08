@@ -187,7 +187,7 @@ public class Path {
                 }
         }
 
-        return new PathPoint(initialTValueGuess, getPoint(initialTValueGuess));
+        return new PathPoint(initialTValueGuess, getPoint(initialTValueGuess), curve.getDerivative(initialTValueGuess));
     }
 
     public PathPoint getClosestPoint(Pose pose, int searchLimit) {
@@ -204,7 +204,7 @@ public class Path {
     }
 
     public PathPoint getClosestPose() {
-        return new PathPoint(closestPointTValue, closestPose);
+        return new PathPoint(closestPointTValue, closestPose, closestPointTangentVector);
     }
 
     public PathPoint updateClosestPose(Pose currentPose, int searchLimit) {
@@ -239,6 +239,14 @@ public class Path {
      */
     public void setTangentHeadingInterpolation() {
         this.headingInterpolator = HeadingInterpolator.tangent;
+    }
+
+    /**
+     * This gets the tangent Vector at the specified t-value.
+     * @param tvalue the t-value to get the tangent Vector at.
+     */
+    public Vector getTangentVector(double tvalue) {
+        return curve.getDerivative(tvalue);
     }
 
     /**
@@ -324,7 +332,7 @@ public class Path {
      * @return returns the heading goal at the closest Point.
      */
     public double getClosestPointHeadingGoal() {
-        return getHeadingGoal(new PathPoint(closestPointTValue, closestPose));
+        return getHeadingGoal(new PathPoint(closestPointTValue, closestPose, closestPointTangentVector));
     }
     
     public double getHeadingGoal(PathPoint closestPoint) {
@@ -332,7 +340,7 @@ public class Path {
     }
 
     public double getHeadingGoal(double t) {
-        return this.headingInterpolator.interpolate(new PathPoint(t, getPoint(t)));
+        return this.headingInterpolator.interpolate(new PathPoint(t, getPoint(t), getTangentVector(t)));
     }
     
     public void setHeadingInterpolation(HeadingInterpolator interpolator) {
@@ -546,7 +554,7 @@ public class Path {
     public Pose endPose() {
         Pose lastControlPoint = curve.getLastControlPoint();
         return new Pose(lastControlPoint.getX(), lastControlPoint.getY(),
-            getHeadingGoal(new PathPoint(1, lastControlPoint)));
+            getHeadingGoal(new PathPoint(1, lastControlPoint, curve.getEndTangent())));
     }
 
     public Path getReversed() {
