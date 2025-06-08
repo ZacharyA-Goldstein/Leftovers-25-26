@@ -1,5 +1,8 @@
 package com.pedropathing.paths;
 
+import static com.pedropathing.follower.Follower.constants;
+
+import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
@@ -61,6 +64,8 @@ public class Path {
     // This can be custom set for each Path.
     private double pathEndTimeoutConstraint;
 
+    private int BEZIER_CURVE_SEARCH_LIMIT;
+
     /**
      * Creates a new Path from a BezierCurve. The default heading interpolation is tangential.
      *
@@ -74,6 +79,7 @@ public class Path {
         pathEndHeadingConstraint = constraints.headingConstraint;
         pathEndTValueConstraint = constraints.tValueConstraint;
         pathEndTimeoutConstraint = constraints.timeoutConstraint;
+        BEZIER_CURVE_SEARCH_LIMIT = constraints.BEZIER_CURVE_SEARCH_LIMIT;
         this.constraints = constraints;
         this.curve = curve;
     }
@@ -154,43 +160,74 @@ public class Path {
      *
      * @param pose        the pose.
      * @param searchLimit the maximum number of iterations to run.
+     * @param initialTValueGuess the initial guess for the t-value of the pose
      * @return returns the closest Point.
      */
-    public Pose getClosestPoint(Pose pose, int searchLimit) {
+    public PathPoint getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
         switch (curve.pathType()) {
             case "point":
-                closestPointTValue = 0;
+                initialTValueGuess = 1;
                 break;
             case "line":
                 Vector BA = new Vector(MathFunctions.subtractPoses(curve.getLastControlPoint(), curve.getFirstControlPoint()));
                 Vector PA = new Vector(MathFunctions.subtractPoses(pose, curve.getFirstControlPoint()));
 
-                closestPointTValue = MathFunctions.clamp(MathFunctions.dotProduct(BA, PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
+                initialTValueGuess = MathFunctions.clamp(MathFunctions.dotProduct(BA, PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
                 break;
             default:
                 for (int i = 0; i < searchLimit; i++) {
-                    Pose lastPoint = curve.getPose(closestPointTValue);
-                    Pose posePoint = pose;
+                    Pose lastPoint = curve.getPose(initialTValueGuess);
 
-                    Vector differenceVector = new Vector(MathFunctions.subtractPoses(lastPoint, posePoint));
+                    Vector differenceVector = new Vector(MathFunctions.subtractPoses(lastPoint, pose));
 
-                    double firstDerivative = 2 * MathFunctions.dotProduct(curve.getDerivative(closestPointTValue), differenceVector);
-                    double secondDerivative = 2 * (Math.pow(curve.getDerivative(closestPointTValue).getMagnitude(), 2) +
-                            MathFunctions.dotProduct(differenceVector, curve.getSecondDerivative(closestPointTValue)));
+                    double firstDerivative = 2 * MathFunctions.dotProduct(curve.getDerivative(initialTValueGuess), differenceVector);
+                    double secondDerivative = 2 * (Math.pow(curve.getDerivative(initialTValueGuess).getMagnitude(), 2) +
+                            MathFunctions.dotProduct(differenceVector, curve.getSecondDerivative(initialTValueGuess)));
 
-                    closestPointTValue = MathFunctions.clamp(closestPointTValue - firstDerivative / (secondDerivative + 1e-9), 0, 1);
-                    if (curve.getPose(closestPointTValue).distanceFrom(lastPoint) < 0.1)
+                    initialTValueGuess = MathFunctions.clamp(initialTValueGuess - firstDerivative / (secondDerivative + 1e-9), 0, 1);
+                    if (curve.getPose(initialTValueGuess).distanceFrom(lastPoint) < 0.1)
                         break;
                 }
         }
 
-        Pose closestPoint = curve.getPose(closestPointTValue);
+        return new PathPoint(initialTValueGuess, getPoint(initialTValueGuess));
+    }
+
+    public PathPoint getClosestPoint(Pose pose, int searchLimit) {
+        return getClosestPoint(pose, searchLimit, closestPointTValue);
+    }
+
+    /**
+     * This gets the point on the path closest to the specified pose.
+     * @param pose the pose to find the closest point to
+     * @return the closest point t-value
+     */
+    public PathPoint getClosestPoint(Pose pose) {
+        return getClosestPoint(pose, BEZIER_CURVE_SEARCH_LIMIT);
+    }
+
+    public PathPoint getClosestPose() {
+        return new PathPoint(closestPointTValue, closestPose);
+    }
+
+    public PathPoint updateClosestPose(Pose currentPose, int searchLimit) {
+        PathPoint closestPoint = getClosestPoint(currentPose, searchLimit);
+        closestPointTValue = closestPoint.getTValue();
+        closestPose = closestPoint.getPose();
         closestPointTangentVector = curve.getDerivative(closestPointTValue);
         closestPointNormalVector = curve.getApproxSecondDerivative(closestPointTValue);
         closestPointCurvature = curve.getCurvature(closestPointTValue);
-        
-        closestPose = closestPoint;
-        return closestPose;
+        return closestPoint;
+    }
+
+    public PathPoint updateClosestPose(Pose currentPose) {
+        PathPoint closestPoint = getClosestPoint(currentPose);
+        closestPointTValue = closestPoint.getTValue();
+        closestPose = closestPoint.getPose();
+        closestPointTangentVector = curve.getDerivative(closestPointTValue);
+        closestPointNormalVector = curve.getApproxSecondDerivative(closestPointTValue);
+        closestPointCurvature = curve.getCurvature(closestPointTValue);
+        return closestPoint;
     }
 
     /**

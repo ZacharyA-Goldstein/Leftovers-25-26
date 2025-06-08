@@ -10,4 +10,12 @@ public class PathPoint {
         this.tValue = tValue;
         this.pose = pose;
     }
+
+    public double getTValue() {
+        return tValue;
+    }
+
+    public Pose getPose() {
+        return pose;
+    }
 }

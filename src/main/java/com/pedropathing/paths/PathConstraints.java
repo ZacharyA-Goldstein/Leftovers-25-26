@@ -47,7 +47,12 @@ public final class PathConstraints {
      */
     public double decelerationStartMultiplier;
 
-    public PathConstraints(double tValueConstraint, double velocityConstraint, double translationalConstraint, double headingConstraint, double timeoutConstraint, double zeroPowerAccelerationMultiplier, int approximationSteps, double decelerationStartMultiplier) {
+    /**
+     * The number of steps in searching for the closest point
+     */
+    public int BEZIER_CURVE_SEARCH_LIMIT;
+
+    public PathConstraints(double tValueConstraint, double velocityConstraint, double translationalConstraint, double headingConstraint, double timeoutConstraint, double zeroPowerAccelerationMultiplier, int BEZIER_CURVE_SEARCH_LIMIT, double decelerationStartMultiplier) {
         this.tValueConstraint = tValueConstraint;
         this.velocityConstraint = velocityConstraint;
         this.translationalConstraint = translationalConstraint;
@@ -55,15 +60,16 @@ public final class PathConstraints {
         this.timeoutConstraint = timeoutConstraint;
         this.zeroPowerAccelerationMultiplier = zeroPowerAccelerationMultiplier;
         this.decelerationStartMultiplier = decelerationStartMultiplier;
+        this.BEZIER_CURVE_SEARCH_LIMIT = BEZIER_CURVE_SEARCH_LIMIT;
     }
 
     public PathConstraints(double tValueConstraint, double timeoutConstraint, double zeroPowerAccelerationMultiplier, double decelerationStartMultiplier) {
-        this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, zeroPowerAccelerationMultiplier, 1000, decelerationStartMultiplier);
+        this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, zeroPowerAccelerationMultiplier, 10, decelerationStartMultiplier);
     }
 
     public PathConstraints(double tValueConstraint, double timeoutConstraint) {
-        this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, 4, 1000, 1);
+        this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, 4, 10, 1);
     }
 
-    public static PathConstraints defaultConstraints = new PathConstraints(0.995, 0.1, 0.1, 0.007, 100, 4, 1000, 1);
+    public static PathConstraints defaultConstraints = new PathConstraints(0.995, 0.1, 0.1, 0.007, 100, 4, 10, 1);
 }
