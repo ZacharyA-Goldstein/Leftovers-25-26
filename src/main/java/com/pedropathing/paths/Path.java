@@ -340,7 +340,7 @@ public class Path {
     }
 
     public double getHeadingGoal(double t) {
-        return this.headingInterpolator.interpolate(new PathPoint(t, getPoint(t), getTangentVector(t)));
+        return this.headingInterpolator.interpolate(new PathPoint(t, curve.getPose(t), getTangentVector(t)));
     }
     
     public void setHeadingInterpolation(HeadingInterpolator interpolator) {

@@ -8,6 +8,7 @@ import com.pedropathing.math.MathFunctions;
 import com.pedropathing.util.FiniteRunAction;
 
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,12 +28,8 @@ public class PathBuilder {
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
     private double decelerationStartMultiplier;
-    private boolean globalLinearHeadingInterpolation = false;
-    private double globalStartHeading = 0;
-    private double globalEndHeading = 0;
-    private double percentPathStart = 0;
-    private boolean reversedLinearInterpol = false;
     private PathConstraints constraints;
+    private HeadingInterpolator headingInterpolator;
 
     /**
      * This is an constructor for the PathBuilder class so it can get started with specific constraints.
@@ -122,6 +119,19 @@ public class PathBuilder {
     }
 
     /**
+     * This sets a global linear heading interpolation.
+     *
+     * @param startHeading The start of the linear heading interpolation.
+     * @param endHeading The end of the linear heading interpolation.
+     *         This will be reached at the end of the Path if no end time is specified.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading) {
+        headingInterpolator = HeadingInterpolator.linear(startHeading, endHeading);
+        return this;
+    }
+
+    /**
      * This sets a linear heading interpolation on the last Path added to the PathBuilder.
      *
      * @param startHeading The start of the linear heading interpolation.
@@ -137,6 +147,21 @@ public class PathBuilder {
     }
 
     /**
+     * This sets a global linear heading interpolation.
+     *
+     * @param startHeading The start of the linear heading interpolation.
+     * @param endHeading The end of the linear heading interpolation.
+     *         This will be reached at the end of the Path if no end time is specified.
+     * @param endTime The end time on the Path that the linear heading interpolation will end.
+     *         This value goes from [0, 1] since Bezier curves are parametric functions.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading, double endTime) {
+        headingInterpolator = HeadingInterpolator.linear(startHeading, endHeading, endTime);
+        return this;
+    }
+
+    /**
      * This sets a constant heading interpolation on the last Path added to the PathBuilder.
      *
      * @param setHeading The constant heading specified.
@@ -148,11 +173,31 @@ public class PathBuilder {
     }
 
     /**
-     * This sets a reversed or tangent heading interpolation on the last Path added to the PathBuilder.
+     * This sets a global constant heading interpolation.
+     *
+     * @param setHeading The constant heading specified.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setGlobalConstantHeadingInterpolation(double setHeading) {
+        headingInterpolator = HeadingInterpolator.constant(setHeading);
+        return this;
+    }
+
+    /**
+     * This sets a reversed heading interpolation on the last Path added to the PathBuilder.
      * @return This returns itself with the updated data.
      */
     public PathBuilder setReversed() {
         this.paths.get(paths.size() - 1).reverseHeadingInterpolation();
+        return this;
+    }
+
+    /**
+     * This sets a global reversed heading interpolation.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setGlobalReversed() {
+        headingInterpolator.reverse();
         return this;
     }
 
@@ -167,11 +212,30 @@ public class PathBuilder {
     }
 
     /**
+     * This sets the global heading interpolation to tangential..
+     * There really shouldn't be a reason to use this since the default heading interpolation is
+     * tangential but it's here.
+     */
+    public PathBuilder setGlobalTangentHeadingInterpolation() {
+        headingInterpolator = HeadingInterpolator.tangent;
+        return this;
+    }
+
+    /**
      * This sets the heading interpolation to custom on the last Path added to the PathBuilder.
      * @param function A function that describes the target heading as a function of t, the parametric variable. Use a lambda expression here.
      */
     public PathBuilder setCustomHeadingInterpolation(HeadingInterpolator function) {
         this.paths.get(paths.size() - 1).setHeadingInterpolation(function);
+        return this;
+    }
+
+    /**
+     * This sets the global heading interpolation to custom.
+     * @param function A function that describes the target heading as a function of t, the parametric variable. Use a lambda expression here.
+     */
+    public PathBuilder setGlobalCustomHeadingInterpolation(HeadingInterpolator function) {
+        this.headingInterpolator = function;
         return this;
     }
 
@@ -288,10 +352,7 @@ public class PathBuilder {
         returnChain.setCallbacks(callbacks);
         returnChain.setDecelerationType(decelerationType);
         returnChain.setDecelerationStartMultiplier(decelerationStartMultiplier);
-
-        if (globalLinearHeadingInterpolation) {
-            computeGlobalLinearHeading(returnChain);
-        }
+        returnChain.setHeadingInterpolator(headingInterpolator);
 
         return returnChain;
     }
@@ -319,66 +380,6 @@ public class PathBuilder {
     public PathBuilder setNoDeceleration() {
         this.decelerationType = PathChain.DecelerationType.NONE;
         return this;
-    }
-
-    public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading) {
-        return setGlobalLinearHeadingInterpolation(startHeading, endHeading, 0);
-    }
-
-    public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading, double percentPathStart) {
-        return setGlobalLinearHeadingInterpolation(startHeading, endHeading, percentPathStart, false);
-    }
-
-    public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading, double percentPathStart, boolean reversed) {
-        globalLinearHeadingInterpolation = true;
-        this.percentPathStart = MathFunctions.clamp(percentPathStart, 0, 1);
-        this.globalStartHeading = MathFunctions.normalizeAngle(startHeading);
-        this.globalEndHeading = MathFunctions.normalizeAngle(endHeading);
-        reversedLinearInterpol = reversed;
-
-        return this;
-    }
-
-    private void computeGlobalLinearHeading(PathChain pathChain) {
-        double turnRadians;
-
-        if (!reversedLinearInterpol) {
-            turnRadians = MathFunctions.getSmallestAngleDifference(globalStartHeading, globalEndHeading) * MathFunctions.getTurnDirection(globalStartHeading, globalEndHeading);
-        } else {
-            turnRadians = -MathFunctions.getSmallestAngleDifference(globalStartHeading, globalEndHeading) * MathFunctions.getTurnDirection(globalStartHeading, globalEndHeading);
-        }
-
-        if (turnRadians == 0) {
-            for (int i = 0; i < pathChain.size(); i++) {
-                pathChain.getPath(i).setConstantHeadingInterpolation(globalStartHeading);
-            }
-
-            return;
-        }
-
-        double sumLength = 0;
-        int index;
-
-        for (index = pathChain.size() - 1; index >= 0 && sumLength < pathChain.length() * percentPathStart; index--) {
-            sumLength += pathChain.getPath(index).length();
-        }
-
-        double firstPathLength = pathChain.getPath(index).length();
-        double firstPercentage = 1-(sumLength - pathChain.length() * percentPathStart - firstPathLength)/firstPathLength;
-        double firstPathHeadingDelta = firstPathLength / pathChain.length() / percentPathStart * turnRadians;
-        pathChain.getPath(index).setLinearHeadingInterpolation(globalStartHeading, globalStartHeading + firstPathHeadingDelta, firstPercentage);
-
-        double turnedRadians = firstPathHeadingDelta;
-        for (int i = 0; i < pathChain.size(); i++) {
-            if (i < index) {
-                pathChain.getPath(i).setConstantHeadingInterpolation(globalStartHeading);
-            } else if (i > index) {
-                Path path = pathChain.getPath(i);
-                double pathDelta = path.length() / pathChain.length() * turnRadians;
-                path.setLinearHeadingInterpolation(globalStartHeading + turnedRadians, globalStartHeading + turnedRadians + pathDelta);
-                turnedRadians += pathDelta;
-            }
-        }
     }
 
     /**
