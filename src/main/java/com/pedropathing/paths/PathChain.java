@@ -213,11 +213,19 @@ public class PathChain {
         }
 
         public Pose getPose(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getPose(t);
+        }
+
+        public Pose getPoint(PathChain pathChain) {
             return pathChain.getPath(pathIndex).getPoint(t);
         }
 
         public Vector getTangentVector(PathChain pathChain) {
             return pathChain.getPath(pathIndex).getTangentVector(t);
+        }
+
+        public double getHeadingGoal(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getHeadingGoal(t);
         }
     }
 
@@ -254,9 +262,21 @@ public class PathChain {
 
             double pathInitialTValue = sumLength / length;
             double chainT = pathInitialTValue + pathTValue.t * pathChain.get(pathTValue.pathIndex).length() / length;
-            return headingInterpolator.interpolate(new PathPoint(chainT, pathTValue.getPose(this), pathTValue.getTangentVector(this)));
+            return headingInterpolator.interpolate(new PathPoint(chainT, pathTValue.getPoint(this), pathTValue.getTangentVector(this)));
         }
 
-        return pathTValue.getPath(this).getHeadingGoal(pathTValue.t);
+        return pathTValue.getHeadingGoal(this);
+    }
+
+    public Pose getPose(PathT pathTValue) {
+        return pathTValue.getPose(this);
+    }
+
+    public Pose getPoint(PathT pathTValue) {
+        return pathTValue.getPoint(this);
+    }
+
+    public PathPoint getPoseInformation(PathT pathTValue) {
+        return new PathPoint(pathTValue.getT(), pathTValue.getPose(this), pathTValue.getTangentVector(this));
     }
 }

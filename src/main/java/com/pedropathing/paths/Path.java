@@ -259,7 +259,7 @@ public class Path {
     }
 
     /**
-     * This returns the point on the Bezier curve that is specified by the parametric t value. A
+     * NOTE: THIS DOES NOT RETURN HEADING. This returns the point on the Bezier curve that is specified by the parametric t value. A
      * Bezier curve is a parametric function that returns points along it with t ranging from [0, 1],
      * with 0 being the beginning of the curve and 1 being at the end. The Follower will follow
      * BezierCurves from 0 to 1, in terms of t.
@@ -269,6 +269,15 @@ public class Path {
      */
     public Pose getPoint(double t) {
         return curve.getPose(t);
+    }
+
+    public Pose getPose(double t) {
+        Pose position = curve.getPose(t);
+        return new Pose(position.getX(), position.getY(), getHeadingGoal(t));
+    }
+
+    public PathPoint getPoseInformation(double t) {
+        return new PathPoint(t, getPose(t), getTangentVector(t));
     }
 
     /**
