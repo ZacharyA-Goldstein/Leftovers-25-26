@@ -75,25 +75,25 @@ public class BezierCurveMatrixSupplier {
         }
 
         // multiply to obtain a characteristic matrix that doesn't have the appropriate negative signs yet
-        output.multiply(rowMultOp);
+        rowMultOp.multiply(output);
 
         // flip signs if necessary
         // similar to the signs of a cofactor matrix
         int startingSign = 1;
-        for (int i = 0; i < output.getRows(); i++) {
+        for (int i = 0; i < rowMultOp.getRows(); i++) {
 
-            double[] cachedRow = output.get(i);
+            double[] cachedRow = rowMultOp.get(i);
 
             int realSign = startingSign;
             for (int j = 0; j < cachedRow.length; j++) {
                 cachedRow[j] *= realSign;
                 realSign *= -1;
             }
-            output.set(i, cachedRow);
+            rowMultOp.set(i, cachedRow);
             startingSign *= -1;
         }
 
-        return new Matrix(output);
+        return new Matrix(rowMultOp);
     }
 
     /**
