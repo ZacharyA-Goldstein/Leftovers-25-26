@@ -101,7 +101,7 @@ public class BezierCurve {
      * point is a row vector.
      */
     public void generateBezierCurve() {
-        this.cachedMatrix = BezierCurveMatrixSupplier.getCharacteristicMatrix(this.controlPoints.size() - 1);
+        this.cachedMatrix = new Matrix(BezierCurveMatrixSupplier.getCharacteristicMatrix(this.controlPoints.size() - 1));
         Matrix controlPointMatrix = new Matrix(this.controlPoints.size(), 2);
         for (int i = 0; i < this.controlPoints.size(); i++) {
             Pose p = this.controlPoints.get(i);
