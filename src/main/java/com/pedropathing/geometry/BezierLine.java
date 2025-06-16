@@ -46,6 +46,26 @@ public class BezierLine extends BezierCurve {
     }
 
     /**
+     * This creates a new BezierLine with specified start and end Points.
+     * This is just a line but it extends the BezierCurve class so things work.
+     *
+     * @param startPose start pose of the line.
+     * @param endPose end pose of the line.
+     */
+    public BezierLine(Pose startPose, Pose endPose, boolean initialize) {
+        super();
+        this.startPoint = startPose;
+        this.endPoint = endPose;
+
+        if (initialize) {
+            length = approximateLength();
+            UNIT_TO_TIME = 1 / length;
+            endTangent = MathFunctions.normalizeVector(getDerivative(1));
+            super.initializeDashboardDrawingPoints();
+        }
+    }
+
+    /**
      * This returns the unit tangent Vector at the end of the BezierLine.
      *
      * @return returns the tangent Vector.
@@ -218,5 +238,13 @@ public class BezierLine extends BezierCurve {
         Vector PA = new Vector(MathFunctions.subtractPoses(pose, getFirstControlPoint()));
 
         return MathFunctions.clamp(MathFunctions.dotProduct(BA, PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
+    }
+
+    @Override
+    public void initialize() {
+        length = approximateLength();
+        UNIT_TO_TIME = 1 / length;
+        endTangent = MathFunctions.normalizeVector(getDerivative(1));
+        super.initializeDashboardDrawingPoints();
     }
 }

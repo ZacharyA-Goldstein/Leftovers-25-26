@@ -7,6 +7,7 @@ import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector;
+import com.pedropathing.paths.PathConstraints;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -383,26 +384,6 @@ public class BezierCurve {
         return "curve";
     }
 
-
-    /**
-     * Returns a clone of the BezierCurve.
-     *
-     * @return returns the coefficients.
-     */
-    @NonNull
-    public BezierCurve clone() {
-        BezierCurve clone = new BezierCurve();
-        clone.controlPoints = new ArrayList<>(controlPoints);
-        clone.endTangent = MathFunctions.copyVector(endTangent);
-        clone.length = length;
-        clone.UNIT_TO_TIME = UNIT_TO_TIME;
-        clone.dashboardDrawingPoints = new double[dashboardDrawingPoints.length][];
-        for (int i = 0; i < dashboardDrawingPoints.length; i++) {
-            clone.dashboardDrawingPoints[i] = dashboardDrawingPoints[i].clone();
-        }
-        return clone;
-    }
-
     /**
      * Returns a new BezierCurve with the control points reversed.
      *
@@ -436,5 +417,13 @@ public class BezierCurve {
         }
 
         return initialTValueGuess;
+    }
+
+    public boolean atParametricEnd(double t) {
+        return t >= PathConstraints.tValueConstraint;
+    }
+
+    public void setControlPoints(ArrayList<Pose> controlPoints) {
+        this.controlPoints = controlPoints;
     }
 }

@@ -331,7 +331,7 @@ public class Path {
      * @return returns if at end.
      */
     public boolean isAtParametricEnd() {
-        return closestPointTValue >= pathEndTValueConstraint;
+        return curve.atParametricEnd(closestPointTValue);
     }
 
     /**

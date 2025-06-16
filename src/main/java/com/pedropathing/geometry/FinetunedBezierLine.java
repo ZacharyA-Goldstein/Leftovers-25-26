@@ -11,50 +11,44 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class FinetunedBezierCurve extends BezierCurve {
+public class FinetunedBezierLine extends BezierLine {
     private final Pose endPoint;
     private double crossingThreshold;
-    private BezierCurve modifiedCurve;
+    private BezierLine modifiedCurve;
     private final double pathEndTValueConstraint;
     private double unmodifiedSegmentLength;
 
-    public FinetunedBezierCurve(ArrayList<Pose> controlPoints, Pose endPoint, int searchLimit) {
-        super();
+    public FinetunedBezierLine(ArrayList<Pose> controlPoints, Pose endPoint, int searchLimit) {
+        super(controlPoints.get(0), controlPoints.get(1), false);
         this.endPoint = endPoint;
         this.pathEndTValueConstraint = PathConstraints.tValueConstraint;
         crossingThreshold = getClosestPoint(endPoint, searchLimit, 1.0);
         if (crossingThreshold == 0) crossingThreshold += 0.001;
 
         if (crossingThreshold < pathEndTValueConstraint) {
-            ArrayList<Pose> points = new ArrayList<>(controlPoints);
-            points.set(points.size() - 1, endPoint);
-            modifiedCurve = new BezierCurve(points);
+            modifiedCurve = new BezierLine(controlPoints.get(0), endPoint);
         } else {
             modifiedCurve = new BezierLine(getLastControlPoint(), endPoint);
         }
         modifiedCurve.initialize();
 
-        setControlPoints(controlPoints);
         initialize();
     }
 
-    public FinetunedBezierCurve(ArrayList<Pose> controlPoints, Pose endPoint) {
-        super();
+    public FinetunedBezierLine(ArrayList<Pose> controlPoints, Pose endPoint) {
+        super(controlPoints.get(0), controlPoints.get(1), false);
         this.endPoint = endPoint;
         this.pathEndTValueConstraint = PathConstraints.tValueConstraint;
         crossingThreshold = getClosestPoint(endPoint, PathConstraints.BEZIER_CURVE_SEARCH_LIMIT, 1.0);
         if (crossingThreshold == 0) crossingThreshold += 0.001;
 
         if (crossingThreshold < pathEndTValueConstraint) {
-            ArrayList<Pose> points = new ArrayList<>(controlPoints);
-            points.set(points.size() - 1, endPoint);
-            modifiedCurve = new BezierCurve(points);
+            modifiedCurve = new BezierLine(controlPoints.get(0), endPoint);
         } else {
             modifiedCurve = new BezierLine(getLastControlPoint(), endPoint);
         }
         modifiedCurve.initialize();
 
-        setControlPoints(controlPoints);
         initialize();
     }
 
@@ -125,28 +119,18 @@ public class FinetunedBezierCurve extends BezierCurve {
 
     @Override
     public double approximateLength() {
-        Pose previousPoint = getPose(0);
-        Pose currentPoint;
-        double approxLength1 = 0;
-        double approxLength2 = 0;
-        for (int i = 1; i <= APPROXIMATION_STEPS; i++) {
-            double t = i/(double) APPROXIMATION_STEPS;
-            currentPoint = getPose(t);
-            if (t < crossingThreshold) approxLength1 += previousPoint.distanceFrom(currentPoint);
-            else approxLength2 += previousPoint.distanceFrom(currentPoint);
-            previousPoint = currentPoint;
-            unmodifiedSegmentLength = approxLength1;
-        }
-        return approxLength1 + approxLength2;
+        super.approximateLength();
+
+        if (crossingThreshold < pathEndTValueConstraint) return super.length() * crossingThreshold + (1 - crossingThreshold) * (super.length()
+                + modifiedCurve.length());
+
+        return super.length() + modifiedCurve.length();
     }
 
     @Override
-    public BezierCurve getReversed() {
-        ArrayList<Pose> reversedControlPoints = new ArrayList<>(getControlPoints());
-        Collections.reverse(reversedControlPoints);
-        reversedControlPoints.set(0, endPoint);
-        BezierCurve returnCurve = new BezierCurve(reversedControlPoints);
-        returnCurve.initialize();
-        return returnCurve;
+    public BezierLine getReversed() {
+        BezierLine reversed = new BezierLine(endPoint, getFirstControlPoint());
+        reversed.initialize();
+        return reversed;
     }
 }

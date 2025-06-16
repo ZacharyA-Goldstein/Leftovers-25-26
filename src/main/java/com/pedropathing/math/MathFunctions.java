@@ -302,7 +302,27 @@ public class MathFunctions {
         return new Pose(pose.getX() * scale, pose.getY() * scale, pose.getHeading());
     }
 
+    /**
+     * This returns a Pose that is the linear combination of the two input Poses.
+     * @param one the first pose
+     * @param two the second pose
+     * @param scaleOne the first coefficient
+     * @param scaleTwo the second coefficient
+     * @return the resulting pose
+     */
     public static Pose linearCombination(Pose one, Pose two, double scaleOne, double scaleTwo) {
         return addPoses(scalePose(one, scaleOne), scalePose(two, scaleTwo));
+    }
+
+    /**
+     * This returns a Vector that is the linear combination of the two input Vectors.
+     * @param one the first vector
+     * @param two the second vector
+     * @param scaleOne the first coefficient
+     * @param scaleTwo the second coefficient
+     * @return the resulting vector
+     */
+    public static Vector linearCombination(Vector one, Vector two, double scaleOne, double scaleTwo) {
+        return addVectors(scalarMultiplyVector(one, scaleOne), scalarMultiplyVector(two, scaleTwo));
     }
 }
