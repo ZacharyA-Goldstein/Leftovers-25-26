@@ -162,6 +162,10 @@ public final class Pose {
         }
     }
 
+    public Pose setHeading(double heading) {
+        return new Pose(x, y, heading);
+    }
+
     @NonNull
     @Override
     public String toString() {

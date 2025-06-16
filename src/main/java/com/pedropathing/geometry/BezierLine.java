@@ -211,4 +211,12 @@ public class BezierLine extends BezierCurve {
     public String pathType() {
         return "line";
     }
+
+    @Override
+    public double getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
+        Vector BA = new Vector(MathFunctions.subtractPoses(getLastControlPoint(), getFirstControlPoint()));
+        Vector PA = new Vector(MathFunctions.subtractPoses(pose, getFirstControlPoint()));
+
+        return MathFunctions.clamp(MathFunctions.dotProduct(BA, PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
+    }
 }

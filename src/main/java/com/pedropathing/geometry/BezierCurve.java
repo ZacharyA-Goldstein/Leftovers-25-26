@@ -31,7 +31,7 @@ public class BezierCurve {
 
     private Vector endTangent = new Vector();
 
-    private final int APPROXIMATION_STEPS = 1000;
+    protected final int APPROXIMATION_STEPS = 1000;
 
     private final int DASHBOARD_DRAWING_APPROXIMATION_STEPS = 100;
 
@@ -235,8 +235,8 @@ public class BezierCurve {
     public double getCurvature(double t) {
         t = MathFunctions.clamp(t, 0, 1);
 
-        com.pedropathing.math.Vector derivative = getDerivative(t);
-        com.pedropathing.math.Vector secondDerivative = getSecondDerivative(t);
+        Vector derivative = getDerivative(t);
+        Vector secondDerivative = getSecondDerivative(t);
 
         if (derivative.getMagnitude() == 0) return 0;
         return (MathFunctions.crossProduct(derivative, secondDerivative))/Math.pow(derivative.getMagnitude(),3);
@@ -254,7 +254,7 @@ public class BezierCurve {
 
         Matrix outVel = new Matrix(new double[][]{getTVector(t, 1)});
         outVel.multiply(this.cachedMatrix);
-        com.pedropathing.math.Vector output = new com.pedropathing.math.Vector();
+        Vector output = new Vector();
         output.setOrthogonalComponents(outVel.get(0, 0), outVel.get(0, 1));
         return output;
     }
@@ -271,7 +271,7 @@ public class BezierCurve {
 
         Matrix outAccel = new Matrix(new double[][]{getTVector(t, 2)});
         outAccel.multiply(this.cachedMatrix);
-        com.pedropathing.math.Vector output = new com.pedropathing.math.Vector();
+        Vector output = new Vector();
         output.setOrthogonalComponents(outAccel.get(0, 0), outAccel.get(0, 1));
         return output;
     }
@@ -306,7 +306,7 @@ public class BezierCurve {
         double current = getDerivative(t).getTheta();
         double deltaCurrent = getDerivative(t + 0.0001).getTheta();
 
-        return new com.pedropathing.math.Vector(1, deltaCurrent - current);
+        return new Vector(1, deltaCurrent - current);
     }
 
     /**
@@ -414,5 +414,27 @@ public class BezierCurve {
         BezierCurve reversedCurve = new BezierCurve(reversedControlPoints);
         reversedCurve.initialize();
         return reversedCurve;
+    }
+
+    /**
+     * Returns the closest point t-value to the specified pose.
+     * @param pose the pose to find the closest point to
+     * @return the closest point t-value
+     */
+    public double getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
+        for (int i = 0; i < searchLimit; i++) {
+            Pose lastPoint = getPose(initialTValueGuess);
+
+            Vector differenceVector = new Vector(MathFunctions.subtractPoses(lastPoint, pose));
+
+            double firstDerivative = 2 * MathFunctions.dotProduct(getDerivative(initialTValueGuess), differenceVector);
+            double secondDerivative = 2 * (Math.pow(getDerivative(initialTValueGuess).getMagnitude(), 2) +
+                    MathFunctions.dotProduct(differenceVector, getSecondDerivative(initialTValueGuess)));
+
+            initialTValueGuess = MathFunctions.clamp(initialTValueGuess - firstDerivative / (secondDerivative + 1e-9), 0, 1);
+            if (getPose(initialTValueGuess).distanceFrom(lastPoint) < 0.1) break;
+        }
+
+        return initialTValueGuess;
     }
 }

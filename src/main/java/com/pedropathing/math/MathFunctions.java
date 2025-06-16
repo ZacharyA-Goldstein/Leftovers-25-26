@@ -290,6 +290,19 @@ public class MathFunctions {
         double b = staticVector.getXComponent() * variableVector.getXComponent() + staticVector.getYComponent() * variableVector.getYComponent();
         double c = Math.pow(staticVector.getXComponent(), 2) + Math.pow(staticVector.getYComponent(), 2) - Math.pow(maxPowerScaling, 2);
         return (-b + Math.sqrt(Math.pow(b, 2) - a*c))/(a);
+    }
 
+    /**
+     * This scales a Pose by a given scale factor. The heading is not affected.
+     * @param pose the Pose to be scaled
+     * @param scale the scale factor
+     * @return returns the scaled Pose
+     */
+    public static Pose scalePose(Pose pose, double scale) {
+        return new Pose(pose.getX() * scale, pose.getY() * scale, pose.getHeading());
+    }
+
+    public static Pose linearCombination(Pose one, Pose two, double scaleOne, double scaleTwo) {
+        return addPoses(scalePose(one, scaleOne), scalePose(two, scaleTwo));
     }
 }

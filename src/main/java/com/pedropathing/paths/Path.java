@@ -161,32 +161,7 @@ public class Path {
      * @return returns the closest Point.
      */
     public PathPoint getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
-        switch (curve.pathType()) {
-            case "point":
-                initialTValueGuess = 1;
-                break;
-            case "line":
-                Vector BA = new Vector(MathFunctions.subtractPoses(curve.getLastControlPoint(), curve.getFirstControlPoint()));
-                Vector PA = new Vector(MathFunctions.subtractPoses(pose, curve.getFirstControlPoint()));
-
-                initialTValueGuess = MathFunctions.clamp(MathFunctions.dotProduct(BA, PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
-                break;
-            default:
-                for (int i = 0; i < searchLimit; i++) {
-                    Pose lastPoint = curve.getPose(initialTValueGuess);
-
-                    Vector differenceVector = new Vector(MathFunctions.subtractPoses(lastPoint, pose));
-
-                    double firstDerivative = 2 * MathFunctions.dotProduct(curve.getDerivative(initialTValueGuess), differenceVector);
-                    double secondDerivative = 2 * (Math.pow(curve.getDerivative(initialTValueGuess).getMagnitude(), 2) +
-                            MathFunctions.dotProduct(differenceVector, curve.getSecondDerivative(initialTValueGuess)));
-
-                    initialTValueGuess = MathFunctions.clamp(initialTValueGuess - firstDerivative / (secondDerivative + 1e-9), 0, 1);
-                    if (curve.getPose(initialTValueGuess).distanceFrom(lastPoint) < 0.1)
-                        break;
-                }
-        }
-
+        initialTValueGuess = curve.getClosestPoint(pose, searchLimit, initialTValueGuess);
         return new PathPoint(initialTValueGuess, getPoint(initialTValueGuess), curve.getDerivative(initialTValueGuess));
     }
 
@@ -218,13 +193,7 @@ public class Path {
     }
 
     public PathPoint updateClosestPose(Pose currentPose) {
-        PathPoint closestPoint = getClosestPoint(currentPose);
-        closestPointTValue = closestPoint.getTValue();
-        closestPose = closestPoint.getPose();
-        closestPointTangentVector = curve.getDerivative(closestPointTValue);
-        closestPointNormalVector = curve.getApproxSecondDerivative(closestPointTValue);
-        closestPointCurvature = curve.getCurvature(closestPointTValue);
-        return closestPoint;
+        return updateClosestPose(currentPose, BEZIER_CURVE_SEARCH_LIMIT);
     }
 
     /**
