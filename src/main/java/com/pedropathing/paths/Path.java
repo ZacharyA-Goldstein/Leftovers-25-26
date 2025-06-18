@@ -70,15 +70,8 @@ public class Path {
      * @param constraints the constraints.
      */
     public Path(BezierCurve curve, PathConstraints constraints) {
-        zeroPowerAccelerationMultiplier = constraints.zeroPowerAccelerationMultiplier;
-        pathEndVelocityConstraint = constraints.velocityConstraint;
-        pathEndTranslationalConstraint = constraints.translationalConstraint;
-        pathEndHeadingConstraint = constraints.headingConstraint;
-        pathEndTValueConstraint = constraints.tValueConstraint;
-        pathEndTimeoutConstraint = constraints.timeoutConstraint;
-        BEZIER_CURVE_SEARCH_LIMIT = constraints.BEZIER_CURVE_SEARCH_LIMIT;
-        this.constraints = constraints;
         this.curve = curve;
+        setConstraints(constraints);
     }
 
     /**
@@ -540,12 +533,16 @@ public class Path {
     }
 
     public void setConstraints(PathConstraints constraints) {
-        this.constraints = constraints;
         zeroPowerAccelerationMultiplier = constraints.zeroPowerAccelerationMultiplier;
         pathEndVelocityConstraint = constraints.velocityConstraint;
         pathEndTranslationalConstraint = constraints.translationalConstraint;
         pathEndHeadingConstraint = constraints.headingConstraint;
         pathEndTValueConstraint = constraints.tValueConstraint;
         pathEndTimeoutConstraint = constraints.timeoutConstraint;
+        BEZIER_CURVE_SEARCH_LIMIT = constraints.BEZIER_CURVE_SEARCH_LIMIT;
+        this.constraints = constraints;
+
+        if (curve != null)
+        curve.setPathConstraints(constraints);
     }
 }

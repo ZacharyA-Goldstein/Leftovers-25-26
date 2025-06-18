@@ -45,6 +45,7 @@ public class BezierCurve {
 
     private int[][] diffPowers;
     private int[][] diffCoefficients;
+    protected PathConstraints pathConstraints;
 
     public BezierCurve() {
     }
@@ -59,6 +60,10 @@ public class BezierCurve {
         }
         this.controlPoints = new ArrayList<>(controlPoints);
         initialize();
+    }
+
+    public BezierCurve(Pose... controlPoints) {
+        this(new ArrayList<>(Arrays.asList(controlPoints)));
     }
 
     /**
@@ -420,10 +425,14 @@ public class BezierCurve {
     }
 
     public boolean atParametricEnd(double t) {
-        return t >= PathConstraints.tValueConstraint;
+        return t >= pathConstraints.tValueConstraint;
     }
 
     public void setControlPoints(ArrayList<Pose> controlPoints) {
         this.controlPoints = controlPoints;
+    }
+
+    public void setPathConstraints(PathConstraints pathConstraints) {
+        this.pathConstraints = pathConstraints;
     }
 }
