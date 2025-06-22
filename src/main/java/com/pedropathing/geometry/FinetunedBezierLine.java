@@ -1,0 +1,136 @@
+package com.pedropathing.geometry;
+
+import androidx.annotation.NonNull;
+
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
+import com.pedropathing.paths.PathConstraints;
+import com.qualcomm.robotcore.util.Range;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class FinetunedBezierLine extends BezierLine {
+    private final Pose endPoint;
+    private double crossingThreshold;
+    private BezierLine modifiedCurve;
+    private final double pathEndTValueConstraint;
+    private double unmodifiedSegmentLength;
+
+    public FinetunedBezierLine(ArrayList<Pose> controlPoints, Pose endPoint, int searchLimit) {
+        super(controlPoints.get(0), controlPoints.get(1), false);
+        this.endPoint = endPoint;
+        this.pathEndTValueConstraint = PathConstraints.tValueConstraint;
+        crossingThreshold = getClosestPoint(endPoint, searchLimit, 1.0);
+        if (crossingThreshold == 0) crossingThreshold += 0.001;
+
+        if (crossingThreshold < pathEndTValueConstraint) {
+            modifiedCurve = new BezierLine(controlPoints.get(0), endPoint);
+        } else {
+            modifiedCurve = new BezierLine(getLastControlPoint(), endPoint);
+        }
+        modifiedCurve.initialize();
+
+        initialize();
+    }
+
+    public FinetunedBezierLine(ArrayList<Pose> controlPoints, Pose endPoint) {
+        super(controlPoints.get(0), controlPoints.get(1), false);
+        this.endPoint = endPoint;
+        this.pathEndTValueConstraint = PathConstraints.tValueConstraint;
+        crossingThreshold = getClosestPoint(endPoint, PathConstraints.BEZIER_CURVE_SEARCH_LIMIT, 1.0);
+        if (crossingThreshold == 0) crossingThreshold += 0.001;
+
+        if (crossingThreshold < pathEndTValueConstraint) {
+            modifiedCurve = new BezierLine(controlPoints.get(0), endPoint);
+        } else {
+            modifiedCurve = new BezierLine(getLastControlPoint(), endPoint);
+        }
+        modifiedCurve.initialize();
+
+        initialize();
+    }
+
+    public Pose getEndPoint() {
+        return endPoint;
+    }
+
+    /**
+     * Sets the first t-value where the endpoint starts taking effect instead of the last control point. This allows the user to control how local their finetuning changes are.
+     * @param crossingThreshold the first t-value where the endpoint starts taking effect
+     */
+    public void setCrossingThreshold(double crossingThreshold) {
+        this.crossingThreshold = crossingThreshold;
+    }
+
+    private double convertT(double t) {
+        return t/crossingThreshold;
+    }
+
+    @Override
+    public Pose getPose(double t) {
+        if (t < crossingThreshold) {
+            return super.getPose(t);
+        } else if (crossingThreshold < pathEndTValueConstraint) {
+            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return MathFunctions.linearCombination(super.getPose(t), modifiedCurve.getPose(t), scale, 1-scale);
+        } else {
+            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return modifiedCurve.getPose(scale);
+        }
+    }
+
+    @Override
+    public Vector getDerivative(double t) {
+        if (t < crossingThreshold) {
+            return super.getDerivative(t);
+        } else if (crossingThreshold < pathEndTValueConstraint) {
+            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return MathFunctions.linearCombination(super.getDerivative(t), modifiedCurve.getDerivative(t), scale, 1-scale);
+        } else {
+            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return modifiedCurve.getDerivative(scale);
+        }
+    }
+
+    @Override
+    public Vector getSecondDerivative(double t) {
+        if (t < crossingThreshold) {
+            return super.getSecondDerivative(t);
+        } else if (crossingThreshold < pathEndTValueConstraint) {
+            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return MathFunctions.linearCombination(super.getSecondDerivative(t), modifiedCurve.getSecondDerivative(t), scale, 1-scale);
+        } else {
+            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return modifiedCurve.getSecondDerivative(scale);
+        }
+    }
+
+    @Override
+    public boolean atParametricEnd(double t) {
+        if (t < crossingThreshold) {
+            return super.atParametricEnd(t);
+        }
+
+        double tChange = t - crossingThreshold;
+        return unmodifiedSegmentLength + tChange * (length() - unmodifiedSegmentLength) >= PathConstraints.tValueConstraint;
+    }
+
+    @Override
+    public double approximateLength() {
+        super.approximateLength();
+
+        if (crossingThreshold < pathEndTValueConstraint) return super.length() * crossingThreshold + (1 - crossingThreshold) * (super.length()
+                + modifiedCurve.length());
+
+        return super.length() + modifiedCurve.length();
+    }
+
+    @Override
+    public BezierLine getReversed() {
+        BezierLine reversed = new BezierLine(endPoint, getFirstControlPoint());
+        reversed.initialize();
+        return reversed;
+    }
+}

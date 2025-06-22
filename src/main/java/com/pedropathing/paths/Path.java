@@ -161,33 +161,8 @@ public class Path {
      * @return returns the closest Point.
      */
     public PathPoint getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
-        switch (curve.pathType()) {
-            case "point":
-                initialTValueGuess = 1;
-                break;
-            case "line":
-                Vector BA = new Vector(MathFunctions.subtractPoses(curve.getLastControlPoint(), curve.getFirstControlPoint()));
-                Vector PA = new Vector(MathFunctions.subtractPoses(pose, curve.getFirstControlPoint()));
-
-                initialTValueGuess = MathFunctions.clamp(MathFunctions.dotProduct(BA, PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
-                break;
-            default:
-                for (int i = 0; i < searchLimit; i++) {
-                    Pose lastPoint = curve.getPose(initialTValueGuess);
-
-                    Vector differenceVector = new Vector(MathFunctions.subtractPoses(lastPoint, pose));
-
-                    double firstDerivative = 2 * MathFunctions.dotProduct(curve.getDerivative(initialTValueGuess), differenceVector);
-                    double secondDerivative = 2 * (Math.pow(curve.getDerivative(initialTValueGuess).getMagnitude(), 2) +
-                            MathFunctions.dotProduct(differenceVector, curve.getSecondDerivative(initialTValueGuess)));
-
-                    initialTValueGuess = MathFunctions.clamp(initialTValueGuess - firstDerivative / (secondDerivative + 1e-9), 0, 1);
-                    if (curve.getPose(initialTValueGuess).distanceFrom(lastPoint) < 0.1)
-                        break;
-                }
-        }
-
-        return new PathPoint(initialTValueGuess, getPoint(initialTValueGuess));
+        initialTValueGuess = curve.getClosestPoint(pose, searchLimit, initialTValueGuess);
+        return new PathPoint(initialTValueGuess, getPoint(initialTValueGuess), curve.getDerivative(initialTValueGuess));
     }
 
     public PathPoint getClosestPoint(Pose pose, int searchLimit) {
@@ -204,7 +179,7 @@ public class Path {
     }
 
     public PathPoint getClosestPose() {
-        return new PathPoint(closestPointTValue, closestPose);
+        return new PathPoint(closestPointTValue, closestPose, closestPointTangentVector);
     }
 
     public PathPoint updateClosestPose(Pose currentPose, int searchLimit) {
@@ -218,13 +193,7 @@ public class Path {
     }
 
     public PathPoint updateClosestPose(Pose currentPose) {
-        PathPoint closestPoint = getClosestPoint(currentPose);
-        closestPointTValue = closestPoint.getTValue();
-        closestPose = closestPoint.getPose();
-        closestPointTangentVector = curve.getDerivative(closestPointTValue);
-        closestPointNormalVector = curve.getApproxSecondDerivative(closestPointTValue);
-        closestPointCurvature = curve.getCurvature(closestPointTValue);
-        return closestPoint;
+        return updateClosestPose(currentPose, BEZIER_CURVE_SEARCH_LIMIT);
     }
 
     /**
@@ -242,6 +211,14 @@ public class Path {
     }
 
     /**
+     * This gets the tangent Vector at the specified t-value.
+     * @param tvalue the t-value to get the tangent Vector at.
+     */
+    public Vector getTangentVector(double tvalue) {
+        return curve.getDerivative(tvalue);
+    }
+
+    /**
      * This returns the unit tangent Vector at the end of the BezierCurve.
      *
      * @return returns the end tangent Vector.
@@ -251,7 +228,7 @@ public class Path {
     }
 
     /**
-     * This returns the point on the Bezier curve that is specified by the parametric t value. A
+     * NOTE: THIS DOES NOT RETURN HEADING. This returns the point on the Bezier curve that is specified by the parametric t value. A
      * Bezier curve is a parametric function that returns points along it with t ranging from [0, 1],
      * with 0 being the beginning of the curve and 1 being at the end. The Follower will follow
      * BezierCurves from 0 to 1, in terms of t.
@@ -261,6 +238,15 @@ public class Path {
      */
     public Pose getPoint(double t) {
         return curve.getPose(t);
+    }
+
+    public Pose getPose(double t) {
+        Pose position = curve.getPose(t);
+        return new Pose(position.getX(), position.getY(), getHeadingGoal(t));
+    }
+
+    public PathPoint getPoseInformation(double t) {
+        return new PathPoint(t, getPose(t), getTangentVector(t));
     }
 
     /**
@@ -324,7 +310,7 @@ public class Path {
      * @return returns the heading goal at the closest Point.
      */
     public double getClosestPointHeadingGoal() {
-        return getHeadingGoal(new PathPoint(closestPointTValue, closestPose));
+        return getHeadingGoal(new PathPoint(closestPointTValue, closestPose, closestPointTangentVector));
     }
     
     public double getHeadingGoal(PathPoint closestPoint) {
@@ -332,7 +318,7 @@ public class Path {
     }
 
     public double getHeadingGoal(double t) {
-        return this.headingInterpolator.interpolate(new PathPoint(t, getPoint(t)));
+        return this.headingInterpolator.interpolate(new PathPoint(t, curve.getPose(t), getTangentVector(t)));
     }
     
     public void setHeadingInterpolation(HeadingInterpolator interpolator) {
@@ -345,7 +331,7 @@ public class Path {
      * @return returns if at end.
      */
     public boolean isAtParametricEnd() {
-        return closestPointTValue >= pathEndTValueConstraint;
+        return curve.atParametricEnd(closestPointTValue);
     }
 
     /**
@@ -546,7 +532,7 @@ public class Path {
     public Pose endPose() {
         Pose lastControlPoint = curve.getLastControlPoint();
         return new Pose(lastControlPoint.getX(), lastControlPoint.getY(),
-            getHeadingGoal(new PathPoint(1, lastControlPoint)));
+            getHeadingGoal(new PathPoint(1, lastControlPoint, curve.getEndTangent())));
     }
 
     public Path getReversed() {

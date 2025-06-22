@@ -217,4 +217,9 @@ public class BezierPoint extends BezierCurve {
     public String pathType() {
         return "point";
     }
+
+    @Override
+    public double getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
+        return 1;
+    }
 }

@@ -1,6 +1,7 @@
 package com.pedropathing.paths;
 
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +30,7 @@ public class PathChain {
     private DecelerationType decelerationType = DecelerationType.LAST_PATH;
     private double decelerationStartMultiplier;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
+    public HeadingInterpolator headingInterpolator = null;
 
     /**
      * This creates a new PathChain from some specified Paths.
@@ -181,5 +183,100 @@ public class PathChain {
         for (Path path : pathChain) {
             path.setConstraints(constraints);
         }
+    }
+
+    public static class PathT {
+        final int pathIndex;
+        final double t;
+
+        /**
+         * This creates a new Path and T-Value pair from a path index and a t value.
+         * @param pathIndex this specifies the index of the path in the chain
+         * @param t this is the t-value of the point in the path
+         */
+
+        public PathT(int pathIndex, double t) {
+            this.pathIndex = pathIndex;
+            this.t = t;
+        }
+
+        public int getPathIndex() {
+            return pathIndex;
+        }
+
+        public double getT() {
+            return t;
+        }
+
+        public Path getPath(PathChain pathChain) {
+            return pathChain.getPath(pathIndex);
+        }
+
+        public Pose getPose(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getPose(t);
+        }
+
+        public Pose getPoint(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getPoint(t);
+        }
+
+        public Vector getTangentVector(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getTangentVector(t);
+        }
+
+        public double getHeadingGoal(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getHeadingGoal(t);
+        }
+    }
+
+    /**
+     * This gets the path that corresponds to the given completion amount of the chain
+     * @param t completion of the PathChain from [0,1] based on distance traveled
+     */
+    private PathT chainCompletionToPath(double t) {
+        double lengthSum = 0;
+        double currentT = 1;
+        for (int i = 0; i < pathChain.size(); i++) {
+            lengthSum += pathChain.get(i).length();
+
+            if (lengthSum > length) {
+                return new PathT(i, currentT);
+            }
+
+            currentT = t - lengthSum / length;
+        }
+
+        return new PathT(pathChain.size()-1, currentT);
+    }
+
+    public void setHeadingInterpolator(HeadingInterpolator headingInterpolator) {
+        this.headingInterpolator = headingInterpolator;
+    }
+
+    public double getHeadingGoal(PathT pathTValue) {
+        if (headingInterpolator != null) {
+            double sumLength = 0;
+            for (int i = 0; i < pathTValue.pathIndex; i++) {
+                sumLength += pathChain.get(i).length();
+            }
+
+            double pathInitialTValue = sumLength / length;
+            double chainT = pathInitialTValue + pathTValue.t * pathChain.get(pathTValue.pathIndex).length() / length;
+            return headingInterpolator.interpolate(new PathPoint(chainT, pathTValue.getPoint(this), pathTValue.getTangentVector(this)));
+        }
+
+        return pathTValue.getHeadingGoal(this);
+    }
+
+    public Pose getPose(PathT pathTValue) {
+        return pathTValue.getPose(this);
+    }
+
+    public Pose getPoint(PathT pathTValue) {
+        return pathTValue.getPoint(this);
+    }
+
+    public PathPoint getPoseInformation(PathT pathTValue) {
+        return new PathPoint(pathTValue.getT(), pathTValue.getPose(this), pathTValue.getTangentVector(this));
     }
 }

@@ -45,12 +45,12 @@ public final class PathConstraints {
     /**
      * Multiplier for when the path should start its deceleration
      */
-    public double decelerationStartMultiplier;
+    public static double decelerationStartMultiplier;
 
     /**
      * The number of steps in searching for the closest point
      */
-    public int BEZIER_CURVE_SEARCH_LIMIT;
+    public static int BEZIER_CURVE_SEARCH_LIMIT;
 
     public PathConstraints(double tValueConstraint, double velocityConstraint, double translationalConstraint, double headingConstraint, double timeoutConstraint, double zeroPowerAccelerationMultiplier, int BEZIER_CURVE_SEARCH_LIMIT, double decelerationStartMultiplier) {
         this.tValueConstraint = tValueConstraint;

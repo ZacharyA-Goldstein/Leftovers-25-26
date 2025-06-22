@@ -290,6 +290,39 @@ public class MathFunctions {
         double b = staticVector.getXComponent() * variableVector.getXComponent() + staticVector.getYComponent() * variableVector.getYComponent();
         double c = Math.pow(staticVector.getXComponent(), 2) + Math.pow(staticVector.getYComponent(), 2) - Math.pow(maxPowerScaling, 2);
         return (-b + Math.sqrt(Math.pow(b, 2) - a*c))/(a);
+    }
 
+    /**
+     * This scales a Pose by a given scale factor. The heading is not affected.
+     * @param pose the Pose to be scaled
+     * @param scale the scale factor
+     * @return returns the scaled Pose
+     */
+    public static Pose scalePose(Pose pose, double scale) {
+        return new Pose(pose.getX() * scale, pose.getY() * scale, pose.getHeading());
+    }
+
+    /**
+     * This returns a Pose that is the linear combination of the two input Poses.
+     * @param one the first pose
+     * @param two the second pose
+     * @param scaleOne the first coefficient
+     * @param scaleTwo the second coefficient
+     * @return the resulting pose
+     */
+    public static Pose linearCombination(Pose one, Pose two, double scaleOne, double scaleTwo) {
+        return addPoses(scalePose(one, scaleOne), scalePose(two, scaleTwo));
+    }
+
+    /**
+     * This returns a Vector that is the linear combination of the two input Vectors.
+     * @param one the first vector
+     * @param two the second vector
+     * @param scaleOne the first coefficient
+     * @param scaleTwo the second coefficient
+     * @return the resulting vector
+     */
+    public static Vector linearCombination(Vector one, Vector two, double scaleOne, double scaleTwo) {
+        return addVectors(scalarMultiplyVector(one, scaleOne), scalarMultiplyVector(two, scaleTwo));
     }
 }

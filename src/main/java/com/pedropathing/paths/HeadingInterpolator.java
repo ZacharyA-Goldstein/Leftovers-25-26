@@ -3,6 +3,9 @@ package com.pedropathing.paths;
 
 import com.pedropathing.math.MathFunctions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A heading interpolator is a function that takes a path and returns the heading goal the robot
  * should be at a specific point on the path.
@@ -32,6 +35,36 @@ import com.pedropathing.math.MathFunctions;
 @FunctionalInterface
 public interface HeadingInterpolator {
     double interpolate(PathPoint closestPoint);
+
+    class PiecewiseNode {
+        double initialTValue;
+        double finalTValue;
+        HeadingInterpolator interpolator;
+
+        /**
+         * Constructor for a piecewise heading node.
+         * @param initialTValue first t-value where the heading interpolation is used inclusive
+         * @param finalTValue final t-value where the heading interpolation is used inclusive
+         * @param interpolator the heading interpolator to use on that interval
+         */
+        PiecewiseNode(double initialTValue, double finalTValue, HeadingInterpolator interpolator) {
+            this.initialTValue = initialTValue;
+            this.finalTValue = finalTValue;
+            this.interpolator = interpolator;
+        }
+
+        public double getInitialTValue() {
+            return initialTValue;
+        }
+
+        public double getFinalTValue() {
+            return finalTValue;
+        }
+
+        public HeadingInterpolator getInterpolator() {
+            return interpolator;
+        }
+    }
     
     /**
      * Offsets the heading interpolator by a given amount.
@@ -53,7 +86,7 @@ public interface HeadingInterpolator {
     /**
      * The robot will face the the direction of the path.
      */
-    HeadingInterpolator tangent = closestPoint -> closestPoint.pose.getHeading();
+    HeadingInterpolator tangent = closestPoint -> closestPoint.tangentVector.getTheta();
     
     /**
      * A constant heading along a path.
@@ -89,5 +122,21 @@ public interface HeadingInterpolator {
             x - closestPoint.pose.getY(),
             y - closestPoint.pose.getX()
         );
+    }
+
+    /**
+     * Define a custom piecewise interpolation across the path
+     * @param nodes The nodes of the piecewise interpolation, make sure all t-values from [0,1] are covered
+     */
+    static HeadingInterpolator piecewise(PiecewiseNode... nodes) {
+        return closestPoint -> {
+            for (PiecewiseNode node : nodes) {
+                if (closestPoint.tValue >= node.initialTValue && closestPoint.tValue <= node.finalTValue) {
+                    return node.interpolator.interpolate(closestPoint);
+                }
+            }
+
+            return tangent.interpolate(closestPoint);
+        };
     }
 }
