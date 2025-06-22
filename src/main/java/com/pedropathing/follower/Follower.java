@@ -1,7 +1,5 @@
 package com.pedropathing.follower;
 
-import com.acmerobotics.dashboard.config.Config;
-import com.bylazar.ftcontrol.panels.configurables.annotations.Configurable;
 import com.bylazar.ftcontrol.panels.integration.TelemetryManager;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
@@ -40,19 +38,21 @@ public class Follower {
     public ErrorCalculator errorCalculator;
     public VectorCalculator vectorCalculator;
     public Drivetrain drivetrain;
-    public DashboardPoseTracker dashboardPoseTracker;
+    private DashboardPoseTracker dashboardPoseTracker;
 
     private Pose currentPose;
     private PathPoint closestPose;
     private Path currentPath;
     private PathChain currentPathChain;
 
-    private final int BEZIER_CURVE_SEARCH_LIMIT;
+    private int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
     private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, teleopDrive;
-    private final boolean automaticHoldEnd;
+    private boolean automaticHoldEnd;
     private double globalMaxPower = 1, centripetalScaling;
-    private final double holdPointTranslationalScaling, holdPointHeadingScaling, turnHeadingErrorThreshold;
+    private double holdPointTranslationalScaling;
+    private double holdPointHeadingScaling;
+    private double turnHeadingErrorThreshold;
     private long reachedParametricPathEndTime;
     public boolean useTranslational = true;
     public boolean useCentripetal = true;
@@ -88,6 +88,15 @@ public class Follower {
         automaticHoldEnd = constants.automaticHoldEnd;
 
         breakFollowing();
+    }
+
+    public void updateConstants() {
+        this.BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
+        this.holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
+        this.holdPointHeadingScaling = constants.holdPointHeadingScaling;
+        this.centripetalScaling = constants.centripetalScaling;
+        this.turnHeadingErrorThreshold = constants.turnHeadingErrorThreshold;
+        this.automaticHoldEnd = constants.automaticHoldEnd;
     }
 
     /**
@@ -270,7 +279,7 @@ public class Follower {
             resetFollowing.run();
             resetFollowing = null;
             isBusy = true;
-            closestPose = updateClosestPose(poseTracker.getPose(), constants.BEZIER_CURVE_SEARCH_LIMIT);
+            closestPose = updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         }
     }
 
@@ -330,6 +339,11 @@ public class Follower {
         vectorCalculator.setTeleOpMovementVectors(forward, strafe, turn, isRobotCentric);
     }
 
+    /** Updates the Mecanum constants */
+    public void updateDrivetrain() {
+        drivetrain.updateConstants();
+    }
+
     /** Calls an update to the PoseTracker, which updates the robot's current position estimate. */
     public void updatePose() {
         poseTracker.update();
@@ -355,9 +369,11 @@ public class Follower {
      * This also updates all the Follower's PIDFs, which updates the motor powers.
      */
     public void update() {
+        updateConstants();
         updatePose();
         updateErrors();
         updateVectors();
+        updateDrivetrain();
 
         if (teleopDrive) {
             updateErrorAndVectors();
@@ -700,6 +716,19 @@ public class Follower {
     public void setSecondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) { vectorCalculator.setSecondaryHeadingPIDFCoefficients(secondaryHeadingPIDFCoefficients); }
     public void setTranslationalPIDFCoefficients(PIDFCoefficients translationalPIDFCoefficients) { vectorCalculator.setTranslationalPIDFCoefficients(translationalPIDFCoefficients); }
     public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) { vectorCalculator.setSecondaryTranslationalPIDFCoefficients(secondaryTranslationalPIDFCoefficients); }
+
+    private double getHeadingGoal(double t) {
+        if (currentPathChain != null) {
+            return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, t));
+        }
+
+        return currentPath.getHeadingGoal(t);
+    }
+
+    private PathPoint updateClosestPose(Pose pose, int steps) {
+        PathPoint location = currentPath.updateClosestPose(pose, steps);
+        return new PathPoint(location.tValue, new Pose(location.pose.getX(), location.pose.getY(), getHeadingGoal(location.tValue)), location.tangentVector);
+    }
 
     public void debug(TelemetryManager telemetryManager) {
         telemetryManager.debug(
