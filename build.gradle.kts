@@ -1,5 +1,7 @@
-import com.android.builder.symbols.exportToCompiledJava
-import org.jetbrains.dokka.plugability.configuration
+import com.android.build.gradle.LibraryExtension
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.jvm.tasks.Jar
+import org.gradle.external.javadoc.JavadocMemberLevel
 
 plugins {
 	id("org.jetbrains.kotlin.android") version "1.9.20"
@@ -48,7 +50,10 @@ android {
 		jvmTarget = "1.8"
 	}
 	publishing {
-		singleVariant("release")
+		singleVariant("release") {
+			withSourcesJar()
+			withJavadocJar()
+		}
 	}
 	sourceSets {
 		getByName("main") {
@@ -60,6 +65,41 @@ android {
 	}
 }
 
+android.libraryVariants.configureEach {
+	val newName = "generate${name.replaceFirstChar { it.uppercase() }}Javadoc"
+	val newJavadocTask = tasks.register<Javadoc>(newName) {
+		group = "Documentation"
+		description = "Generates Javadoc for $name"
+		source = javaCompileProvider.get().source
+		val androidJar =
+			"${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+		classpath = files(getCompileClasspath(null)) + files(androidJar)
+		with(options as StandardJavadocDocletOptions) {
+			memberLevel = JavadocMemberLevel.PROTECTED
+			links("https://developer.android.com/reference")
+			encoding = "UTF-8"
+		}
+	}
+
+	if (name == "release") {
+		tasks.named<Jar>("javadocJar") {
+			dependsOn(newJavadocTask)
+			from(newJavadocTask.map { it.destinationDir!! })
+		}
+	}
+}
+
+tasks.register<Jar>("javadocJar") {
+	archiveClassifier = "javadoc"
+}
+
+tasks.register<Jar>("sourcesJar") {
+	from(android.sourceSets["main"].java.srcDirs)
+	archiveClassifier = "sources"
+}
+
+
+
 dependencies {
 	implementation("androidx.annotation:annotation-jvm:1.9.1")
 	compileOnly("org.firstinspires.ftc:RobotCore:10.2.0")
@@ -67,21 +107,19 @@ dependencies {
 	compileOnly("org.firstinspires.ftc:FtcCommon:10.2.0")
 	compileOnly("org.firstinspires.ftc:RobotServer:10.2.0")
 	compileOnly("org.firstinspires.ftc:OnBotJava:10.2.0")
-	compileOnly("com.bylazar:ftcontrol:0.6.5")
-	compileOnly("com.acmerobotics.dashboard:dashboard:0.4.16")
+	compileOnly("com.bylazar:ftcontrol:0.6.6")
 	implementation("org.apache.commons:commons-math3:3.6.1")
 	dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.20")
 	dokkaGfmPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.20")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.20")
 }
 
-// CONFIGURE PUBLICATION
 publishing {
 	publications {
 		register<MavenPublication>("release") {
 			groupId = "com.pedropathing"
 			artifactId = "dev"
-			version = "1.1.0-dev7"
+			version = "1.1.0-dev8"
 
 			afterEvaluate {
 				from(components["release"])

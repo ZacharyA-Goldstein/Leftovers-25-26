@@ -35,6 +35,7 @@ public abstract class Drivetrain {
     public double getMaxPowerScaling() {
         return maxPowerScaling;
     }
+    public abstract void updateConstants();
 
     public abstract void breakFollowing();
 

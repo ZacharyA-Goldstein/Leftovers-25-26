@@ -22,7 +22,7 @@ Upd * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 4/30/2025
  */
 public class Mecanum extends Drivetrain {
-    private MecanumConstants constants;
+    public MecanumConstants constants;
     private DcMotorEx leftFront;
     private DcMotorEx leftRear;
     private DcMotorEx rightFront;
@@ -38,7 +38,7 @@ public class Mecanum extends Drivetrain {
      * the wheel drive powers necessary to move in the intended direction, given the true movement
      * vector for the front left mecanum wheel.
      *
-     * @param hardwareMap this is the HardwareMap object that contains the motors and other hardware
+     * @param hardwareMap      this is the HardwareMap object that contains the motors and other hardware
      * @param mecanumConstants this is the MecanumConstants object that contains the names of the motors and directions etc.
      */
     public Mecanum(HardwareMap hardwareMap, MecanumConstants mecanumConstants) {
@@ -52,10 +52,6 @@ public class Mecanum extends Drivetrain {
         leftRear = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftRearMotorName);
         rightRear = hardwareMap.get(DcMotorEx.class, mecanumConstants.rightRearMotorName);
         rightFront = hardwareMap.get(DcMotorEx.class, mecanumConstants.rightFrontMotorName);
-        leftFront.setDirection(mecanumConstants.leftFrontMotorDirection);
-        leftRear.setDirection(mecanumConstants.leftRearMotorDirection);
-        rightFront.setDirection(mecanumConstants.rightFrontMotorDirection);
-        rightRear.setDirection(mecanumConstants.rightRearMotorDirection);
 
         motors = Arrays.asList(leftFront, leftRear, rightFront, rightRear);
 
@@ -71,37 +67,50 @@ public class Mecanum extends Drivetrain {
         Vector copiedFrontLeftVector = MathFunctions.normalizeVector(mecanumConstants.frontLeftVector);
         vectors = new Vector[]{
                 new Vector(copiedFrontLeftVector.getMagnitude(), copiedFrontLeftVector.getTheta()),
-                new Vector(copiedFrontLeftVector.getMagnitude(), 2*Math.PI-copiedFrontLeftVector.getTheta()),
-                new Vector(copiedFrontLeftVector.getMagnitude(), 2*Math.PI-copiedFrontLeftVector.getTheta()),
+                new Vector(copiedFrontLeftVector.getMagnitude(), 2 * Math.PI - copiedFrontLeftVector.getTheta()),
+                new Vector(copiedFrontLeftVector.getMagnitude(), 2 * Math.PI - copiedFrontLeftVector.getTheta()),
                 new Vector(copiedFrontLeftVector.getMagnitude(), copiedFrontLeftVector.getTheta())};
+    }
+
+    public void updateConstants() {
+        leftFront.setDirection(constants.leftFrontMotorDirection);
+        leftRear.setDirection(constants.leftRearMotorDirection);
+        rightFront.setDirection(constants.rightFrontMotorDirection);
+        rightRear.setDirection(constants.rightRearMotorDirection);
+        this.maxPowerScaling = constants.maxPower;
+        this.motorCachingThreshold = constants.motorCachingThreshold;
+        this.useBrakeModeInTeleOp = constants.useBrakeModeInTeleOp;
     }
 
     /**
      * This takes in vectors for corrective power, heading power, and pathing power and outputs
      * an Array of four doubles, one for each wheel's motor power.
-     *
+     * <p>
      * IMPORTANT NOTE: all vector inputs are clamped between 0 and 1 inclusive in magnitude.
      *
      * @param correctivePower this Vector includes the centrifugal force scaling Vector as well as a
      *                        translational power Vector to correct onto the Bezier curve the Follower
      *                        is following.
-     * @param headingPower this Vector points in the direction of the robot's current heaing, and
-     *                     the magnitude tells the robot how much it should turn and in which
-     *                     direction.
-     * @param pathingPower this Vector points in the direction the robot needs to go to continue along
-     *                     the Path.
-     * @param robotHeading this is the current heading of the robot, which is used to calculate how
-     *                     much power to allocate to each wheel.
+     * @param headingPower    this Vector points in the direction of the robot's current heaing, and
+     *                        the magnitude tells the robot how much it should turn and in which
+     *                        direction.
+     * @param pathingPower    this Vector points in the direction the robot needs to go to continue along
+     *                        the Path.
+     * @param robotHeading    this is the current heading of the robot, which is used to calculate how
+     *                        much power to allocate to each wheel.
      * @return this returns an Array of doubles with a length of 4, which contains the wheel powers.
      */
     public double[] getDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading) {
         // clamps down the magnitudes of the input vectors
-        if (correctivePower.getMagnitude() > maxPowerScaling) correctivePower.setMagnitude(maxPowerScaling);
-        if (headingPower.getMagnitude() > maxPowerScaling) headingPower.setMagnitude(maxPowerScaling);
-        if (pathingPower.getMagnitude() > maxPowerScaling) pathingPower.setMagnitude(maxPowerScaling);
+        if (correctivePower.getMagnitude() > maxPowerScaling)
+            correctivePower.setMagnitude(maxPowerScaling);
+        if (headingPower.getMagnitude() > maxPowerScaling)
+            headingPower.setMagnitude(maxPowerScaling);
+        if (pathingPower.getMagnitude() > maxPowerScaling)
+            pathingPower.setMagnitude(maxPowerScaling);
 
         // the powers for the wheel vectors
-        double [] wheelPowers = new double[4];
+        double[] wheelPowers = new double[4];
 
         // This contains a copy of the mecanum wheel vectors
         Vector[] mecanumVectorsCopy = new Vector[4];
@@ -120,7 +129,7 @@ public class Mecanum extends Drivetrain {
 
             if (leftSideVector.getMagnitude() > maxPowerScaling || rightSideVector.getMagnitude() > maxPowerScaling) {
                 //if the combined corrective and heading power is greater than 1, then scale down heading power
-                double headingScalingFactor = Math.min(findNormalizingScaling(correctivePower, headingPower, maxPowerScaling), findNormalizingScaling(correctivePower, MathFunctions.scalarMultiplyVector(headingPower, -1),maxPowerScaling));
+                double headingScalingFactor = Math.min(findNormalizingScaling(correctivePower, headingPower, maxPowerScaling), findNormalizingScaling(correctivePower, MathFunctions.scalarMultiplyVector(headingPower, -1), maxPowerScaling));
                 truePathingVectors[0] = MathFunctions.subtractVectors(correctivePower, MathFunctions.scalarMultiplyVector(headingPower, headingScalingFactor));
                 truePathingVectors[1] = MathFunctions.addVectors(correctivePower, MathFunctions.scalarMultiplyVector(headingPower, headingScalingFactor));
             } else {
@@ -151,10 +160,10 @@ public class Mecanum extends Drivetrain {
             mecanumVectorsCopy[i].rotateVector(robotHeading);
         }
 
-        wheelPowers[0] = (mecanumVectorsCopy[1].getXComponent()*truePathingVectors[0].getYComponent() - truePathingVectors[0].getXComponent()*mecanumVectorsCopy[1].getYComponent()) / (mecanumVectorsCopy[1].getXComponent()*mecanumVectorsCopy[0].getYComponent() - mecanumVectorsCopy[0].getXComponent()*mecanumVectorsCopy[1].getYComponent());
-        wheelPowers[1] = (mecanumVectorsCopy[0].getXComponent()*truePathingVectors[0].getYComponent() - truePathingVectors[0].getXComponent()*mecanumVectorsCopy[0].getYComponent()) / (mecanumVectorsCopy[0].getXComponent()*mecanumVectorsCopy[1].getYComponent() - mecanumVectorsCopy[1].getXComponent()*mecanumVectorsCopy[0].getYComponent());
-        wheelPowers[2] = (mecanumVectorsCopy[3].getXComponent()*truePathingVectors[1].getYComponent() - truePathingVectors[1].getXComponent()*mecanumVectorsCopy[3].getYComponent()) / (mecanumVectorsCopy[3].getXComponent()*mecanumVectorsCopy[2].getYComponent() - mecanumVectorsCopy[2].getXComponent()*mecanumVectorsCopy[3].getYComponent());
-        wheelPowers[3] = (mecanumVectorsCopy[2].getXComponent()*truePathingVectors[1].getYComponent() - truePathingVectors[1].getXComponent()*mecanumVectorsCopy[2].getYComponent()) / (mecanumVectorsCopy[2].getXComponent()*mecanumVectorsCopy[3].getYComponent() - mecanumVectorsCopy[3].getXComponent()*mecanumVectorsCopy[2].getYComponent());
+        wheelPowers[0] = (mecanumVectorsCopy[1].getXComponent() * truePathingVectors[0].getYComponent() - truePathingVectors[0].getXComponent() * mecanumVectorsCopy[1].getYComponent()) / (mecanumVectorsCopy[1].getXComponent() * mecanumVectorsCopy[0].getYComponent() - mecanumVectorsCopy[0].getXComponent() * mecanumVectorsCopy[1].getYComponent());
+        wheelPowers[1] = (mecanumVectorsCopy[0].getXComponent() * truePathingVectors[0].getYComponent() - truePathingVectors[0].getXComponent() * mecanumVectorsCopy[0].getYComponent()) / (mecanumVectorsCopy[0].getXComponent() * mecanumVectorsCopy[1].getYComponent() - mecanumVectorsCopy[1].getXComponent() * mecanumVectorsCopy[0].getYComponent());
+        wheelPowers[2] = (mecanumVectorsCopy[3].getXComponent() * truePathingVectors[1].getYComponent() - truePathingVectors[1].getXComponent() * mecanumVectorsCopy[3].getYComponent()) / (mecanumVectorsCopy[3].getXComponent() * mecanumVectorsCopy[2].getYComponent() - mecanumVectorsCopy[2].getXComponent() * mecanumVectorsCopy[3].getYComponent());
+        wheelPowers[3] = (mecanumVectorsCopy[2].getXComponent() * truePathingVectors[1].getYComponent() - truePathingVectors[1].getXComponent() * mecanumVectorsCopy[2].getYComponent()) / (mecanumVectorsCopy[2].getXComponent() * mecanumVectorsCopy[3].getYComponent() - mecanumVectorsCopy[3].getXComponent() * mecanumVectorsCopy[2].getYComponent());
 
         double wheelPowerMax = Math.max(Math.max(Math.abs(wheelPowers[0]), Math.abs(wheelPowers[1])), Math.max(Math.abs(wheelPowers[2]), Math.abs(wheelPowers[3])));
         if (wheelPowerMax > maxPowerScaling) {
@@ -202,14 +211,14 @@ public class Mecanum extends Drivetrain {
 
     @Override
     public void startTeleopDrive() {
-        if(useBrakeModeInTeleOp) {
+        if (useBrakeModeInTeleOp) {
             setMotorsToBrake();
         }
     }
 
     @Override
     public void startTeleopDrive(boolean brakeMode) {
-        if(brakeMode) {
+        if (brakeMode) {
             setMotorsToBrake();
         } else {
             setMotorsToFloat();
@@ -240,4 +249,3 @@ public class Mecanum extends Drivetrain {
                 '}';
     }
 }
-

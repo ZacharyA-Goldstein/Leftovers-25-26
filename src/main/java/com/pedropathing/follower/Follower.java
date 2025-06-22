@@ -1,7 +1,5 @@
 package com.pedropathing.follower;
 
-import com.acmerobotics.dashboard.config.Config;
-import com.bylazar.ftcontrol.panels.configurables.annotations.Configurable;
 import com.bylazar.ftcontrol.panels.integration.TelemetryManager;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
@@ -40,19 +38,19 @@ public class Follower {
     public ErrorCalculator errorCalculator;
     public VectorCalculator vectorCalculator;
     public Drivetrain drivetrain;
-    public DashboardPoseTracker dashboardPoseTracker;
+    private final DashboardPoseTracker dashboardPoseTracker;
 
     private Pose currentPose;
     private PathPoint closestPose;
     private Path currentPath;
     private PathChain currentPathChain;
 
-    private final int BEZIER_CURVE_SEARCH_LIMIT;
+    private int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
     private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, teleopDrive;
-    private final boolean automaticHoldEnd;
+    private boolean automaticHoldEnd;
     private double globalMaxPower = 1, centripetalScaling;
-    private final double holdPointTranslationalScaling, holdPointHeadingScaling, turnHeadingErrorThreshold;
+    private double holdPointTranslationalScaling, holdPointHeadingScaling, turnHeadingErrorThreshold;
     private long reachedParametricPathEndTime;
     public boolean useTranslational = true;
     public boolean useCentripetal = true;
@@ -270,7 +268,7 @@ public class Follower {
             resetFollowing.run();
             resetFollowing = null;
             isBusy = true;
-            closestPose = currentPath.updateClosestPose(poseTracker.getPose(), constants.BEZIER_CURVE_SEARCH_LIMIT);
+            closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         }
     }
 
@@ -330,11 +328,25 @@ public class Follower {
         vectorCalculator.setTeleOpMovementVectors(forward, strafe, turn, isRobotCentric);
     }
 
+    /** Updates variables used by the Follower from Constants. */
+    public void updateConstants() {
+        BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
+        holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
+        holdPointHeadingScaling = constants.holdPointHeadingScaling;
+        centripetalScaling = constants.centripetalScaling;
+        turnHeadingErrorThreshold = constants.turnHeadingErrorThreshold;
+        automaticHoldEnd = constants.automaticHoldEnd;
+    }
+
     /** Calls an update to the PoseTracker, which updates the robot's current position estimate. */
     public void updatePose() {
         poseTracker.update();
         currentPose = poseTracker.getPose();
         dashboardPoseTracker.update();
+    }
+
+    public void updateDrivetrain() {
+        drivetrain.updateConstants();
     }
 
     /** Calls an update to the ErrorCalculator, which updates the robot's current error. */
@@ -358,6 +370,7 @@ public class Follower {
         updatePose();
         updateErrors();
         updateVectors();
+        updateDrivetrain();
 
         if (teleopDrive) {
             updateErrorAndVectors();
