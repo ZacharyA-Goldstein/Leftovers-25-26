@@ -107,7 +107,7 @@ public class Follower {
      * @param drivetrain Drivetrain to use
      */
     public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
-        this(hardwareMap, constants, localizer, drivetrain, PathConstraints.defaultConstraints);
+        this(hardwareMap, constants, localizer, drivetrain, PathConstraints.getDefaultConstraints());
     }
 
     public void setCentripetalScaling(double set) {
