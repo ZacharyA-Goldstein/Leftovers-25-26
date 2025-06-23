@@ -54,7 +54,7 @@ public class PathBuilder {
      * Of course, you can split up the method calls onto separate lines for readability.
      */
     public PathBuilder(Follower follower) {
-        this(PathConstraints.defaultConstraints, follower);
+        this(PathConstraints.getDefaultConstraints(), follower);
     }
 
     /**

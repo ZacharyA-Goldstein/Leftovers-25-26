@@ -41,7 +41,7 @@ public class PathChain {
      * @param paths the specified Paths.
      */
     public PathChain(Path... paths) {
-        this(PathConstraints.defaultConstraints, paths);
+        this(PathConstraints.getDefaultConstraints(), paths);
     }
 
     /**
@@ -73,7 +73,7 @@ public class PathChain {
      * @param paths the ArrayList of Paths.
      */
     public PathChain(ArrayList<Path> paths) {
-        this(PathConstraints.defaultConstraints, paths);
+        this(PathConstraints.getDefaultConstraints(), paths);
     }
 
     /**

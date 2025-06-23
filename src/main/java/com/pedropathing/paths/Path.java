@@ -87,7 +87,7 @@ public class Path {
      * @param curve the BezierCurve.
      */
     public Path(BezierCurve curve) {
-        this(curve, PathConstraints.defaultConstraints);
+        this(curve, PathConstraints.getDefaultConstraints());
     }
 
     /**
