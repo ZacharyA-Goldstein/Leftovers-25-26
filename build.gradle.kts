@@ -119,7 +119,7 @@ publishing {
 		register<MavenPublication>("release") {
 			groupId = "com.pedropathing"
 			artifactId = "dev"
-			version = "1.1.0-dev8"
+			version = "1.1.0-dev11"
 
 			afterEvaluate {
 				from(components["release"])

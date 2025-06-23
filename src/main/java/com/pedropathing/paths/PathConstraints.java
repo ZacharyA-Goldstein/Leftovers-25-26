@@ -7,7 +7,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 0.1
      */
-    public static double velocityConstraint;
+    private final double velocityConstraint;
 
     /**
      * When the robot is at the end of its current Path or PathChain and the translational error
@@ -15,7 +15,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 0.1
      */
-    public static double translationalConstraint;
+    private final double translationalConstraint;
 
     /**
      * When the robot is at the end of its current Path or PathChain and the heading error goes
@@ -23,7 +23,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 0.007
      */
-    public static double headingConstraint;
+    private final double headingConstraint;
 
     /**
      * When the t-value of the closest point to the robot on the Path is greater than this value,
@@ -31,7 +31,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 0.995
      */
-    public static double tValueConstraint;
+    private final double tValueConstraint;
 
     /**
      * When the Path is considered at its end parametrically, then the Follower has this many
@@ -39,7 +39,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 100
      */
-    public static double timeoutConstraint;
+    private final double timeoutConstraint;
 
     /**
      * A multiplier for the zero power acceleration to change the speed the robot decelerates at
@@ -51,17 +51,17 @@ public final class PathConstraints {
      * This can be set individually for each Path, but this is the default.
      * Default Value: 4
      */
-    public static double zeroPowerAccelerationMultiplier;
+    private final double zeroPowerAccelerationMultiplier;
 
     /**
      * Multiplier for when the path should start its deceleration
      */
-    public static double decelerationStartMultiplier;
+    private final double decelerationStartMultiplier;
 
     /**
      * The number of steps in searching for the closest point
      */
-    public static int BEZIER_CURVE_SEARCH_LIMIT;
+    private final int BEZIER_CURVE_SEARCH_LIMIT;
 
     public PathConstraints(double tValueConstraint, double velocityConstraint, double translationalConstraint, double headingConstraint, double timeoutConstraint, double zeroPowerAccelerationMultiplier, int BEZIER_CURVE_SEARCH_LIMIT, double decelerationStartMultiplier) {
         this.tValueConstraint = tValueConstraint;
@@ -82,8 +82,37 @@ public final class PathConstraints {
         this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, 4, 10, 1);
     }
 
-    public static PathConstraints getDefaultConstraints() {
-        return new PathConstraints(0.995, 0.1, 0.1, 0.007, 100, 4, 10, 1);
+    public static PathConstraints defaultConstraints = new PathConstraints(0.995, 0.1, 0.1, 0.007, 100, 4, 10, 1);
+
+    public double getVelocityConstraint() {
+        return velocityConstraint;
     }
 
+    public double getTranslationalConstraint() {
+        return translationalConstraint;
+    }
+
+    public double getHeadingConstraint() {
+        return headingConstraint;
+    }
+
+    public double getTValueConstraint() {
+        return tValueConstraint;
+    }
+
+    public double getTimeoutConstraint() {
+        return timeoutConstraint;
+    }
+
+    public double getZeroPowerAccelerationMultiplier() {
+        return zeroPowerAccelerationMultiplier;
+    }
+
+    public double getDecelerationStartMultiplier() {
+        return decelerationStartMultiplier;
+    }
+
+    public int getBEZIER_CURVE_SEARCH_LIMIT() {
+        return BEZIER_CURVE_SEARCH_LIMIT;
+    }
 }

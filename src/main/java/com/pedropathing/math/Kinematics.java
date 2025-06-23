@@ -54,8 +54,8 @@ public final class Kinematics {
         double deceleration,
         double directionalDistance
     ) {
-        return Math.signum(directionalDistance) * Math.sqrt(currentVelocity * currentVelocity
-            + 2 * deceleration * Math.abs(directionalDistance));
+        return Math.signum(directionalDistance) * Math.sqrt(Math.abs(currentVelocity * currentVelocity
+                + 2 * deceleration * Math.abs(directionalDistance)));
     }
 
     /**

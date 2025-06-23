@@ -17,11 +17,17 @@ public class FinetunedBezierLine extends BezierLine {
     private BezierLine modifiedCurve;
     private final double pathEndTValueConstraint;
     private double unmodifiedSegmentLength;
+    private PathConstraints constraints;
 
     public FinetunedBezierLine(ArrayList<Pose> controlPoints, Pose endPoint, int searchLimit) {
+        this(controlPoints, endPoint, searchLimit, PathConstraints.defaultConstraints);
+    }
+
+    public FinetunedBezierLine(ArrayList<Pose> controlPoints, Pose endPoint, int searchLimit, PathConstraints constraints) {
         super(controlPoints.get(0), controlPoints.get(1), false);
+        this.constraints = constraints;
         this.endPoint = endPoint;
-        this.pathEndTValueConstraint = PathConstraints.tValueConstraint;
+        this.pathEndTValueConstraint = this.constraints.getTValueConstraint();
         crossingThreshold = getClosestPoint(endPoint, searchLimit, 1.0);
         if (crossingThreshold == 0) crossingThreshold += 0.001;
 
@@ -36,10 +42,15 @@ public class FinetunedBezierLine extends BezierLine {
     }
 
     public FinetunedBezierLine(ArrayList<Pose> controlPoints, Pose endPoint) {
+        this(controlPoints, endPoint, PathConstraints.defaultConstraints);
+    }
+
+    public FinetunedBezierLine(ArrayList<Pose> controlPoints, Pose endPoint, PathConstraints constraints) {
         super(controlPoints.get(0), controlPoints.get(1), false);
+        this.constraints = constraints;
         this.endPoint = endPoint;
-        this.pathEndTValueConstraint = PathConstraints.tValueConstraint;
-        crossingThreshold = getClosestPoint(endPoint, PathConstraints.BEZIER_CURVE_SEARCH_LIMIT, 1.0);
+        this.pathEndTValueConstraint = this.constraints.getTValueConstraint();
+        crossingThreshold = getClosestPoint(endPoint, this.constraints.getBEZIER_CURVE_SEARCH_LIMIT(), 1.0);
         if (crossingThreshold == 0) crossingThreshold += 0.001;
 
         if (crossingThreshold < pathEndTValueConstraint) {
@@ -114,7 +125,7 @@ public class FinetunedBezierLine extends BezierLine {
         }
 
         double tChange = t - crossingThreshold;
-        return unmodifiedSegmentLength + tChange * (length() - unmodifiedSegmentLength) >= PathConstraints.tValueConstraint;
+        return unmodifiedSegmentLength + tChange * (length() - unmodifiedSegmentLength) >= constraints.getTValueConstraint();
     }
 
     @Override

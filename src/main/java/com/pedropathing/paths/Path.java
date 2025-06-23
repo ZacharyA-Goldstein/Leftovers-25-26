@@ -61,7 +61,7 @@ public class Path {
     // This can be custom set for each Path.
     private double pathEndTimeoutConstraint;
 
-    private int BEZIER_CURVE_SEARCH_LIMIT;
+    private final int BEZIER_CURVE_SEARCH_LIMIT;
 
     /**
      * Creates a new Path from a BezierCurve. The default heading interpolation is tangential.
@@ -70,13 +70,13 @@ public class Path {
      * @param constraints the constraints.
      */
     public Path(BezierCurve curve, PathConstraints constraints) {
-        zeroPowerAccelerationMultiplier = constraints.zeroPowerAccelerationMultiplier;
-        pathEndVelocityConstraint = constraints.velocityConstraint;
-        pathEndTranslationalConstraint = constraints.translationalConstraint;
-        pathEndHeadingConstraint = constraints.headingConstraint;
-        pathEndTValueConstraint = constraints.tValueConstraint;
-        pathEndTimeoutConstraint = constraints.timeoutConstraint;
-        BEZIER_CURVE_SEARCH_LIMIT = constraints.BEZIER_CURVE_SEARCH_LIMIT;
+        zeroPowerAccelerationMultiplier = constraints.getZeroPowerAccelerationMultiplier();
+        pathEndVelocityConstraint = constraints.getVelocityConstraint();
+        pathEndTranslationalConstraint = constraints.getTranslationalConstraint();
+        pathEndHeadingConstraint = constraints.getHeadingConstraint();
+        pathEndTValueConstraint = constraints.getTValueConstraint();
+        pathEndTimeoutConstraint = constraints.getTimeoutConstraint();
+        BEZIER_CURVE_SEARCH_LIMIT = constraints.getBEZIER_CURVE_SEARCH_LIMIT();
         this.constraints = constraints;
         this.curve = curve;
     }
@@ -87,7 +87,7 @@ public class Path {
      * @param curve the BezierCurve.
      */
     public Path(BezierCurve curve) {
-        this(curve, PathConstraints.getDefaultConstraints());
+        this(curve, PathConstraints.defaultConstraints);
     }
 
     /**
@@ -541,11 +541,11 @@ public class Path {
 
     public void setConstraints(PathConstraints constraints) {
         this.constraints = constraints;
-        zeroPowerAccelerationMultiplier = constraints.zeroPowerAccelerationMultiplier;
-        pathEndVelocityConstraint = constraints.velocityConstraint;
-        pathEndTranslationalConstraint = constraints.translationalConstraint;
-        pathEndHeadingConstraint = constraints.headingConstraint;
-        pathEndTValueConstraint = constraints.tValueConstraint;
-        pathEndTimeoutConstraint = constraints.timeoutConstraint;
+        zeroPowerAccelerationMultiplier = constraints.getZeroPowerAccelerationMultiplier();
+        pathEndVelocityConstraint = constraints.getVelocityConstraint();
+        pathEndTranslationalConstraint = constraints.getTranslationalConstraint();
+        pathEndHeadingConstraint = constraints.getHeadingConstraint();
+        pathEndTValueConstraint = constraints.getTValueConstraint();
+        pathEndTimeoutConstraint = constraints.getTimeoutConstraint();
     }
 }

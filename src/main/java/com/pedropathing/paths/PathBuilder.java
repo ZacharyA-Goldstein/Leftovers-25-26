@@ -40,7 +40,7 @@ public class PathBuilder {
      * Of course, you can split up the method calls onto separate lines for readability.
      */
     public PathBuilder(PathConstraints constraints, Follower follower) {
-        this.decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+        this.decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
         this.constraints = constraints;
         this.follower = follower;
     }
@@ -54,7 +54,7 @@ public class PathBuilder {
      * Of course, you can split up the method calls onto separate lines for readability.
      */
     public PathBuilder(Follower follower) {
-        this(PathConstraints.getDefaultConstraints(), follower);
+        this(PathConstraints.defaultConstraints, follower);
     }
 
     /**

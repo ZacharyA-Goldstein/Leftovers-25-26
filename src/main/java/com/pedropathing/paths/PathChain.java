@@ -41,7 +41,7 @@ public class PathChain {
      * @param paths the specified Paths.
      */
     public PathChain(Path... paths) {
-        this(PathConstraints.getDefaultConstraints(), paths);
+        this(PathConstraints.defaultConstraints, paths);
     }
 
     /**
@@ -55,7 +55,7 @@ public class PathChain {
      */
     public PathChain(PathConstraints constraints, Path... paths) {
         this.constraints = constraints;
-        decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+        decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
 
         for (Path path : paths) {
             path.setConstraints(constraints);
@@ -73,7 +73,7 @@ public class PathChain {
      * @param paths the ArrayList of Paths.
      */
     public PathChain(ArrayList<Path> paths) {
-        this(PathConstraints.getDefaultConstraints(), paths);
+        this(PathConstraints.defaultConstraints, paths);
     }
 
     /**
@@ -87,7 +87,7 @@ public class PathChain {
      */
     public PathChain(PathConstraints constraints, ArrayList<Path> paths) {
         this.constraints = constraints;
-        decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+        decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
 
         for (Path path : paths) {
             path.setConstraints(constraints);

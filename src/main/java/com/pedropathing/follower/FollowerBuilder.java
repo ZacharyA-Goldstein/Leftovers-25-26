@@ -34,7 +34,7 @@ public class FollowerBuilder {
     public FollowerBuilder(FollowerConstants constants, HardwareMap hardwareMap) {
         this.constants = constants;
         this.hardwareMap = hardwareMap;
-        constraints = PathConstraints.getDefaultConstraints();
+        constraints = PathConstraints.defaultConstraints;
     }
 
     public FollowerBuilder setLocalizer(Localizer localizer) {
