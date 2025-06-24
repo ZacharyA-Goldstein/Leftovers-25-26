@@ -155,7 +155,7 @@ public class Path {
      */
     public PathPoint getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
         initialTValueGuess = curve.getClosestPoint(pose, searchLimit, initialTValueGuess);
-        return new PathPoint(initialTValueGuess, getPoint(initialTValueGuess), curve.getDerivative(initialTValueGuess));
+        return getPoseInformation(initialTValueGuess);
     }
 
     public PathPoint getClosestPoint(Pose pose, int searchLimit) {
@@ -179,7 +179,7 @@ public class Path {
         PathPoint closestPoint = getClosestPoint(currentPose, searchLimit);
         closestPointTValue = closestPoint.getTValue();
         closestPose = closestPoint.getPose();
-        closestPointTangentVector = curve.getDerivative(closestPointTValue);
+        closestPointTangentVector = closestPoint.getTangentVector();
         closestPointNormalVector = curve.getApproxSecondDerivative(closestPointTValue);
         closestPointCurvature = curve.getCurvature(closestPointTValue);
         return closestPoint;
@@ -303,7 +303,7 @@ public class Path {
      * @return returns the heading goal at the closest Point.
      */
     public double getClosestPointHeadingGoal() {
-        return getHeadingGoal(new PathPoint(closestPointTValue, closestPose, closestPointTangentVector));
+        return closestPose.getHeading();
     }
     
     public double getHeadingGoal(PathPoint closestPoint) {

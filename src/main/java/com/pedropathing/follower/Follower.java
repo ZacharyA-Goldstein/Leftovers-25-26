@@ -261,7 +261,7 @@ public class Follower {
         chainIndex = 0;
         currentPathChain = pathChain;
         currentPath = pathChain.getPath(chainIndex);
-        closestPose = updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
+        closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         currentPathChain.resetCallbacks();
 
         for (PathCallback callback : currentPathChain.getCallbacks()) {
@@ -279,7 +279,7 @@ public class Follower {
             resetFollowing.run();
             resetFollowing = null;
             isBusy = true;
-            closestPose = updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
+            closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         }
     }
 
@@ -382,7 +382,7 @@ public class Follower {
             return;
         }
         if (holdingPosition) {
-            closestPose = updateClosestPose(poseTracker.getPose(), 1);
+            closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
             updateErrorAndVectors();
             drivetrain.getAndRunDrivePowers(MathFunctions.scalarMultiplyVector(getTranslationalCorrection(), holdPointTranslationalScaling), MathFunctions.scalarMultiplyVector(getHeadingVector(), holdPointHeadingScaling), new Vector(), poseTracker.getPose().getHeading());
 
@@ -393,7 +393,7 @@ public class Follower {
             return;
         }
         if (isBusy) {
-            closestPose = updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
+            closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
 
             if (followingPathChain) updateCallbacks();
 
@@ -425,7 +425,7 @@ public class Follower {
             followingPathChain = true;
             chainIndex++;
             currentPath = currentPathChain.getPath(chainIndex);
-            closestPose = updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
+            closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
             updateErrorAndVectors();
 
             for (PathCallback callback : currentPathChain.getCallbacks()) {
@@ -723,9 +723,16 @@ public class Follower {
         return currentPath.getHeadingGoal(t);
     }
 
-    private PathPoint updateClosestPose(Pose pose, int steps) {
-        PathPoint location = currentPath.updateClosestPose(pose, steps);
-        return new PathPoint(location.tValue, new Pose(location.pose.getX(), location.pose.getY(), getHeadingGoal(location.tValue)), location.tangentVector);
+    private double getHeadingGoal(PathPoint point) {
+        if (currentPathChain != null) {
+            return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, point.tValue));
+        }
+
+        return currentPath.getHeadingGoal(point);
+    }
+
+    public Vector getClosestPointTangentVector() {
+        return getClosestPose().getTangentVector();
     }
 
     public void debug(TelemetryManager telemetryManager) {
