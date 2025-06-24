@@ -542,7 +542,6 @@ public class Path {
         BEZIER_CURVE_SEARCH_LIMIT = constraints.BEZIER_CURVE_SEARCH_LIMIT;
         this.constraints = constraints;
 
-        if (curve != null)
-        curve.setPathConstraints(constraints);
+        if (curve != null) curve.setPathConstraints(constraints);
     }
 }

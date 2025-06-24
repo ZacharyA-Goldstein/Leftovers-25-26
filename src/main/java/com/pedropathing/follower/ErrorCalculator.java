@@ -165,8 +165,8 @@ public class ErrorCalculator {
                 double stoppingDistance = Kinematics.getStoppingDistance(
                     xMovement, constants.forwardZeroPowerAcceleration
                 );
-                if (distanceToGoal >= stoppingDistance
-                    * currentPathChain.getDecelerationStartMultiplier() * 3/2) {
+                if (distanceToGoal >= Math.abs(stoppingDistance
+                    * currentPathChain.getDecelerationStartMultiplier() * 3)) {
                     return -1;
                 }
             } else {
