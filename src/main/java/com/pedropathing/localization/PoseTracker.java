@@ -254,15 +254,8 @@ public class PoseTracker {
      * @return returns the velocity of the robot.
      */
     public Vector getVelocity() {
-        if (currentVelocity == null) {
-//            currentVelocity = new Vector();
-//            currentVelocity.setOrthogonalComponents(getPose().getX() - previousPose.getX(), getPose().getY() - previousPose.getY());
-//            currentVelocity.setMagnitude(MathFunctions.distance(getPose(), previousPose) / ((currentPoseTime - previousPoseTime) / Math.pow(10.0, 9)));
-            currentVelocity = localizer.getVelocityVector();
-            return MathFunctions.copyVector(currentVelocity);
-        } else {
-            return MathFunctions.copyVector(currentVelocity);
-        }
+        if (currentVelocity == null) currentVelocity = localizer.getVelocityVector();
+        return MathFunctions.copyVector(currentVelocity);
     }
 
     /**
@@ -285,10 +278,8 @@ public class PoseTracker {
         if (currentAcceleration == null) {
             currentAcceleration = MathFunctions.subtractVectors(getVelocity(), previousVelocity);
             currentAcceleration.setMagnitude(currentAcceleration.getMagnitude() / ((currentPoseTime - previousPoseTime) / Math.pow(10.0, 9)));
-            return MathFunctions.copyVector(currentAcceleration);
-        } else {
-            return MathFunctions.copyVector(currentAcceleration);
         }
+        return MathFunctions.copyVector(currentAcceleration);
     }
 
     /**
@@ -350,14 +341,14 @@ public class PoseTracker {
 
     public String debugString() {
         return "PoseTracker{" +
-                "currentPose=" + currentPose +
-                ", previousPose=" + previousPose +
-                ", currentVelocity=" + currentVelocity +
+                "currentPose=" + getPose() +
+                ", previousPose=" + getPreviousPose() +
+                ", currentVelocity=" + getVelocity() +
                 ", previousVelocity=" + previousVelocity +
-                ", currentAcceleration=" + currentAcceleration +
-                ", xOffset=" + xOffset +
-                ", yOffset=" + yOffset +
-                ", headingOffset=" + headingOffset +
+                ", currentAcceleration=" + getAcceleration() +
+                ", xOffset=" + getXOffset() +
+                ", yOffset=" + getYOffset() +
+                ", headingOffset=" + getHeadingOffset() +
                 '}';
     }
 }

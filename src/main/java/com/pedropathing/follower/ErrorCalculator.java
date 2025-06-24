@@ -207,8 +207,8 @@ public class ErrorCalculator {
 //               return "Current Path: " + (currentPath != null ? currentPath.toString() : "null") + "\n" +
                return "Following Path Chain: " + followingPathChain + "\n" +
                "Chain Index: " + chainIndex + "\n" +
-               "Drive Error: " + driveError + "\n" +
-               "Heading Error: " + headingError + "\n" +
-               "Raw Drive Error: " + rawDriveError;
+               "Drive Error: " + getDriveError() + "\n" +
+               "Heading Error: " + getHeadingError() + "\n" +
+               "Raw Drive Error: " + getRawDriveError();
     }
 }
