@@ -371,8 +371,6 @@ public class Follower {
     public void update() {
         updateConstants();
         updatePose();
-        updateErrors();
-        updateVectors();
         updateDrivetrain();
 
         if (teleopDrive) {

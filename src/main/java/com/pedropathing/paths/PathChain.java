@@ -55,7 +55,7 @@ public class PathChain {
      */
     public PathChain(PathConstraints constraints, Path... paths) {
         this.constraints = constraints;
-        decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+        decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
 
         for (Path path : paths) {
             path.setConstraints(constraints);
@@ -87,7 +87,7 @@ public class PathChain {
      */
     public PathChain(PathConstraints constraints, ArrayList<Path> paths) {
         this.constraints = constraints;
-        decelerationStartMultiplier = constraints.decelerationStartMultiplier;
+        decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
 
         for (Path path : paths) {
             path.setConstraints(constraints);
