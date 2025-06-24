@@ -7,6 +7,7 @@ import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector;
+import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathConstraints;
 
 import java.util.ArrayList;
@@ -50,7 +51,8 @@ public class BezierCurve {
     public BezierCurve() {
     }
 
-    public BezierCurve(List<Pose> controlPoints){
+    public BezierCurve(List<Pose> controlPoints, PathConstraints constraints){
+        this.pathConstraints = constraints;
         if (controlPoints.size()<3) {
             try {
                 throw new Exception("Too few control points");
@@ -62,8 +64,17 @@ public class BezierCurve {
         initialize();
     }
 
+    public BezierCurve(List<Pose> controlPoints){
+        this(controlPoints, PathConstraints.defaultConstraints);
+    }
+
+
+    public BezierCurve(PathConstraints constraints, Pose... controlPoints) {
+        this(new ArrayList<>(Arrays.asList(controlPoints)), constraints);
+    }
+
     public BezierCurve(Pose... controlPoints) {
-        this(new ArrayList<>(Arrays.asList(controlPoints)));
+        this(PathConstraints.defaultConstraints, controlPoints);
     }
 
     /**
@@ -425,7 +436,7 @@ public class BezierCurve {
     }
 
     public boolean atParametricEnd(double t) {
-        return t >= pathConstraints.tValueConstraint;
+        return t >= pathConstraints.getTValueConstraint();
     }
 
     public void setControlPoints(ArrayList<Pose> controlPoints) {

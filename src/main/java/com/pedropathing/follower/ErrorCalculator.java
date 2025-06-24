@@ -202,10 +202,9 @@ public class ErrorCalculator {
     }
 
     public String debugString() {
-//        return "Current Pose: " + currentPose.toString() + "\n" +
-//               "Closest Pose: " + closestPose.toString() + "\n" +
-//               return "Current Path: " + (currentPath != null ? currentPath.toString() : "null") + "\n" +
-               return "Following Path Chain: " + followingPathChain + "\n" +
+        return "Current Pose: " + currentPose.toString() + "\n" +
+               "Closest Pose: " + closestPose.toString() + "\n" +
+               "Current Path: " + (currentPath != null ? currentPath.toString() : "null") + "\n" + "Following Path Chain: " + followingPathChain + "\n" +
                "Chain Index: " + chainIndex + "\n" +
                "Drive Error: " + driveError + "\n" +
                "Heading Error: " + headingError + "\n" +
