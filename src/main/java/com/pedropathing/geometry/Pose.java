@@ -78,7 +78,9 @@ public final class Pose {
     }
 
     public Pose plus(Pose other) {
-        Pose inCurrentCoordinates = other.getAsCoordinateSystem(coordinateSystem);
+        Pose inCurrentCoordinates = coordinateSystem == other.coordinateSystem ? other :
+                other.getAsCoordinateSystem(
+                        coordinateSystem);
         return new Pose(x + inCurrentCoordinates.x,
                 y + inCurrentCoordinates.y,
                 heading + inCurrentCoordinates.heading,

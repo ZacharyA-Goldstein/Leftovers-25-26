@@ -89,13 +89,12 @@ tasks.register<Jar>("sourcesJar") {
 
 dependencies {
 	implementation("androidx.annotation:annotation-jvm:1.9.1")
-	//noinspection Aligned16KB
 	compileOnly("org.firstinspires.ftc:RobotCore:10.2.0")
 	compileOnly("org.firstinspires.ftc:Hardware:10.2.0")
 	compileOnly("org.firstinspires.ftc:FtcCommon:10.2.0")
 	compileOnly("org.firstinspires.ftc:RobotServer:10.2.0")
 	compileOnly("org.firstinspires.ftc:OnBotJava:10.2.0")
-	compileOnly("com.bylazar:ftcontrol:0.6.7")
+	compileOnly("com.bylazar:ftcontrol:0.6.6")
 	implementation("org.apache.commons:commons-math3:3.6.1")
 	dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.20")
 	dokkaGfmPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.20")
@@ -107,7 +106,7 @@ publishing {
 		register<MavenPublication>("release") {
 			groupId = "com.pedropathing"
 			artifactId = "dev"
-			version = "1.1.0-dev13"
+			version = "1.1.0-dev14"
 
 			afterEvaluate {
 				from(components["release"])
