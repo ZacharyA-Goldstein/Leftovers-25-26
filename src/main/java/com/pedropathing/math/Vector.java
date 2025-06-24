@@ -1,5 +1,7 @@
 package com.pedropathing.math;
 
+import androidx.annotation.NonNull;
+
 import com.pedropathing.geometry.Pose;
 
 /**
@@ -143,5 +145,16 @@ public class Vector {
      */
     public double getYComponent() {
         return yComponent;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "Vector{" +
+                "magnitude=" + magnitude +
+                ", theta=" + theta +
+                ", xComponent=" + xComponent +
+                ", yComponent=" + yComponent +
+                '}';
     }
 }

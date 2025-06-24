@@ -729,11 +729,9 @@ public class Follower {
     }
 
     public void debug(TelemetryManager telemetryManager) {
-        telemetryManager.debug(
-                poseTracker.debugString() + "\n" +
-                        errorCalculator.debugString() + "\n" +
-                        vectorCalculator.debugString() + "\n" +
-                        drivetrain.debugString()
-        );
+        telemetryManager.debug(poseTracker.debugString());
+        telemetryManager.debug(errorCalculator.debugString());
+        telemetryManager.debug(vectorCalculator.debugString());
+        telemetryManager.debug(drivetrain.debugString());
     }
 }
