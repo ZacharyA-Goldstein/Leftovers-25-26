@@ -369,6 +369,7 @@ public class Follower {
      * This also updates all the Follower's PIDFs, which updates the motor powers.
      */
     public void update() {
+        dashboardPoseTracker.update();
         updateConstants();
         updatePose();
         updateDrivetrain();
@@ -744,6 +745,29 @@ public class Follower {
         return getClosestPose().getTangentVector();
     }
 
+    public void activateAllPIDFs() {
+        useDrive = true;
+        useHeading = true;
+        useTranslational = true;
+        useCentripetal = true;
+    }
+
+    public void deactivateAllPIDFs() {
+        useDrive = false;
+        useHeading = false;
+        useTranslational = false;
+        useCentripetal = false;
+    }
+
+    public void activateDrive() { useDrive = true; }
+    public void activateHeading() { useHeading = true; }
+    public void activateTranslational() { useTranslational = true; }
+    public void activateCentripetal() { useCentripetal = true; }
+
+    /**
+     * This is a debugging method that prints out the current state of the Follower.
+     * @param telemetryManager The TelemetryManager to use for debugging.
+     */
     public void debug(TelemetryManager telemetryManager) {
         telemetryManager.debug(poseTracker.debugString());
         telemetryManager.debug(errorCalculator.debugString());
