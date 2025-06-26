@@ -171,7 +171,7 @@ public class PinpointLocalizer implements Localizer {
         deltaTimeNano = timer.getElapsedTime();
         timer.resetTimer();
         odo.update();
-        Pose currentPinpointPose = getPoseEstimate(odo.getPosition(), pinpointPose, deltaTimeNano);
+        Pose currentPinpointPose = odo.getPosition();
         totalHeading += MathFunctions.getSmallestAngleDifference(currentPinpointPose.getHeading(), previousHeading);
         previousHeading = currentPinpointPose.getHeading();
         Pose deltaPose = MathFunctions.subtractPoses(currentPinpointPose, pinpointPose);

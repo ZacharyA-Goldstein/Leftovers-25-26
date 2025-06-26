@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.hardware.configuration.annotations.DevicePropertie
 import com.qualcomm.robotcore.hardware.configuration.annotations.I2cDeviceType;
 import com.qualcomm.robotcore.util.TypeConversion;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.nio.ByteBuffer;
@@ -134,7 +135,8 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
         FAULT_X_POD_NOT_DETECTED (1 << 2),
         FAULT_Y_POD_NOT_DETECTED (1 << 3),
         FAULT_NO_PODS_DETECTED   (1 << 2 | 1 << 3),
-        FAULT_IMU_RUNAWAY        (1 << 4);
+        FAULT_IMU_RUNAWAY        (1 << 4),
+        FAULT_BAD_READ           (1 << 5);
 
         private final int status;
 
@@ -263,6 +265,18 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
     @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
     public void update(){
         try {
+            final int positionThreshold = 5000; //more than one FTC field in mm
+            final int headingThreshold = 120; //About 20 full rotations in Radians
+            final int velocityThreshold = 10000; //10k mm/sec is faster than an FTC robot should be going...
+            final int headingVelocityThreshold = 120; //About 20 rotations per second
+
+            float oldPosX = xPosition;
+            float oldPosY = yPosition;
+            float oldPosH = hOrientation;
+            float oldVelX = xVelocity;
+            float oldVelY = yVelocity;
+            float oldVelH = hVelocity;
+
             byte[] bArr = deviceClient.read(Register.BULK_READ.bVal, 40);
             deviceStatus = byteArrayToInt(Arrays.copyOfRange(bArr, 0, 4), ByteOrder.LITTLE_ENDIAN);
             loopTime = byteArrayToInt(Arrays.copyOfRange(bArr, 4, 8), ByteOrder.LITTLE_ENDIAN);
@@ -274,6 +288,14 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
             xVelocity = byteArrayToFloat(Arrays.copyOfRange(bArr, 28, 32), ByteOrder.LITTLE_ENDIAN);
             yVelocity = byteArrayToFloat(Arrays.copyOfRange(bArr, 32, 36), ByteOrder.LITTLE_ENDIAN);
             hVelocity = byteArrayToFloat(Arrays.copyOfRange(bArr, 36, 40), ByteOrder.LITTLE_ENDIAN);
+
+            xPosition    = isPositionCorrupt(oldPosX, xPosition, positionThreshold, true);
+            yPosition    = isPositionCorrupt(oldPosY, yPosition, positionThreshold, true);
+            hOrientation = isPositionCorrupt(oldPosH, hOrientation, headingThreshold, true);
+            xVelocity    = isVelocityCorrupt(oldVelX, xVelocity, velocityThreshold);
+            yVelocity    = isVelocityCorrupt(oldVelY, yVelocity, velocityThreshold);
+            hVelocity    = isVelocityCorrupt(oldVelH, hVelocity, headingVelocityThreshold);
+
         }
         catch (Exception ex) {
             if (ex instanceof LynxNackException)
@@ -408,13 +430,13 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      * to determine your location. Then when you pull a new position from your secondary sensor,
      * send a setPosition command with the new position. The Pinpoint will then track your movement
      * relative to that new, more accurate position.
-     *
      * @param pos a Pose describing the robot's new position.
      */
-    public void setPosition(Pose pos) {
+    public Pose setPosition(Pose pos){
         writeByteArray(Register.X_POSITION,(floatToByteArray((float) MathFunctions.inToMM(pos.getX()), ByteOrder.LITTLE_ENDIAN)));
         writeByteArray(Register.Y_POSITION,(floatToByteArray((float) MathFunctions.inToMM(pos.getY()),ByteOrder.LITTLE_ENDIAN)));
         writeByteArray(Register.H_ORIENTATION,(floatToByteArray((float) pos.getHeading(),ByteOrder.LITTLE_ENDIAN)));
+        return pos;
     }
 
     /**
@@ -527,5 +549,45 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      */
     public Pose getVelocity(){
         return new Pose(DistanceUnit.INCH.fromMm(xVelocity), DistanceUnit.INCH.fromMm(yVelocity), hVelocity);
+    }
+
+    /**
+     * Confirm that the number received is a number, and does not include a change above the threshold
+     * @param oldValue the reading from the previous cycle
+     * @param newValue the new reading
+     * @param threshold the maximum change between this reading and the previous one
+     * @param bulkUpdate true if we are updating the loopTime variable. If not it should be false.
+     * @return newValue if the position is good, oldValue otherwise
+     */
+    private Float isPositionCorrupt(float oldValue, float newValue, int threshold, boolean bulkUpdate){
+        boolean noData = bulkUpdate && (loopTime < 1);
+
+        boolean isCorrupt = noData || Float.isNaN(newValue) || Math.abs(newValue - oldValue) > threshold;
+
+        if(!isCorrupt){
+            return newValue;
+        }
+
+        deviceStatus = DeviceStatus.FAULT_BAD_READ.status;
+        return oldValue;
+    }
+
+    /**
+     * Confirm that the number received is a number, and does not include a change above the threshold
+     * @param oldValue the reading from the previous cycle
+     * @param newValue the new reading
+     * @param threshold the velocity allowed to be reported
+     * @return newValue if the velocity is good, oldValue otherwise
+     */
+    private Float isVelocityCorrupt(float oldValue, float newValue, int threshold){
+        boolean isCorrupt = Float.isNaN(newValue) || Math.abs(newValue) > threshold;
+        boolean noData = (loopTime <= 1);
+
+        if(!isCorrupt){
+            return newValue;
+        }
+
+        deviceStatus = DeviceStatus.FAULT_BAD_READ.status;
+        return oldValue;
     }
 }
