@@ -18,7 +18,7 @@ import java.util.Arrays;
  */
 public class ErrorCalculator {
     private FollowerConstants constants;
-    private final KalmanFilter driveKalmanFilter;
+    private KalmanFilter driveKalmanFilter;
     private Pose closestPose, currentPose;
     private Path currentPath;
     private PathChain currentPathChain;
@@ -199,6 +199,10 @@ public class ErrorCalculator {
         driveErrors = new double[2];
         Arrays.fill(driveErrors, 0);
         driveKalmanFilter.reset();
+    }
+
+    public void setConstants(FollowerConstants constants) {
+        this.constants = constants;
     }
 
     public String debugString() {

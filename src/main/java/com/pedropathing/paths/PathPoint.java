@@ -7,7 +7,11 @@ public class PathPoint {
     public final double tValue;
     public final Pose pose;
     public final Vector tangentVector;
-    
+
+    public PathPoint() {
+        this(0, new Pose(), new Vector());
+    }
+
     public PathPoint(double tValue, Pose pose, Vector tangentVector) {
         this.tValue = tValue;
         this.pose = pose;

@@ -18,7 +18,7 @@ import java.util.ArrayList;
  * @author Baron Henderson - 20077 The Indubitables
  */
 public class VectorCalculator {
-    private final FollowerConstants constants;
+    private FollowerConstants constants;
 
     private Path currentPath;
     private PathChain currentPathChain;
@@ -432,6 +432,10 @@ public class VectorCalculator {
 
     public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) {
         this.secondaryTranslationalPIDF.setCoefficients(secondaryTranslationalPIDFCoefficients);
+    }
+
+    public void setConstants(FollowerConstants constants) {
+        this.constants = constants;
     }
 
     public String debugString() {

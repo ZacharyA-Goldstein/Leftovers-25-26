@@ -47,7 +47,7 @@ public class Follower {
 
     private int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
-    private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, teleopDrive;
+    private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, manualDrive;
     private boolean automaticHoldEnd;
     private double globalMaxPower = 1, centripetalScaling;
     private double holdPointTranslationalScaling;
@@ -319,7 +319,7 @@ public class Follower {
      */
     public void startTeleopDrive() {
         breakFollowing();
-        teleopDrive = true;
+        manualDrive = true;
         drivetrain.startTeleopDrive();
     }
 
@@ -328,7 +328,7 @@ public class Follower {
      */
     public void startTeleopDrive(boolean useBrakeMode) {
         breakFollowing();
-        teleopDrive = true;
+        manualDrive = true;
         drivetrain.startTeleopDrive(useBrakeMode);
     }
 
@@ -358,7 +358,7 @@ public class Follower {
 
     /** Calls an update to the VectorCalculator, which updates the robot's current vectors to correct. */
     public void updateVectors() {
-        vectorCalculator.update(useDrive, useHeading, useCentripetal, useTranslational, teleopDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, errorCalculator.getDriveError(), errorCalculator.getHeadingError());
+        vectorCalculator.update(useDrive, useHeading, useCentripetal, useTranslational, manualDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, errorCalculator.getDriveError(), errorCalculator.getHeadingError());
     }
 
     public void updateErrorAndVectors() { updateErrors(); updateVectors();}
@@ -373,14 +373,17 @@ public class Follower {
         updatePose();
         updateDrivetrain();
 
-        if (teleopDrive) {
+        if (manualDrive) {
+            closestPose = new PathPoint();
             updateErrorAndVectors();
             drivetrain.getAndRunDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseTracker.getPose().getHeading());
             return;
         }
+
         if (currentPath == null) {
             return;
         }
+
         if (holdingPosition) {
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
             updateErrorAndVectors();
@@ -485,7 +488,7 @@ public class Follower {
         errorCalculator.breakFollowing();
         vectorCalculator.breakFollowing();
         drivetrain.breakFollowing();
-        teleopDrive = false;
+        manualDrive = false;
         holdingPosition = false;
         isBusy = false;
         reachedParametricPathEnd = false;
@@ -677,7 +680,7 @@ public class Follower {
     public boolean getUseCentripetal() { return useCentripetal; }
 
     /** Return the teleopDrive boolean */
-    public boolean getTeleopDrive() { return teleopDrive; }
+    public boolean getTeleopDrive() { return manualDrive; }
 
     /** Returns the chainIndex of the current PathChain */
     public int getChainIndex() { return chainIndex; }
@@ -691,7 +694,7 @@ public class Follower {
     /** Return the centripetal scaling */
     public double getCentripetalScaling() { return centripetalScaling; }
 
-    public boolean isTeleopDrive() { return teleopDrive; }
+    public boolean isTeleopDrive() { return manualDrive; }
     public Vector getTeleopHeadingVector() { return vectorCalculator.getTeleopHeadingVector(); }
     public Vector getTeleopDriveVector() { return vectorCalculator.getTeleopDriveVector(); }
     public double getHeadingError() { return errorCalculator.getHeadingError(); }
@@ -714,7 +717,13 @@ public class Follower {
     public void setSecondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) { vectorCalculator.setSecondaryHeadingPIDFCoefficients(secondaryHeadingPIDFCoefficients); }
     public void setTranslationalPIDFCoefficients(PIDFCoefficients translationalPIDFCoefficients) { vectorCalculator.setTranslationalPIDFCoefficients(translationalPIDFCoefficients); }
     public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) { vectorCalculator.setSecondaryTranslationalPIDFCoefficients(secondaryTranslationalPIDFCoefficients); }
-
+    public void setConstants(FollowerConstants constants) {
+        this.constants = constants;
+        updateConstants();
+        errorCalculator.setConstants(constants);
+        vectorCalculator.setConstants(constants);
+        drivetrain.updateConstants();
+    }
     private double getHeadingGoal(double t) {
         if (currentPathChain != null) {
             return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, t));
