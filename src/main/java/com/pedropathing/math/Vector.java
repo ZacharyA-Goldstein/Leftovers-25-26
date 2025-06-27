@@ -17,7 +17,6 @@ import com.pedropathing.geometry.Pose;
  * @version 1.0, 3/11/2024
  */
 public class Vector {
-
     // IMPORTANT NOTE: theta is defined in radians.
     // These are the values of the coordinate defined by this Point, in both polar and
     // Cartesian systems.
@@ -156,5 +155,10 @@ public class Vector {
                 ", xComponent=" + xComponent +
                 ", yComponent=" + yComponent +
                 '}';
+    }
+
+    public Vector transform(Matrix matrix) {
+        double[] multiply = matrix.multiply(new Matrix(new double[][]{{xComponent}, {yComponent}})).getCol(0);
+        return new Vector(multiply[0],multiply[1]);
     }
 }

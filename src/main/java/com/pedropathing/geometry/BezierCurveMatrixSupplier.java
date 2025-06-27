@@ -68,7 +68,7 @@ public class BezierCurveMatrixSupplier {
         // since a bezier's characteristic matrix has rows multiplied by the n-th layer of pascal's triangle respectively
         // construct an elementary row operation matrix that does those things
         Matrix rowMultOp = new Matrix(output.getRows(), output.getColumns());
-        double[] mult = output.get(output.getRows() - 1);
+        double[] mult = output.getRow(output.getRows() - 1);
 
         for (int i = 0; i < rowMultOp.getRows(); i++) {
             rowMultOp.set(i, i, mult[i]);
@@ -82,14 +82,14 @@ public class BezierCurveMatrixSupplier {
         int startingSign = 1;
         for (int i = 0; i < rowMultOp.getRows(); i++) {
 
-            double[] cachedRow = rowMultOp.get(i);
+            double[] cachedRow = rowMultOp.getRow(i);
 
             int realSign = startingSign;
             for (int j = 0; j < cachedRow.length; j++) {
                 cachedRow[j] *= realSign;
                 realSign *= -1;
             }
-            rowMultOp.set(i, cachedRow);
+            rowMultOp.setRow(i, cachedRow);
             startingSign *= -1;
         }
 
