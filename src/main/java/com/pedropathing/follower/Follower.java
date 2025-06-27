@@ -553,16 +553,16 @@ public class Follower {
      * This returns a new PathBuilder object for easily building PathChains.
      * @return returns a new PathBuilder object.
      */
-    public PathBuilder pathBuilder(PathConstraints constraints) {
-        return new PathBuilder(constraints, this);
+    public static PathBuilder pathBuilder(PathConstraints constraints) {
+        return new PathBuilder(constraints);
     }
 
     /**
      * This returns a new PathBuilder object for easily building PathChains.
      * @return returns a new PathBuilder object.
      */
-    public PathBuilder pathBuilder() {
-        return new PathBuilder(this);
+    public static PathBuilder pathBuilder() {
+        return new PathBuilder();
     }
 
     /**

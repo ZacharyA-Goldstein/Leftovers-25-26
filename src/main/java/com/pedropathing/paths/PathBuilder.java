@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0, 3/11/2024
  */
 public class PathBuilder {
-    private Follower follower;
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
@@ -39,10 +38,9 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder(PathConstraints constraints, Follower follower) {
+    public PathBuilder(PathConstraints constraints) {
         this.decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
         this.constraints = constraints;
-        this.follower = follower;
     }
 
     /**
@@ -53,8 +51,8 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder(Follower follower) {
-        this(PathConstraints.defaultConstraints, follower);
+    public PathBuilder() {
+        this(PathConstraints.defaultConstraints);
     }
 
     /**
@@ -327,7 +325,7 @@ public class PathBuilder {
      * @param runnable This sets the code for the callback to run. Use lambda statements for this.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder addParametricCallback(double t, Runnable runnable) {
+    public PathBuilder addParametricCallback(double t, Follower follower, Runnable runnable) {
         this.callbacks.add(new FiniteRunAction(new ParametricCallback(paths.size() - 1, t, follower, runnable)));
         return this;
     }

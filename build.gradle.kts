@@ -89,6 +89,7 @@ tasks.register<Jar>("sourcesJar") {
 
 dependencies {
 	implementation("androidx.annotation:annotation-jvm:1.9.1")
+	//noinspection Aligned16KB
 	compileOnly("org.firstinspires.ftc:RobotCore:10.3.0")
 	compileOnly("org.firstinspires.ftc:Hardware:10.3.0")
 	compileOnly("com.bylazar:ftcontrol:0.6.7")
