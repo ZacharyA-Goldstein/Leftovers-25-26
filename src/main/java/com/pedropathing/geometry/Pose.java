@@ -5,6 +5,10 @@ import androidx.annotation.NonNull;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
 /**
  * This is the Pose class. It defines poses in 2D space. A Pose consists of
  * two coordinates defining a position and a third value for the heading, so basically just defining
@@ -33,6 +37,10 @@ public final class Pose {
 
     public Pose(double x, double y) {
         this(x, y, 0);
+    }
+
+    public Pose(Pose2D ftcPose2d) {
+        this(ftcPose2d.getX(DistanceUnit.INCH), ftcPose2d.getY(DistanceUnit.INCH), ftcPose2d.getHeading(AngleUnit.RADIANS), CoordinateSystems.FTC);
     }
 
     public Pose() {
@@ -140,6 +148,10 @@ public final class Pose {
 
     public Pose getAsFtcStandardCoordinates() {
         return getAsCoordinateSystem(CoordinateSystems.FTC);
+    }
+
+    public Pose2D getAsFtcPose2d() {
+        return new Pose2D(DistanceUnit.INCH, getAsFtcStandardCoordinates().getX(), getAsFtcStandardCoordinates().getY(), AngleUnit.RADIANS, getAsFtcStandardCoordinates().getHeading());
     }
 
     public static double[] polarToCartesian(double r, double theta) {
