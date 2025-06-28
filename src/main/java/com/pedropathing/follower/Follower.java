@@ -358,7 +358,7 @@ public class Follower {
 
     /** Calls an update to the VectorCalculator, which updates the robot's current vectors to correct. */
     public void updateVectors() {
-        vectorCalculator.update(useDrive, useHeading, useCentripetal, useTranslational, manualDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, errorCalculator.getDriveError(), errorCalculator.getHeadingError());
+        vectorCalculator.update(useDrive, useHeading, useTranslational, useCentripetal, manualDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, getDriveError(), getTranslationalError(), getHeadingError());
     }
 
     public void updateErrorAndVectors() { updateErrors(); updateVectors();}
@@ -699,6 +699,8 @@ public class Follower {
     public Vector getTeleopHeadingVector() { return vectorCalculator.getTeleopHeadingVector(); }
     public Vector getTeleopDriveVector() { return vectorCalculator.getTeleopDriveVector(); }
     public double getHeadingError() { return errorCalculator.getHeadingError(); }
+    public Vector getTranslationalError() { return errorCalculator.getTranslationalError(); }
+    public double getDriveError() { return errorCalculator.getDriveError(); }
     public Vector getDriveVector() { return vectorCalculator.getDriveVector(); }
     public Vector getCorrectiveVector() { return vectorCalculator.getCorrectiveVector(); }
     public Vector getHeadingVector() { return vectorCalculator.getHeadingVector(); }

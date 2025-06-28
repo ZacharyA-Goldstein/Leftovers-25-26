@@ -147,6 +147,10 @@ public class Vector {
         return yComponent;
     }
 
+    public Vector copy() {
+        return new Vector(this.magnitude, this.theta);
+    }
+
     @NonNull
     @Override
     public String toString() {

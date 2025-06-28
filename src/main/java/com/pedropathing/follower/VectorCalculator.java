@@ -33,7 +33,7 @@ public class VectorCalculator {
     private Vector secondaryTranslationalIntegralVector, translationalIntegralVector;
     private Vector teleopDriveVector, teleopHeadingVector;
 
-    public Vector driveVector, headingVector, translationalVector, centripetalVector, correctiveVector;
+    public Vector driveVector, headingVector, translationalVector, centripetalVector, correctiveVector, translationalError;
 
     private double previousSecondaryTranslationalIntegral;
     private double previousTranslationalIntegral;
@@ -93,7 +93,7 @@ public class VectorCalculator {
         mass = constants.mass;
     }
 
-    public void update(boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal, boolean teleopDrive, int chainIndex, double maxPowerScaling, boolean followingPathChain, double centripetalScaling, Pose currentPose, Pose closestPose, Vector velocity, Path currentPath, PathChain currentPathChain, double driveError, double headingError) {
+    public void update(boolean useDrive, boolean useHeading, boolean useTranslational, boolean useCentripetal, boolean teleopDrive, int chainIndex, double maxPowerScaling, boolean followingPathChain, double centripetalScaling, Pose currentPose, Pose closestPose, Vector velocity, Path currentPath, PathChain currentPathChain, double driveError, Vector translationalError, double headingError) {
         updateConstants();
 
         this.useDrive = useDrive;
@@ -111,6 +111,7 @@ public class VectorCalculator {
         this.currentPath = currentPath;
         this.currentPathChain = currentPathChain;
         this.driveError = driveError;
+        this.translationalError = translationalError;
         this.headingError = headingError;
 
         if(teleopDrive)
@@ -244,10 +245,7 @@ public class VectorCalculator {
      */
     public Vector getTranslationalCorrection() {
         if (!useTranslational) return new Vector();
-        Vector translationalVector = new Vector();
-        double x = closestPose.getX() - currentPose.getX();
-        double y = closestPose.getY() - currentPose.getY();
-        translationalVector.setOrthogonalComponents(x, y);
+        Vector translationalVector = translationalError.copy();
 
         if (!(currentPath.isAtParametricEnd() || currentPath.isAtParametricStart())) {
             translationalVector = MathFunctions.subtractVectors(translationalVector, new Vector(MathFunctions.dotProduct(translationalVector, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta()));
