@@ -396,6 +396,7 @@ public class Follower {
             }
             return;
         }
+
         if (isBusy) {
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
 
@@ -405,25 +406,16 @@ public class Follower {
             drivetrain.getAndRunDrivePowers(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseTracker.getPose().getHeading());
         }
 
-        // try to fix the robot stop near the end issue
-        // if robot is almost reach the end and velocity is close to zero
-        // then, break the following if other criteria meet
         if (poseTracker.getVelocity().getMagnitude() < 1.0 && currentPath.getClosestPointTValue() > 0.8
                 && zeroVelocityDetectedTimer == null && isBusy) {
             zeroVelocityDetectedTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         }
 
-        if (!(
-            currentPath.isAtParametricEnd()
-            || (
-                zeroVelocityDetectedTimer != null
-                && zeroVelocityDetectedTimer.milliseconds() > 500.0
-            )
-        )) {
+        if (!(currentPath.isAtParametricEnd() || ( zeroVelocityDetectedTimer != null && zeroVelocityDetectedTimer.milliseconds() > 500.0))) {
             return;
         }
+
         if (followingPathChain && chainIndex < currentPathChain.size() - 1) {
-            // Not at last path, keep going
             breakFollowing();
             isBusy = true;
             followingPathChain = true;
@@ -440,12 +432,12 @@ public class Follower {
 
             return;
         }
-        // At last path, run some end detection stuff
-        // set isBusy to false if at end
+
         if (!reachedParametricPathEnd) {
             reachedParametricPathEnd = true;
             reachedParametricPathEndTime = System.currentTimeMillis();
         }
+
         updateErrorAndVectors();
         if (!(
             (
@@ -661,7 +653,6 @@ public class Follower {
 
     /**
      * Gets the maximum power that can be used by the drive vector scaler. Ranges between 0 and 1.
-     *
      * @return returns the max power scaling
      */
     public double getMaxPowerScaling() {
@@ -707,12 +698,15 @@ public class Follower {
     public Vector getTranslationalCorrection() { return vectorCalculator.getTranslationalCorrection(); }
     public Vector getCentripetalForceCorrection() { return vectorCalculator.getCentripetalForceCorrection(); }
     public PathConstraints getConstraints() { return pathConstraints; }
+    public FollowerConstants getConstants() { return constants; }
     public void setConstraints(PathConstraints pathConstraints) { this.pathConstraints = pathConstraints; }
     public Drivetrain getDrivetrain() { return drivetrain; }
     public PoseTracker getPoseTracker() { return poseTracker; }
     public ErrorCalculator getErrorCalculator() { return errorCalculator; }
     public VectorCalculator getVectorCalculator() { return vectorCalculator; }
     public DashboardPoseTracker getDashboardPoseTracker() { return dashboardPoseTracker; }
+    public void setXMovement(double xMovement) { drivetrain.setXMovement(xMovement); }
+    public void setYMovement(double yMovement) { drivetrain.setYMovement(yMovement); }
 
     public void setDrivePIDFCoefficients(FilteredPIDFCoefficients drivePIDFCoefficients) { vectorCalculator.setDrivePIDFCoefficients(drivePIDFCoefficients); }
     public void setSecondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) { vectorCalculator.setSecondaryDrivePIDFCoefficients(secondaryDrivePIDFCoefficients); }

@@ -222,7 +222,6 @@ public class FollowerConstants {
      */
     public boolean automaticHoldEnd = true;
 
-
     /**
      * This is the mass of the robot. This is used to calculate the centripetal force.
      * Default Value: 10.65
@@ -392,6 +391,238 @@ public class FollowerConstants {
     public FollowerConstants lateralZeroPowerAcceleration(double lateralZeroPowerAcceleration) {
         this.lateralZeroPowerAcceleration = lateralZeroPowerAcceleration;
         return this;
+    }
+
+    public PIDFCoefficients getTranslationalPIDFCoefficients() {
+        return translationalPIDFCoefficients;
+    }
+
+    public void setTranslationalPIDFCoefficients(PIDFCoefficients translationalPIDFCoefficients) {
+        this.translationalPIDFCoefficients = translationalPIDFCoefficients;
+    }
+
+    public PIDFCoefficients getTranslationalIntegral() {
+        return translationalIntegral;
+    }
+
+    public void setTranslationalIntegral(PIDFCoefficients translationalIntegral) {
+        this.translationalIntegral = translationalIntegral;
+    }
+
+    public double getTranslationalPIDFFeedForward() {
+        return translationalPIDFFeedForward;
+    }
+
+    public void setTranslationalPIDFFeedForward(double translationalPIDFFeedForward) {
+        this.translationalPIDFFeedForward = translationalPIDFFeedForward;
+    }
+
+    public PIDFCoefficients getHeadingPIDFCoefficients() {
+        return headingPIDFCoefficients;
+    }
+
+    public void setHeadingPIDFCoefficients(PIDFCoefficients headingPIDFCoefficients) {
+        this.headingPIDFCoefficients = headingPIDFCoefficients;
+    }
+
+    public double getHeadingPIDFFeedForward() {
+        return headingPIDFFeedForward;
+    }
+
+    public void setHeadingPIDFFeedForward(double headingPIDFFeedForward) {
+        this.headingPIDFFeedForward = headingPIDFFeedForward;
+    }
+
+    public FilteredPIDFCoefficients getDrivePIDFCoefficients() {
+        return drivePIDFCoefficients;
+    }
+
+    public void setDrivePIDFCoefficients(FilteredPIDFCoefficients drivePIDFCoefficients) {
+        this.drivePIDFCoefficients = drivePIDFCoefficients;
+    }
+
+    public double getDrivePIDFFeedForward() {
+        return drivePIDFFeedForward;
+    }
+
+    public void setDrivePIDFFeedForward(double drivePIDFFeedForward) {
+        this.drivePIDFFeedForward = drivePIDFFeedForward;
+    }
+
+    public PIDFCoefficients getSecondaryTranslationalPIDFCoefficients() {
+        return secondaryTranslationalPIDFCoefficients;
+    }
+
+    public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) {
+        this.secondaryTranslationalPIDFCoefficients = secondaryTranslationalPIDFCoefficients;
+    }
+
+    public PIDFCoefficients getSecondaryTranslationalIntegral() {
+        return secondaryTranslationalIntegral;
+    }
+
+    public void setSecondaryTranslationalIntegral(PIDFCoefficients secondaryTranslationalIntegral) {
+        this.secondaryTranslationalIntegral = secondaryTranslationalIntegral;
+    }
+
+    public double getSecondaryTranslationalPIDFFeedForward() {
+        return secondaryTranslationalPIDFFeedForward;
+    }
+
+    public void setSecondaryTranslationalPIDFFeedForward(double secondaryTranslationalPIDFFeedForward) {
+        this.secondaryTranslationalPIDFFeedForward = secondaryTranslationalPIDFFeedForward;
+    }
+
+    public double getHeadingPIDFSwitch() {
+        return headingPIDFSwitch;
+    }
+
+    public void setHeadingPIDFSwitch(double headingPIDFSwitch) {
+        this.headingPIDFSwitch = headingPIDFSwitch;
+    }
+
+    public PIDFCoefficients getSecondaryHeadingPIDFCoefficients() {
+        return secondaryHeadingPIDFCoefficients;
+    }
+
+    public void setSecondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) {
+        this.secondaryHeadingPIDFCoefficients = secondaryHeadingPIDFCoefficients;
+    }
+
+    public double getSecondaryHeadingPIDFFeedForward() {
+        return secondaryHeadingPIDFFeedForward;
+    }
+
+    public void setSecondaryHeadingPIDFFeedForward(double secondaryHeadingPIDFFeedForward) {
+        this.secondaryHeadingPIDFFeedForward = secondaryHeadingPIDFFeedForward;
+    }
+
+    public double getDrivePIDFSwitch() {
+        return drivePIDFSwitch;
+    }
+
+    public void setDrivePIDFSwitch(double drivePIDFSwitch) {
+        this.drivePIDFSwitch = drivePIDFSwitch;
+    }
+
+    public FilteredPIDFCoefficients getSecondaryDrivePIDFCoefficients() {
+        return secondaryDrivePIDFCoefficients;
+    }
+
+    public void setSecondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) {
+        this.secondaryDrivePIDFCoefficients = secondaryDrivePIDFCoefficients;
+    }
+
+    public double getSecondaryDrivePIDFFeedForward() {
+        return secondaryDrivePIDFFeedForward;
+    }
+
+    public void setSecondaryDrivePIDFFeedForward(double secondaryDrivePIDFFeedForward) {
+        this.secondaryDrivePIDFFeedForward = secondaryDrivePIDFFeedForward;
+    }
+
+    public double getHoldPointTranslationalScaling() {
+        return holdPointTranslationalScaling;
+    }
+
+    public void setHoldPointTranslationalScaling(double holdPointTranslationalScaling) {
+        this.holdPointTranslationalScaling = holdPointTranslationalScaling;
+    }
+
+    public double getHoldPointHeadingScaling() {
+        return holdPointHeadingScaling;
+    }
+
+    public void setHoldPointHeadingScaling(double holdPointHeadingScaling) {
+        this.holdPointHeadingScaling = holdPointHeadingScaling;
+    }
+
+    public int getBEZIER_CURVE_SEARCH_LIMIT() {
+        return BEZIER_CURVE_SEARCH_LIMIT;
+    }
+
+    public void setBEZIER_CURVE_SEARCH_LIMIT(int BEZIER_CURVE_SEARCH_LIMIT) {
+        this.BEZIER_CURVE_SEARCH_LIMIT = BEZIER_CURVE_SEARCH_LIMIT;
+    }
+
+    public boolean isUseSecondaryTranslationalPIDF() {
+        return useSecondaryTranslationalPIDF;
+    }
+
+    public void setUseSecondaryTranslationalPIDF(boolean useSecondaryTranslationalPIDF) {
+        this.useSecondaryTranslationalPIDF = useSecondaryTranslationalPIDF;
+    }
+
+    public boolean isUseSecondaryHeadingPIDF() {
+        return useSecondaryHeadingPIDF;
+    }
+
+    public void setUseSecondaryHeadingPIDF(boolean useSecondaryHeadingPIDF) {
+        this.useSecondaryHeadingPIDF = useSecondaryHeadingPIDF;
+    }
+
+    public boolean isUseSecondaryDrivePIDF() {
+        return useSecondaryDrivePIDF;
+    }
+
+    public void setUseSecondaryDrivePIDF(boolean useSecondaryDrivePIDF) {
+        this.useSecondaryDrivePIDF = useSecondaryDrivePIDF;
+    }
+
+    public double getTranslationalPIDFSwitch() {
+        return translationalPIDFSwitch;
+    }
+
+    public void setTranslationalPIDFSwitch(double translationalPIDFSwitch) {
+        this.translationalPIDFSwitch = translationalPIDFSwitch;
+    }
+
+    public double getTurnHeadingErrorThreshold() {
+        return turnHeadingErrorThreshold;
+    }
+
+    public void setTurnHeadingErrorThreshold(double turnHeadingErrorThreshold) {
+        this.turnHeadingErrorThreshold = turnHeadingErrorThreshold;
+    }
+
+    public double getCentripetalScaling() {
+        return centripetalScaling;
+    }
+
+    public void setCentripetalScaling(double centripetalScaling) {
+        this.centripetalScaling = centripetalScaling;
+    }
+
+    public boolean isAutomaticHoldEnd() {
+        return automaticHoldEnd;
+    }
+
+    public void setAutomaticHoldEnd(boolean automaticHoldEnd) {
+        this.automaticHoldEnd = automaticHoldEnd;
+    }
+
+    public double getMass() {
+        return mass;
+    }
+
+    public void setMass(double mass) {
+        this.mass = mass;
+    }
+
+    public double getForwardZeroPowerAcceleration() {
+        return forwardZeroPowerAcceleration;
+    }
+
+    public void setForwardZeroPowerAcceleration(double forwardZeroPowerAcceleration) {
+        this.forwardZeroPowerAcceleration = forwardZeroPowerAcceleration;
+    }
+
+    public double getLateralZeroPowerAcceleration() {
+        return lateralZeroPowerAcceleration;
+    }
+
+    public void setLateralZeroPowerAcceleration(double lateralZeroPowerAcceleration) {
+        this.lateralZeroPowerAcceleration = lateralZeroPowerAcceleration;
     }
 
     public void defaults() {

@@ -92,7 +92,7 @@ dependencies {
 	//noinspection Aligned16KB
 	compileOnly("org.firstinspires.ftc:RobotCore:10.3.0")
 	compileOnly("org.firstinspires.ftc:Hardware:10.3.0")
-	compileOnly("com.bylazar:ftcontrol:0.6.7")
+	compileOnly("com.bylazar:ftcontrol:0.6.8")
 	implementation("org.apache.commons:commons-math3:3.6.1")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.20")
 }
@@ -102,7 +102,7 @@ publishing {
 		register<MavenPublication>("release") {
 			groupId = "com.pedropathing"
 			artifactId = "dev"
-			version = "1.1.0-dev17"
+			version = "1.1.0-dev18"
 
 			afterEvaluate {
 				from(components["release"])

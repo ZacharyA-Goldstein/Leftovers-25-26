@@ -237,6 +237,11 @@ public class Mecanum extends Drivetrain {
         return constants.yMovement;
     }
 
+    public void setXMovement(double xMovement) { constants.setXMovement(xMovement);
+        return xMovement;
+    }
+    public void setYMovement(double yMovement) { constants.setYMovement(yMovement); }
+
     public String debugString() {
         return "Mecanum{" +
                 " leftFront=" + leftFront +
