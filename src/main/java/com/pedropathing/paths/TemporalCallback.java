@@ -10,9 +10,23 @@ import java.util.concurrent.TimeUnit;
  * @author Havish Sripada - 12808 RevAmped Robotics
  */
 public class TemporalCallback implements PathCallback {
-    private double startCondition;
-    private Runnable runnable;
+    /**
+     * The time (in milliseconds) after which the callback should be triggered since initialization.
+     */
+    private final double startCondition;
+
+    /**
+     * The action to execute when the callback is triggered.
+     */
+    private final Runnable runnable;
+
+    /**
+     * The start time (in milliseconds) when the callback was initialized.
+     */
     private double startTime = 0;
+    /**
+     * The index of the path this callback is associated with.
+     */
     private int index;
 
     /**
@@ -26,10 +40,10 @@ public class TemporalCallback implements PathCallback {
         this.startCondition = startCondition;
         this.runnable = runnable;
     }
-
+    
     /**
-     * This runs the callback.
-     * @return true if the action was successful
+     * Executes the callback action.
+     * @return true after running the action
      */
     @Override
     public boolean run() {
@@ -45,15 +59,19 @@ public class TemporalCallback implements PathCallback {
     public boolean isReady() {
         return TimeUnit.NANOSECONDS.convert(System.nanoTime(), TimeUnit.MILLISECONDS) - startTime >= startCondition;
     }
-
+    
     /**
-     * This initializes the callback.
+     * Initializes the callback by recording the current time.
      */
     @Override
     public void initialize() {
         startTime = TimeUnit.NANOSECONDS.convert(System.nanoTime(), TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Returns the index of the path this callback is associated with.
+     * @return the path index
+     */
     @Override
     public int getPathIndex() {
         return index;

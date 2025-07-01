@@ -47,8 +47,9 @@ public abstract class Drivetrain {
     public abstract void startTeleopDrive(boolean brakeMode);
 
     public abstract double xMovement();
-
     public abstract double yMovement();
+    public abstract void setXMovement(double xMovement);
+    public abstract void setYMovement(double yMovement);
 
     public abstract String debugString();
 

@@ -1,12 +1,13 @@
 package com.pedropathing.localization.localizers;
 
 
+import com.pedropathing.geometry.CoordinateSystems;
 import com.pedropathing.localization.constants.PinpointConstants;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import com.pedropathing.localization.GoBildaPinpointDriver;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
@@ -21,39 +22,18 @@ import java.util.Objects;
  * localizer that uses the two wheel odometry set up with the IMU to have more accurate heading
  * readings. The diagram below, which is modified from Road Runner, shows a typical set up.
  *
- * The view is from the top of the robot looking downwards.
- *
- * left on robot is the y positive direction
- *
- * forward on robot is the x positive direction
- *
- *    /--------------\
- *    |     ____     |
- *    |     ----     |
- *    | ||           |
- *    | ||           |  ----> left (y positive)
- *    |              |
- *    |              |
- *    \--------------/
- *           |
- *           |
- *           V
- *    forward (x positive)
- * With the pinpoint your readings will be used in mm
- * to use inches ensure to divide your mm value by 25.4
  * @author Logan Nash
  * @author Havish Sripada 12808 - RevAmped Robotics
- * @author Ethan Doak - Gobilda
- * @version 1.0, 10/2/2024
+ * @author Ethan Doak - GoBilda
+ * @version 2.0, 6/30/2025
  */
 public class PinpointLocalizer implements Localizer {
-    private HardwareMap hardwareMap;
-    private GoBildaPinpointDriver odo;
+    private final GoBildaPinpointDriver odo;
     private double previousHeading;
     private double totalHeading;
     private Pose startPose;
     private long deltaTimeNano;
-    private NanoTimer timer;
+    private final NanoTimer timer;
     private Pose currentVelocity;
     private Pose pinpointPose;
     private boolean pinpointCooked = false;
@@ -74,9 +54,8 @@ public class PinpointLocalizer implements Localizer {
      * @param setStartPose the Pose to start from
      */
     public PinpointLocalizer(HardwareMap map, PinpointConstants constants, Pose setStartPose){
-        hardwareMap = map;
 
-        odo = hardwareMap.get(GoBildaPinpointDriver.class,constants.hardwareMapName);
+        odo = map.get(GoBildaPinpointDriver.class,constants.hardwareMapName);
         setOffsets(constants.forwardY, constants.strafeX, constants.distanceUnit);
 
         if(constants.useYawScalar) {
@@ -84,7 +63,7 @@ public class PinpointLocalizer implements Localizer {
         }
 
         if(constants.useCustomEncoderResolution) {
-            odo.setEncoderResolution(constants.customEncoderResolution);
+            odo.setEncoderResolution(constants.customEncoderResolution, DistanceUnit.INCH);
         } else {
             odo.setEncoderResolution(constants.encoderResolution);
         }
@@ -158,7 +137,7 @@ public class PinpointLocalizer implements Localizer {
      */
     @Override
     public void setPose(Pose setPose) {
-        odo.setPosition(new Pose(setPose.getX(), setPose.getY(), setPose.getHeading()));
+        odo.setPosition(setPose.getAsPose2d(CoordinateSystems.PEDRO));
         pinpointPose = setPose;
         previousHeading = setPose.getHeading();
     }
@@ -171,7 +150,7 @@ public class PinpointLocalizer implements Localizer {
         deltaTimeNano = timer.getElapsedTime();
         timer.resetTimer();
         odo.update();
-        Pose currentPinpointPose = odo.getPosition();
+        Pose currentPinpointPose = new Pose(odo.getPosition(), CoordinateSystems.PEDRO);
         totalHeading += MathFunctions.getSmallestAngleDifference(currentPinpointPose.getHeading(), previousHeading);
         previousHeading = currentPinpointPose.getHeading();
         Pose deltaPose = MathFunctions.subtractPoses(currentPinpointPose, pinpointPose);
@@ -224,7 +203,7 @@ public class PinpointLocalizer implements Localizer {
      * @param unit The units that the measurements are given in
      */
     private void setOffsets(double xOffset, double yOffset, DistanceUnit unit) {
-        odo.setOffsets(unit.toMm(xOffset), unit.toMm(yOffset));
+        odo.setOffsets(xOffset, yOffset, unit);
     }
 
     /**

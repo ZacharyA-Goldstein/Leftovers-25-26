@@ -7,7 +7,6 @@ import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.paths.PathPoint;
 import com.pedropathing.util.DashboardPoseTracker;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
@@ -38,7 +37,7 @@ public class Follower {
     public ErrorCalculator errorCalculator;
     public VectorCalculator vectorCalculator;
     public Drivetrain drivetrain;
-    private DashboardPoseTracker dashboardPoseTracker;
+    private final DashboardPoseTracker dashboardPoseTracker;
 
     private Pose currentPose = new Pose();
     private PathPoint closestPose = new PathPoint();
@@ -64,17 +63,16 @@ public class Follower {
 
     /**
      * This creates a new Follower given a HardwareMap.
-     * @param hardwareMap HardwareMap required
      * @param constants FollowerConstants to use
      * @param localizer Localizer to use
      * @param drivetrain Drivetrain to use
      * @param pathConstraints PathConstraints to use
      */
-    public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain, PathConstraints pathConstraints) {
+    public Follower(FollowerConstants constants, Localizer localizer, Drivetrain drivetrain, PathConstraints pathConstraints) {
         this.constants = constants;
         this.pathConstraints = pathConstraints;
 
-        poseTracker = new PoseTracker(hardwareMap, localizer);
+        poseTracker = new PoseTracker(localizer);
         errorCalculator = new ErrorCalculator(constants);
         vectorCalculator = new VectorCalculator(constants);
         this.drivetrain = drivetrain;
@@ -102,13 +100,12 @@ public class Follower {
 
     /**
      * This creates a new Follower given a HardwareMap.
-     * @param hardwareMap HardwareMap required
      * @param constants FollowerConstants to use
      * @param localizer Localizer to use
      * @param drivetrain Drivetrain to use
      */
-    public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
-        this(hardwareMap, constants, localizer, drivetrain, PathConstraints.defaultConstraints);
+    public Follower(FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
+        this(constants, localizer, drivetrain, PathConstraints.defaultConstraints);
     }
 
     public void setCentripetalScaling(double set) {
@@ -363,7 +360,7 @@ public class Follower {
 
     /** Calls an update to the VectorCalculator, which updates the robot's current vectors to correct. */
     public void updateVectors() {
-        vectorCalculator.update(useDrive, useHeading, useCentripetal, useTranslational, manualDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, errorCalculator.getDriveError(), errorCalculator.getHeadingError());
+        vectorCalculator.update(useDrive, useHeading, useTranslational, useCentripetal, manualDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, getDriveError(), getTranslationalError(), getHeadingError());
     }
 
     public void updateErrorAndVectors() {updateErrors(); updateVectors();}
@@ -404,6 +401,7 @@ public class Follower {
             }
             return;
         }
+
         if (isBusy) {
             previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
@@ -414,25 +412,16 @@ public class Follower {
             drivetrain.getAndRunDrivePowers(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseTracker.getPose().getHeading());
         }
 
-        // try to fix the robot stop near the end issue
-        // if robot is almost reach the end and velocity is close to zero
-        // then, break the following if other criteria meet
         if (poseTracker.getVelocity().getMagnitude() < 1.0 && currentPath.getClosestPointTValue() > 0.8
                 && zeroVelocityDetectedTimer == null && isBusy) {
             zeroVelocityDetectedTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         }
 
-        if (!(
-            currentPath.isAtParametricEnd()
-            || (
-                zeroVelocityDetectedTimer != null
-                && zeroVelocityDetectedTimer.milliseconds() > 500.0
-            )
-        )) {
+        if (!(currentPath.isAtParametricEnd() || ( zeroVelocityDetectedTimer != null && zeroVelocityDetectedTimer.milliseconds() > 500.0))) {
             return;
         }
+
         if (followingPathChain && chainIndex < currentPathChain.size() - 1) {
-            // Not at last path, keep going
             breakFollowing();
             isBusy = true;
             followingPathChain = true;
@@ -450,12 +439,12 @@ public class Follower {
 
             return;
         }
-        // At last path, run some end detection stuff
-        // set isBusy to false if at end
+
         if (!reachedParametricPathEnd) {
             reachedParametricPathEnd = true;
             reachedParametricPathEndTime = System.currentTimeMillis();
         }
+
         updateErrorAndVectors();
         if (!(
             (
@@ -563,16 +552,16 @@ public class Follower {
      * This returns a new PathBuilder object for easily building PathChains.
      * @return returns a new PathBuilder object.
      */
-    public PathBuilder pathBuilder(PathConstraints constraints) {
-        return new PathBuilder(constraints, this);
+    public static PathBuilder pathBuilder(PathConstraints constraints) {
+        return new PathBuilder(constraints);
     }
 
     /**
      * This returns a new PathBuilder object for easily building PathChains.
      * @return returns a new PathBuilder object.
      */
-    public PathBuilder pathBuilder() {
-        return new PathBuilder(this);
+    public static PathBuilder pathBuilder() {
+        return new PathBuilder();
     }
 
     /**
@@ -671,7 +660,6 @@ public class Follower {
 
     /**
      * Gets the maximum power that can be used by the drive vector scaler. Ranges between 0 and 1.
-     *
      * @return returns the max power scaling
      */
     public double getMaxPowerScaling() {
@@ -709,18 +697,23 @@ public class Follower {
     public Vector getTeleopHeadingVector() { return vectorCalculator.getTeleopHeadingVector(); }
     public Vector getTeleopDriveVector() { return vectorCalculator.getTeleopDriveVector(); }
     public double getHeadingError() { return errorCalculator.getHeadingError(); }
+    public Vector getTranslationalError() { return errorCalculator.getTranslationalError(); }
+    public double getDriveError() { return errorCalculator.getDriveError(); }
     public Vector getDriveVector() { return vectorCalculator.getDriveVector(); }
     public Vector getCorrectiveVector() { return vectorCalculator.getCorrectiveVector(); }
     public Vector getHeadingVector() { return vectorCalculator.getHeadingVector(); }
     public Vector getTranslationalCorrection() { return vectorCalculator.getTranslationalCorrection(); }
     public Vector getCentripetalForceCorrection() { return vectorCalculator.getCentripetalForceCorrection(); }
     public PathConstraints getConstraints() { return pathConstraints; }
+    public FollowerConstants getConstants() { return constants; }
     public void setConstraints(PathConstraints pathConstraints) { this.pathConstraints = pathConstraints; }
     public Drivetrain getDrivetrain() { return drivetrain; }
     public PoseTracker getPoseTracker() { return poseTracker; }
     public ErrorCalculator getErrorCalculator() { return errorCalculator; }
     public VectorCalculator getVectorCalculator() { return vectorCalculator; }
     public DashboardPoseTracker getDashboardPoseTracker() { return dashboardPoseTracker; }
+    public void setXMovement(double xMovement) { drivetrain.setXMovement(xMovement); }
+    public void setYMovement(double yMovement) { drivetrain.setYMovement(yMovement); }
 
     public void setDrivePIDFCoefficients(FilteredPIDFCoefficients drivePIDFCoefficients) { vectorCalculator.setDrivePIDFCoefficients(drivePIDFCoefficients); }
     public void setSecondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) { vectorCalculator.setSecondaryDrivePIDFCoefficients(secondaryDrivePIDFCoefficients); }

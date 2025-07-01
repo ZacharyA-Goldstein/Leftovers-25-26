@@ -10,8 +10,6 @@ import androidx.annotation.NonNull;
  * @version 1.0, 7/15/2024
  */
 
-
-
 public class FilteredPIDFCoefficients {
     public double P;
     public double I;

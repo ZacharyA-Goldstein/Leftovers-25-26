@@ -14,8 +14,7 @@ import java.util.List;
 /**
  * This is the Mecanum class, a child class of Drivetrain. This class takes in inputs Vectors for driving, heading
  * correction, and translational/centripetal correction and returns an array with wheel powers.
- *
-Upd * @author Baron Henderson - 20077 The Indubitables
+ * @author Baron Henderson - 20077 The Indubitables
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
@@ -23,15 +22,13 @@ Upd * @author Baron Henderson - 20077 The Indubitables
  */
 public class Mecanum extends Drivetrain {
     public MecanumConstants constants;
-    private DcMotorEx leftFront;
-    private DcMotorEx leftRear;
-    private DcMotorEx rightFront;
-    private DcMotorEx rightRear;
-    private List<DcMotorEx> motors;
+    private final DcMotorEx leftFront;
+    private final DcMotorEx leftRear;
+    private final DcMotorEx rightFront;
+    private final DcMotorEx rightRear;
+    private final List<DcMotorEx> motors;
     private double motorCachingThreshold;
     private boolean useBrakeModeInTeleOp;
-
-    // This is ordered left front, left back, right front, right back. These are also normalized.
 
     /**
      * This creates a new Mecanum, which takes in various movement vectors and outputs
@@ -91,7 +88,7 @@ public class Mecanum extends Drivetrain {
      * @param correctivePower this Vector includes the centrifugal force scaling Vector as well as a
      *                        translational power Vector to correct onto the Bezier curve the Follower
      *                        is following.
-     * @param headingPower    this Vector points in the direction of the robot's current heaing, and
+     * @param headingPower    this Vector points in the direction of the robot's current heading, and
      *                        the magnitude tells the robot how much it should turn and in which
      *                        direction.
      * @param pathingPower    this Vector points in the direction the robot needs to go to continue along
@@ -236,6 +233,9 @@ public class Mecanum extends Drivetrain {
     public double yMovement() {
         return constants.yMovement;
     }
+
+    public void setXMovement(double xMovement) { constants.setXMovement(xMovement); }
+    public void setYMovement(double yMovement) { constants.setYMovement(yMovement); }
 
     public String debugString() {
         return "Mecanum{" +

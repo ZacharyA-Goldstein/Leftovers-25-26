@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0, 3/11/2024
  */
 public class PathBuilder {
-    private Follower follower;
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
@@ -40,10 +39,9 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder(PathConstraints constraints, Follower follower) {
+    public PathBuilder(PathConstraints constraints) {
         this.decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
         this.constraints = constraints;
-        this.follower = follower;
     }
 
     /**
@@ -54,8 +52,8 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder(Follower follower) {
-        this(PathConstraints.defaultConstraints, follower);
+    public PathBuilder() {
+        this(PathConstraints.defaultConstraints);
     }
 
     /**
@@ -328,16 +326,26 @@ public class PathBuilder {
      * @param runnable This sets the code for the callback to run. Use lambda statements for this.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder addParametricCallback(double t, Runnable runnable) {
+    public PathBuilder addParametricCallback(double t, Follower follower, Runnable runnable) {
         this.callbacks.add(new FiniteRunAction(new ParametricCallback(paths.size() - 1, t, follower, runnable)));
         return this;
     }
 
+    /**
+     * This adds a callback to the PathBuilder.
+     */
     public PathBuilder addCallback(PathCallback callback) {
         this.callbacks.add(new FiniteRunAction(callback));
         return this;
     }
 
+    /**
+     * This adds a callback to the PathBuilder that will run on every loop of the PathChain.
+     * This is useful for callbacks that need to run every loop, such as updating telemetry.
+     *
+     * @param callback The callback to add.
+     * @return This returns itself with the updated data.
+     */
     public PathBuilder addLoopedCallback(PathCallback callback) {
         this.callbacks.add(callback);
         return this;

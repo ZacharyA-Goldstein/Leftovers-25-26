@@ -8,19 +8,11 @@ import com.pedropathing.math.Vector;
  * @author Havish Sripada - 12808 RevAmped Robotics
  */
 public class PathPoint {
-    /**
-     * The t-value of the point
-     */
+    /** The parametric t-value of the point on the path. */
     public final double tValue;
-
-    /**
-     * The pose of the point
-     */
+    /** The pose (position and orientation) at this point on the path. */
     public final Pose pose;
-
-    /**
-     * The tangent vector of the point
-     */
+    /** The tangent vector at this point on the path. */
     public final Vector tangentVector;
 
     /**
@@ -43,24 +35,24 @@ public class PathPoint {
     }
 
     /**
-     * Getter for the t-value of the point.
-     * @return The t-value of the point
+     * Returns the t-value of this path point.
+     * @return the t-value
      */
     public double getTValue() {
         return tValue;
     }
 
     /**
-     * Getter for the pose of the point.
-     * @return The pose of the point
+     * Returns the pose at this path point.
+     * @return the pose
      */
     public Pose getPose() {
         return pose;
     }
 
     /**
-     * Getter for the tangent vector of the point.
-     * @return The tangent vector of the point
+     * Returns the tangent vector at this path point.
+     * @return the tangent vector
      */
     public Vector getTangentVector() {
         return tangentVector;

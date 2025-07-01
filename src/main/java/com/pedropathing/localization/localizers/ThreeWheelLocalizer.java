@@ -15,46 +15,25 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 /**
  * This is the ThreeWheelLocalizer class. This class extends the Localizer superclass and is a
- * localizer that uses the three wheel odometry set up. The diagram below, which is modified from
- * Road Runner, shows a typical set up.
- *
- * The view is from the top of the robot looking downwards.
- *
- * left on robot is the y positive direction
- *
- * forward on robot is the x positive direction
- *
- *                         forward (x positive)
- *                                △
- *                                |
- *                                |
- *                         /--------------\
- *                         |              |
- *                         |              |
- *                         | ||        || |
- *  left (y positive) <--- | ||        || |  
- *                         |     ____     |
- *                         |     ----     |
- *                         \--------------/
+ * localizer that uses the three wheel odometry set up.
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 4/2/2024
  */
 
 public class ThreeWheelLocalizer implements Localizer {
-    private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;
     private Pose currentVelocity;
     private Matrix prevRotationMatrix;
-    private NanoTimer timer;
+    private final NanoTimer timer;
     private long deltaTimeNano;
-    private Encoder leftEncoder;
-    private Encoder rightEncoder;
-    private Encoder strafeEncoder;
-    private Pose leftEncoderPose;
-    private Pose rightEncoderPose;
-    private Pose strafeEncoderPose;
+    private final Encoder leftEncoder;
+    private final Encoder rightEncoder;
+    private final Encoder strafeEncoder;
+    private final Pose leftEncoderPose;
+    private final Pose rightEncoderPose;
+    private final Pose strafeEncoderPose;
     private double totalHeading;
     public static double FORWARD_TICKS_TO_INCHES;
     public static double STRAFE_TICKS_TO_INCHES;
@@ -78,7 +57,6 @@ public class ThreeWheelLocalizer implements Localizer {
      * @param setStartPose the Pose to start from
      */
     public ThreeWheelLocalizer(HardwareMap map, ThreeWheelConstants constants, Pose setStartPose) {
-        hardwareMap = map;
         FORWARD_TICKS_TO_INCHES = constants.forwardTicksToInches;
         STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
         TURN_TICKS_TO_RADIANS = constants.turnTicksToInches;
@@ -87,9 +65,9 @@ public class ThreeWheelLocalizer implements Localizer {
         rightEncoderPose = new Pose(0, constants.rightY, 0);
         strafeEncoderPose = new Pose(constants.strafeX, 0, Math.toRadians(90));
 
-        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.leftEncoder_HardwareMapName));
-        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.rightEncoder_HardwareMapName));
-        strafeEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.strafeEncoder_HardwareMapName));
+        leftEncoder = new Encoder(map.get(DcMotorEx.class, constants.leftEncoder_HardwareMapName));
+        rightEncoder = new Encoder(map.get(DcMotorEx.class, constants.rightEncoder_HardwareMapName));
+        strafeEncoder = new Encoder(map.get(DcMotorEx.class, constants.strafeEncoder_HardwareMapName));
 
         leftEncoder.setDirection(constants.leftEncoderDirection);
         rightEncoder.setDirection(constants.rightEncoderDirection);

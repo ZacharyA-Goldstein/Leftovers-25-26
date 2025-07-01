@@ -102,6 +102,118 @@ public class MecanumConstants {
         return this;
     }
 
+    public double getXMovement() {
+        return xMovement;
+    }
+
+    public void setXMovement(double xMovement) {
+        this.xMovement = xMovement;
+    }
+
+    public double getYMovement() {
+        return yMovement;
+    }
+
+    public void setYMovement(double yMovement) {
+        this.yMovement = yMovement;
+    }
+
+    public Vector getFrontLeftVector() {
+        return frontLeftVector;
+    }
+
+    public void setFrontLeftVector(Vector frontLeftVector) {
+        this.frontLeftVector = frontLeftVector;
+    }
+
+    public double getMaxPower() {
+        return maxPower;
+    }
+
+    public void setMaxPower(double maxPower) {
+        this.maxPower = maxPower;
+    }
+
+    public String getLeftFrontMotorName() {
+        return leftFrontMotorName;
+    }
+
+    public void setLeftFrontMotorName(String leftFrontMotorName) {
+        this.leftFrontMotorName = leftFrontMotorName;
+    }
+
+    public String getLeftRearMotorName() {
+        return leftRearMotorName;
+    }
+
+    public void setLeftRearMotorName(String leftRearMotorName) {
+        this.leftRearMotorName = leftRearMotorName;
+    }
+
+    public String getRightFrontMotorName() {
+        return rightFrontMotorName;
+    }
+
+    public void setRightFrontMotorName(String rightFrontMotorName) {
+        this.rightFrontMotorName = rightFrontMotorName;
+    }
+
+    public String getRightRearMotorName() {
+        return rightRearMotorName;
+    }
+
+    public void setRightRearMotorName(String rightRearMotorName) {
+        this.rightRearMotorName = rightRearMotorName;
+    }
+
+    public DcMotorSimple.Direction getLeftFrontMotorDirection() {
+        return leftFrontMotorDirection;
+    }
+
+    public void setLeftFrontMotorDirection(DcMotorSimple.Direction leftFrontMotorDirection) {
+        this.leftFrontMotorDirection = leftFrontMotorDirection;
+    }
+
+    public DcMotorSimple.Direction getLeftRearMotorDirection() {
+        return leftRearMotorDirection;
+    }
+
+    public void setLeftRearMotorDirection(DcMotorSimple.Direction leftRearMotorDirection) {
+        this.leftRearMotorDirection = leftRearMotorDirection;
+    }
+
+    public DcMotorSimple.Direction getRightFrontMotorDirection() {
+        return rightFrontMotorDirection;
+    }
+
+    public void setRightFrontMotorDirection(DcMotorSimple.Direction rightFrontMotorDirection) {
+        this.rightFrontMotorDirection = rightFrontMotorDirection;
+    }
+
+    public DcMotorSimple.Direction getRightRearMotorDirection() {
+        return rightRearMotorDirection;
+    }
+
+    public void setRightRearMotorDirection(DcMotorSimple.Direction rightRearMotorDirection) {
+        this.rightRearMotorDirection = rightRearMotorDirection;
+    }
+
+    public double getMotorCachingThreshold() {
+        return motorCachingThreshold;
+    }
+
+    public void setMotorCachingThreshold(double motorCachingThreshold) {
+        this.motorCachingThreshold = motorCachingThreshold;
+    }
+
+    public boolean isUseBrakeModeInTeleOp() {
+        return useBrakeModeInTeleOp;
+    }
+
+    public void setUseBrakeModeInTeleOp(boolean useBrakeModeInTeleOp) {
+        this.useBrakeModeInTeleOp = useBrakeModeInTeleOp;
+    }
+
     /**
      * This method sets the default values for the MecanumConstants class.
      * It is called in the constructor of the MecanumConstants class.

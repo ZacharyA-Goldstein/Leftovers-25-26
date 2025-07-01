@@ -18,11 +18,8 @@ import java.util.ArrayList;
  */
 public class BezierPoint extends BezierCurve {
 
-    private Pose pose;
-
+    private final Pose pose;
     private Vector endTangent = new Vector();
-
-    private double UNIT_TO_TIME;
     private double length;
 
     /**

@@ -16,45 +16,23 @@ import com.pedropathing.util.NanoTimer;
 
 /**
  * This is the TwoWheelLocalizer class. This class extends the Localizer superclass and is a
- * localizer that uses the two wheel odometry with IMU set up. The diagram below, which is modified from
- * Road Runner, shows a typical set up.
- *
- * The view is from the top of the robot looking downwards.
- *
- * left on robot is the y positive direction
- *
- * forward on robot is the x positive direction
- *
-*                         forward (x positive)
- *                                △
- *                                |
- *                                |
- *                         /--------------\
- *                         |              |
- *                         |              |
- *                         |           || |
- *  left (y positive) <--- |           || |  
- *                         |     ____     |
- *                         |     ----     |
- *                         \--------------/
- *
+ * localizer that uses the two wheel odometry with IMU set up.
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 4/2/2024
  */
 
 public class TwoWheelLocalizer implements Localizer {
-    private HardwareMap hardwareMap;
-    private IMU imu;
+    private final IMU imu;
     private Pose startPose;
     private Pose displacementPose;
     private Pose currentVelocity;
     private Matrix prevRotationMatrix;
-    private NanoTimer timer;
+    private final NanoTimer timer;
     private long deltaTimeNano;
-    private Encoder forwardEncoder;
-    private Encoder strafeEncoder;
-    private Pose forwardEncoderPose;
-    private Pose strafeEncoderPose;
+    private final Encoder forwardEncoder;
+    private final Encoder strafeEncoder;
+    private final Pose forwardEncoderPose;
+    private final Pose strafeEncoderPose;
     private double previousIMUOrientation;
     private double deltaRadians;
     private double totalHeading;
@@ -85,13 +63,11 @@ public class TwoWheelLocalizer implements Localizer {
         forwardEncoderPose = new Pose(0, constants.forwardY, 0);
         strafeEncoderPose = new Pose(constants.strafeX, 0, Math.toRadians(90));
 
-        hardwareMap = map;
-
-        imu = hardwareMap.get(IMU.class, constants.IMU_HardwareMapName);
+        imu = map.get(IMU.class, constants.IMU_HardwareMapName);
         imu.initialize(new IMU.Parameters(constants.IMU_Orientation));
 
-        forwardEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.forwardEncoder_HardwareMapName));
-        strafeEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.strafeEncoder_HardwareMapName));
+        forwardEncoder = new Encoder(map.get(DcMotorEx.class, constants.forwardEncoder_HardwareMapName));
+        strafeEncoder = new Encoder(map.get(DcMotorEx.class, constants.strafeEncoder_HardwareMapName));
 
         forwardEncoder.setDirection(constants.forwardEncoderDirection);
         strafeEncoder.setDirection(constants.strafeEncoderDirection);

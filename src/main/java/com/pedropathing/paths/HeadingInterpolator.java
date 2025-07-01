@@ -1,6 +1,7 @@
 package com.pedropathing.paths;
 
 
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 
 import java.util.HashMap;
@@ -63,21 +64,21 @@ public interface HeadingInterpolator {
         }
 
         /**
-         * @return this returns the initial-tvalue where the heading interpolation begins
+         * Gets the initial t-value of the piecewise node.
          */
         public double getInitialTValue() {
             return initialTValue;
         }
 
         /**
-         * @return this returns the final t-value where the heading interpolation ends
+         * Gets the final t-value of the piecewise node.
          */
         public double getFinalTValue() {
             return finalTValue;
         }
 
         /**
-         * @return this returns the heading interpolation
+         * Gets the heading interpolator of the piecewise node.
          */
         public HeadingInterpolator getInterpolator() {
             return interpolator;
@@ -140,6 +141,10 @@ public interface HeadingInterpolator {
             x - closestPoint.pose.getY(),
             y - closestPoint.pose.getX()
         );
+    }
+
+    static HeadingInterpolator facingPoint(Pose pose) {
+        return facingPoint(pose.getX(), pose.getY());
     }
 
     /**

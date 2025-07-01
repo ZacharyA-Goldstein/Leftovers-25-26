@@ -222,8 +222,14 @@ public class PathChain {
         }
     }
 
+    /**
+     * Represents a specific point within a {@link PathChain}, defined by a path index and a t-value (parametric position).
+     * Provides utility methods to access the corresponding path, pose, point, tangent vector, and heading goal.
+     */
     public static class PathT {
+        /** The index of the path in the chain. */
         final int pathIndex;
+        /** The t-value (parametric position) within the path. */
         final double t;
 
         /**
@@ -231,7 +237,6 @@ public class PathChain {
          * @param pathIndex this specifies the index of the path in the chain
          * @param t this is the t-value of the point in the path
          */
-
         public PathT(int pathIndex, double t) {
             this.pathIndex = pathIndex;
             this.t = t;

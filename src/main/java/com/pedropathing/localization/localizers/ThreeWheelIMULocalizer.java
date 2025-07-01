@@ -18,26 +18,7 @@ import com.pedropathing.util.NanoTimer;
 /**
  * This is the ThreeWheelIMULocalizer class. This class extends the Localizer superclass and is a
  * localizer that uses the three wheel odometry set up with the IMU to have more accurate heading
- * readings. The diagram below, which is modified from Road Runner, shows a typical set up.
- *
- * The view is from the top of the robot looking downwards.
- *
- * left on robot is the y positive direction
- *
- * forward on robot is the x positive direction
- *
- *                         forward (x positive)
- *                                △
- *                                |
- *                                |
- *                         /--------------\
- *                         |              |
- *                         |              |
- *                         | ||        || |
- *  left (y positive) <--- | ||        || |  
- *                         |     ____     |
- *                         |     ----     |
- *                         \--------------/
+ * readings.
  *
  * @author Logan Nash
  * @author Anyi Lin - 10158 Scott's Bots
@@ -45,19 +26,18 @@ import com.pedropathing.util.NanoTimer;
  */
 
 public class ThreeWheelIMULocalizer implements Localizer {
-    private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;
     private Pose currentVelocity;
     private Matrix prevRotationMatrix;
-    private NanoTimer timer;
+    private final NanoTimer timer;
     private long deltaTimeNano;
-    private Encoder leftEncoder;
-    private Encoder rightEncoder;
-    private Encoder strafeEncoder;
-    private Pose leftEncoderPose;
-    private Pose rightEncoderPose;
-    private Pose strafeEncoderPose;
+    private final Encoder leftEncoder;
+    private final Encoder rightEncoder;
+    private final Encoder strafeEncoder;
+    private final Pose leftEncoderPose;
+    private final Pose rightEncoderPose;
+    private final Pose strafeEncoderPose;
 
     public final IMU imu;
     private double previousIMUOrientation;
@@ -87,8 +67,7 @@ public class ThreeWheelIMULocalizer implements Localizer {
      * @param setStartPose the Pose to start from
      */
     public ThreeWheelIMULocalizer(HardwareMap map, ThreeWheelIMUConstants constants, Pose setStartPose) {
-        hardwareMap = map;
-        
+
         FORWARD_TICKS_TO_INCHES = constants.forwardTicksToInches;
         STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
         TURN_TICKS_TO_RADIANS = constants.turnTicksToInches;
@@ -97,12 +76,12 @@ public class ThreeWheelIMULocalizer implements Localizer {
         rightEncoderPose = new Pose(0, constants.rightY, 0);
         strafeEncoderPose = new Pose(constants.strafeX, 0, Math.toRadians(90));
 
-        imu = hardwareMap.get(IMU.class, constants.IMU_HardwareMapName);
+        imu = map.get(IMU.class, constants.IMU_HardwareMapName);
         imu.initialize(new IMU.Parameters(constants.IMU_Orientation));
 
-        leftEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.leftEncoder_HardwareMapName));
-        rightEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.rightEncoder_HardwareMapName));
-        strafeEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, constants.strafeEncoder_HardwareMapName));
+        leftEncoder = new Encoder(map.get(DcMotorEx.class, constants.leftEncoder_HardwareMapName));
+        rightEncoder = new Encoder(map.get(DcMotorEx.class, constants.rightEncoder_HardwareMapName));
+        strafeEncoder = new Encoder(map.get(DcMotorEx.class, constants.strafeEncoder_HardwareMapName));
 
         leftEncoder.setDirection(constants.leftEncoderDirection);
         rightEncoder.setDirection(constants.rightEncoderDirection);

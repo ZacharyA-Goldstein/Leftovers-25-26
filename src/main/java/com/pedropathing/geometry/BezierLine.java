@@ -18,15 +18,13 @@ import java.util.ArrayList;
  */
 public class BezierLine extends BezierCurve {
 
-    private Pose startPoint;
-    private Pose endPoint;
+    private final Pose startPoint;
+    private final Pose endPoint;
 
     private Vector endTangent;
 
     private double UNIT_TO_TIME;
     private double length;
-
-
 
     /**
      * This creates a new BezierLine with specified start and end Points.

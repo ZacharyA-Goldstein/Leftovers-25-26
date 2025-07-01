@@ -28,6 +28,15 @@ public class Path {
     private Vector closestPointTangentVector;
     private Vector closestPointNormalVector;
     private Pose closestPose;
+
+    /**
+     * A multiplier for the zero power acceleration to change the speed at which the robot decelerates at the end of paths.
+     * <p>
+     * Increasing this value will cause the robot to decelerate faster, which may increase the risk of overshoots or localization slippage.
+     * Decreasing this value will slow down the deceleration at the end of the path, making the robot slower but reducing the risk of end-of-path overshoots or localization slippage.
+     * <p>
+     * This can be set individually for each Path, but this is the default value.
+     */
     private Integrator distanceCalculator = new Integrator(Integrator.Differential.TVALUE);
     
     // A multiplier for the zero power acceleration to change the speed the robot decelerates at
@@ -39,31 +48,45 @@ public class Path {
     // This can be set individually for each Path, but this is the default.
     private double zeroPowerAccelerationMultiplier;
 
-    // When the robot is at the end of its current Path or PathChain and the velocity goes
-    // this value, then end the Path. This is in inches/second.
-    // This can be custom set for each Path.
+    /**
+     * When the robot is at the end of its current Path or PathChain and the velocity goes
+     * below this value, then end the Path. This is in inches/second.
+     * This can be custom set for each Path.
+     */
     private double pathEndVelocityConstraint;
 
-    // When the robot is at the end of its current Path or PathChain and the translational error
-    // goes below this value, then end the Path. This is in inches.
-    // This can be custom set for each Path.
+    /**
+     * When the robot is at the end of its current Path or PathChain and the translational error
+     * goes below this value, then end the Path. This is in inches.
+     * This can be custom set for each Path.
+     */
     private double pathEndTranslationalConstraint;
 
-    // When the robot is at the end of its current Path or PathChain and the heading error goes
-    // below this value, then end the Path. This is in radians.
-    // This can be custom set for each Path.
+    /**
+     * When the robot is at the end of its current Path or PathChain and the heading error goes
+     * below this value, then end the Path. This is in radians.
+     * This can be custom set for each Path.
+     */
     private double pathEndHeadingConstraint;
 
-    // When the t-value of the closest point to the robot on the Path is greater than this value,
-    // then the Path is considered at its end.
-    // This can be custom set for each Path.
+    /**
+     * When the t-value of the closest point to the robot on the Path is greater than this value,
+     * then the Path is considered at its end.
+     * This can be custom set for each Path.
+     */
     private double pathEndTValueConstraint;
 
-    // When the Path is considered at its end parametrically, then the Follower has this many
-    // milliseconds to further correct by default.
-    // This can be custom set for each Path.
+    /**
+     * When the Path is considered at its end parametrically, then the Follower has this many
+     * milliseconds to further correct by default.
+     * This can be custom set for each Path.
+     */
     private double pathEndTimeoutConstraint;
 
+    /**
+     * The maximum number of iterations to use when searching for the closest point on the Bezier curve.
+     * This is used as a limit for Newton search algorithms to prevent excessive computation.
+     */
     private int BEZIER_CURVE_SEARCH_LIMIT;
 
     /**
@@ -150,6 +173,7 @@ public class Path {
     /**
      * This gets the closest point from a specified pose to the BezierCurve with a Newton search
      * that is limited to some specified step limit.
+     * This will use the initial guess for the t-value as a starting point.
      *
      * @param pose        the pose.
      * @param searchLimit the maximum number of iterations to run.
@@ -181,18 +205,19 @@ public class Path {
     }
 
     /**
-     * This gets the closest pose to the specified pose.
-     * @return the closest pose
+     * This gets the closest Pose on the BezierCurve to the current Pose.
      */
     public PathPoint getClosestPose() {
         return new PathPoint(closestPointTValue, closestPose, closestPointTangentVector);
     }
 
     /**
-     * This updates the closest pose to the specified pose.
-     * @param currentPose the pose to find the closest point to
-     * @param searchLimit the maximum number of iterations to run
-     * @return the closest point
+     * This updates the closest Pose on the BezierCurve to the current Pose.
+     * It will search for the closest point within a specified limit.
+     *
+     * @param currentPose the current pose of the robot.
+     * @param searchLimit the maximum number of iterations to run.
+     * @return returns the closest Point on the BezierCurve.
      */
     public PathPoint updateClosestPose(Pose currentPose, int searchLimit) {
         PathPoint closestPoint = getClosestPoint(currentPose, searchLimit);
@@ -283,9 +308,11 @@ public class Path {
     }
 
     /**
-     * This returns the pose at the specified t-value.
-     * @param t the t-value
-     * @return the pose at the specified t-value
+     * This returns the Pose at a specified t-value. The Pose contains the x and y position, as well
+     * as the heading goal at that t-value.
+     *
+     * @param t the specified t-value.
+     * @return returns the Pose at the specified t-value.
      */
     public Pose getPose(double t) {
         Pose position = curve.getPose(t);
@@ -293,9 +320,10 @@ public class Path {
     }
 
     /**
-     * This returns the PathPoint at the specified t-value.
-     * @param t the t-value
-     * @return the PathPoint at the specified t-value
+     * This returns the Pose information at a specified t-value as a PathPoint.
+     *
+     * @param t the specified t-value.
+     * @return returns the PathPoint containing the Pose and tangent Vector at the specified t-value.
      */
     public PathPoint getPoseInformation(double t) {
         return new PathPoint(t, getPose(t), getTangentVector(t));
@@ -364,15 +392,32 @@ public class Path {
     public double getClosestPointHeadingGoal() {
         return closestPose.getHeading();
     }
-    
+
+    /**
+     * This returns the heading goal at the closest Point.
+     *
+     * @param closestPoint the closest Point to get the heading goal for.
+     * @return returns the heading goal at the closest Point.
+     */
     public double getHeadingGoal(PathPoint closestPoint) {
         return this.headingInterpolator.interpolate(closestPoint);
     }
 
+    /**
+     * This returns the heading goal at a specified t-value.
+     *
+     * @param t the specified t-value.
+     * @return returns the heading goal at the specified t-value.
+     */
     public double getHeadingGoal(double t) {
         return this.headingInterpolator.interpolate(new PathPoint(t, curve.getPose(t), getTangentVector(t)));
     }
-    
+
+    /**
+     * This sets the heading interpolation to a custom HeadingInterpolator.
+     *
+     * @param interpolator the custom HeadingInterpolator to set.
+     */
     public void setHeadingInterpolation(HeadingInterpolator interpolator) {
         this.headingInterpolator = interpolator;
     }
@@ -581,16 +626,31 @@ public class Path {
         return headingInterpolator;
     }
 
+    /**
+     * This gets the BezierCurve that this Path is based on.
+     *
+     * @return returns the BezierCurve.
+     */
     public Pose endPose() {
         Pose lastControlPoint = curve.getLastControlPoint();
         return new Pose(lastControlPoint.getX(), lastControlPoint.getY(),
             getHeadingGoal(new PathPoint(1, lastControlPoint, curve.getEndTangent())));
     }
 
+    /**
+     * This returns if the Path is reversed.
+     */
     public Path getReversed() {
         return new Path(curve.getReversed());
     }
 
+    /**
+     * This sets the constraints for the Path. This includes the zero power acceleration multiplier,
+     * path end velocity constraint, path end translational constraint, path end heading constraint,
+     * path end t-value constraint, path end timeout constraint, and the Bezier curve search limit.
+     *
+     * @param constraints the PathConstraints to set.
+     */
     public void setConstraints(PathConstraints constraints) {
         zeroPowerAccelerationMultiplier = constraints.getZeroPowerAccelerationMultiplier();
         pathEndVelocityConstraint = constraints.getVelocityConstraint();
@@ -602,5 +662,14 @@ public class Path {
         this.constraints = constraints;
 
         if (curve != null) curve.setPathConstraints(constraints);
+    }
+
+    /**
+     * This gets the PathConstraints for the Path.
+     *
+     * @return returns the PathConstraints.
+     */
+    public PathConstraints getConstraints() {
+        return constraints;
     }
 }

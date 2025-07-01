@@ -1,20 +1,16 @@
 package com.pedropathing.geometry;
 
-import androidx.annotation.NonNull;
-
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class FinetunedBezierLine extends BezierLine {
     private final Pose endPoint;
     private double crossingThreshold;
-    private BezierLine modifiedCurve;
+    private final BezierLine modifiedCurve;
     private final double pathEndTValueConstraint;
     private double unmodifiedSegmentLength;
     private PathConstraints constraints;

@@ -1,13 +1,8 @@
 package com.pedropathing.geometry;
 
-
-import androidx.annotation.NonNull;
-
-import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector;
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathConstraints;
 
 import java.util.ArrayList;
@@ -20,7 +15,7 @@ import java.util.List;
  * as the basis of the path for the Path class. Bezier curves are parametric curves defined by a set
  * of control points. So, they take in one input, t, that ranges from [0, 1] and that returns a point
  * on the curve. Essentially, Bezier curves are a way of defining a parametric line easily. You can
- * read more on Bezier curves here: https://en.wikipedia.org/wiki/Bézier_curve
+ * read more on Bezier curves here: <a href="https://en.wikipedia.org/wiki/Bézier_curve">...</a>
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots

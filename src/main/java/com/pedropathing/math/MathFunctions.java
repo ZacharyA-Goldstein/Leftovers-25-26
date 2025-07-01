@@ -14,32 +14,6 @@ import com.pedropathing.geometry.Pose;
 public class MathFunctions {
 
     /**
-     * This is a simple implementation of the choose function in math. It's equivalent to the number
-     * of ways you can choose r items from n total items, if only which items got picked and not the
-     * order of picking the items mattered.
-     *
-     * @param n this is how many you want to choose from.
-     * @param r this is how many you want to choose.
-     * @return returns the result of the "n choose r" function.
-     */
-    public static double nCr(int n, int r) {
-        double num = 1;
-        double denom = 1;
-
-        // this multiplies up the numerator of the nCr function
-        for (int i = n; i > n - r; i--) {
-            num *= i;
-        }
-
-        // this multiplies up the denominator of the nCr function
-        for (int i = 1; i <= r; i++) {
-            denom *= i;
-        }
-
-        return num / denom;
-    }
-
-    /**
      * This clamps down a value to between the lower and upper bounds inclusive.
      *
      * @param num the number to be clamped.
@@ -93,8 +67,6 @@ public class MathFunctions {
         return -1; // clock wise
     }
 
-
-
     /**
      * This returns the distance between a Pose and another Pose.
      *
@@ -105,8 +77,6 @@ public class MathFunctions {
     public static double distance(Pose one, Pose two) {
         return Math.sqrt(Math.pow(one.getX() - two.getX(), 2) + Math.pow(one.getY() - two.getY(), 2));
     }
-
-
 
     /**
      * This returns a Pose that is the sum of the two input Pose.
@@ -282,7 +252,6 @@ public class MathFunctions {
      * @param staticVector the Vector that is held constant.
      * @param variableVector the Vector getting scaled to make the sum of the input Vectors have a
      *                       magnitude of maxPowerScaling.
-     * @param maxPowerScaling
      * @return returns the scaling factor for the variable Vector.
      */
     public static double findNormalizingScaling(Vector staticVector, Vector variableVector, double maxPowerScaling) {
