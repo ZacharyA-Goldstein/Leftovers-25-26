@@ -160,7 +160,7 @@ public class ErrorCalculator {
                     }
                 }
 
-                distanceToGoal = remainingLength + currentPath.length() * (1 - currentPath.getClosestPointTValue());
+                distanceToGoal = remainingLength + currentPath.length() - currentPath.getDistanceTraveled();
 
                 double stoppingDistance = Kinematics.getStoppingDistance(
                     xMovement, constants.forwardZeroPowerAcceleration
@@ -170,7 +170,7 @@ public class ErrorCalculator {
                     return -1;
                 }
             } else {
-                distanceToGoal = currentPath.length() * (1 - currentPath.getClosestPointTValue());
+                distanceToGoal = currentPath.length() - currentPath.getDistanceTraveled();
             }
         } else {
             Vector offset = new Vector();

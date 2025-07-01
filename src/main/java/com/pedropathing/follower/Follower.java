@@ -40,8 +40,9 @@ public class Follower {
     public Drivetrain drivetrain;
     private DashboardPoseTracker dashboardPoseTracker;
 
-    private Pose currentPose;
-    private PathPoint closestPose;
+    private Pose currentPose = new Pose();
+    private PathPoint closestPose = new PathPoint();
+    private PathPoint previousClosestPose = new PathPoint();
     private Path currentPath;
     private PathChain currentPathChain;
 
@@ -186,6 +187,7 @@ public class Follower {
         followingPathChain = false;
         currentPath = new Path(point);
         currentPath.setConstantHeadingInterpolation(heading);
+        previousClosestPose = closestPose;
         closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
     }
 
@@ -212,6 +214,7 @@ public class Follower {
         isBusy = true;
         followingPathChain = false;
         currentPath = path;
+        previousClosestPose = closestPose;
         closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
     }
 
@@ -261,6 +264,7 @@ public class Follower {
         chainIndex = 0;
         currentPathChain = pathChain;
         currentPath = pathChain.getPath(chainIndex);
+        previousClosestPose = closestPose;
         closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         currentPathChain.resetCallbacks();
 
@@ -279,6 +283,7 @@ public class Follower {
             resetFollowing.run();
             resetFollowing = null;
             isBusy = true;
+            previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         }
     }
@@ -375,6 +380,7 @@ public class Follower {
         updateDrivetrain();
 
         if (manualDrive) {
+            previousClosestPose = closestPose;
             closestPose = new PathPoint();
             updateErrorAndVectors();
             drivetrain.getAndRunDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseTracker.getPose().getHeading());
@@ -386,7 +392,9 @@ public class Follower {
         }
 
         if (holdingPosition) {
+            previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
+            currentPath.updateDistance(previousClosestPose,closestPose);
             updateErrorAndVectors();
             drivetrain.getAndRunDrivePowers(MathFunctions.scalarMultiplyVector(getTranslationalCorrection(), holdPointTranslationalScaling), MathFunctions.scalarMultiplyVector(getHeadingVector(), holdPointHeadingScaling), new Vector(), poseTracker.getPose().getHeading());
 
@@ -397,8 +405,9 @@ public class Follower {
             return;
         }
         if (isBusy) {
+            previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
-
+            currentPath.updateDistance(previousClosestPose, closestPose);
             if (followingPathChain) updateCallbacks();
 
             updateErrorAndVectors();
@@ -429,6 +438,7 @@ public class Follower {
             followingPathChain = true;
             chainIndex++;
             currentPath = currentPathChain.getPath(chainIndex);
+            previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
             updateErrorAndVectors();
 
@@ -763,6 +773,12 @@ public class Follower {
     public void activateHeading() { useHeading = true; }
     public void activateTranslational() { useTranslational = true; }
     public void activateCentripetal() { useCentripetal = true; }
+    public double getDistanceTraveledOnPath() {
+        return currentPath.getDistanceTraveled();
+    }
+    public double getPathCompletion() {
+        return currentPath.getPathCompletion();
+    }
 
     /**
      * This is a debugging method that prints out the current state of the Follower.

@@ -16,7 +16,7 @@ public class ParametricCallback implements PathCallback {
     /**
      * Constructor for the ParametricCallback.
      * @param index The index of the path that this callback is for
-     * @param startCondition The time at which the callback should occur
+     * @param startCondition The path completion at which the callback should occur
      * @param follower The follower that is running the path
      * @param runnable The runnable that will be run when the callback is triggered
      */
@@ -43,7 +43,7 @@ public class ParametricCallback implements PathCallback {
      */
     @Override
     public boolean isReady() {
-        return follower.getCurrentTValue() >= startCondition;
+        return follower.getPathCompletion() >= startCondition;
     }
 
     /**

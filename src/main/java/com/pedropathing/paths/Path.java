@@ -28,7 +28,7 @@ public class Path {
     private Vector closestPointTangentVector;
     private Vector closestPointNormalVector;
     private Pose closestPose;
-    private Integrator distanceCalculator = new Integrator();
+    private Integrator distanceCalculator = new Integrator(Integrator.Differential.TVALUE);
     
     // A multiplier for the zero power acceleration to change the speed the robot decelerates at
     // the end of paths.
@@ -215,18 +215,27 @@ public class Path {
 
     /**
      * This updates the distance to the specified pose.
-     * @param update the distance traveled in the last loop of the code
+     * @param previous the previous pose
+     * @param current the current pose
      */
-    public void updateDistance(double update) {
-        distanceCalculator.update(update);
+    public void updateDistance(PathPoint previous, PathPoint current) {
+        distanceCalculator.update(MathFunctions.distance(previous.pose, closestPose), current.tValue - previous.tValue);
     }
 
     /**
      * This returns the distance to the specified pose.
      * @return the distance to the specified pose
      */
-    public double getDistance() {
+    public double getDistanceTraveled() {
         return distanceCalculator.getIntegral();
+    }
+
+    /**
+     * This returns the path completion by distance
+     * @return the current path completion
+     */
+    public double getPathCompletion() {
+        return getDistanceTraveled() / length();
     }
 
     /**
