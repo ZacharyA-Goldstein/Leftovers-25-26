@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
+ * @author Havish Sripada - 12808 RevAmped Robotics
  * @version 1.0, 3/5/2024
  */
 public class PIDFCoefficients {
@@ -16,10 +17,6 @@ public class PIDFCoefficients {
     public double I;
     public double D;
     public double F;
-
-    public FeedForwardConstant feedForwardConstantEquation;
-
-    private boolean usingEquation;
 
     /**
      * This creates a new PIDFCoefficients with constant coefficients.
@@ -37,23 +34,6 @@ public class PIDFCoefficients {
     }
 
     /**
-     * This creates a new PIDFCoefficients with constant PID coefficients and a variable
-     * feedforward equation using a FeedForwardConstant.
-     *
-     * @param p the coefficient for the proportional factor.
-     * @param i the coefficient for the integral factor.
-     * @param d the coefficient for the derivative factor.
-     * @param f the equation for the feedforward factor.
-     */
-    public PIDFCoefficients(double p, double i, double d, FeedForwardConstant f) {
-        usingEquation = true;
-        P = p;
-        I = i;
-        D = d;
-        feedForwardConstantEquation = f;
-    }
-
-    /**
      * This returns the coefficient for the feedforward factor.
      *
      * @param input this is inputted into the feedforward equation, if applicable. If there's no
@@ -61,8 +41,7 @@ public class PIDFCoefficients {
      * @return This returns the coefficient for the feedforward factor.
      */
     public double getCoefficient(double input) {
-        if (!usingEquation) return F;
-        return feedForwardConstantEquation.getConstant(input);
+        return F * input;
     }
 
     public void setCoefficients(double p, double i, double d, double f) {
