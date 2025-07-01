@@ -21,7 +21,7 @@ public class FilteredPIDFCoefficients {
 
     public FeedForwardConstant feedForwardConstantEquation;
 
-    private boolean usingEquation;
+    private boolean usingEquation = true;
 
     /**
      * This creates a new CustomFilteredPIDFCoefficients with constant coefficients.

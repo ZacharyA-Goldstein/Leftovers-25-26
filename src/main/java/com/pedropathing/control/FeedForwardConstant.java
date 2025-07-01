@@ -8,8 +8,8 @@ package com.pedropathing.control;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/5/2024
  */
+@FunctionalInterface
 public interface FeedForwardConstant {
-
     /**
      * This returns the coefficient for the feedforward factor.
      *

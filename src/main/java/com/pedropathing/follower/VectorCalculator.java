@@ -179,12 +179,15 @@ public class VectorCalculator {
         if (driveError == -1)
             return new Vector(maxPowerScaling, currentPath.getClosestPointTangentVector().getTheta());
 
+        Vector driveVelocity = new Vector(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta());
         if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
+            secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude());
             secondaryDrivePIDF.updateError(driveError);
             driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF() + secondaryDrivePIDFFeedForward * Math.signum(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
             return MathFunctions.copyVector(driveVector);
         }
 
+        secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude());
         drivePIDF.updateError(driveError);
         driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF() + drivePIDFFeedForward * Math.signum(driveError), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
         return MathFunctions.copyVector(driveVector);
