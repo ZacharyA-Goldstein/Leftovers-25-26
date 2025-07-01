@@ -11,10 +11,37 @@ package com.pedropathing.paths;
  * @version 2.0, 5/6/2025
  */
 public interface PathCallback {
+    /**
+     * This runs the callback.
+     * @return true if the action was successful
+     */
     boolean run();
+
+    /**
+     * This checks if the callback is ready to run.
+     * @return true if the callback is ready to run
+     */
     boolean isReady();
+
+    /**
+     * This initializes the callback.
+     */
     default void initialize() {}
+
+    /**
+     * This resets the callback.
+     */
     default void reset() {}
+
+    /**
+     * This checks if the callback is completed.
+     * @return true if the callback is completed
+     */
     default boolean isCompleted() {return false;}
+
+    /**
+     * This returns the index of the path that this callback is for.
+     * @return the index of the path that this callback is for
+     */
     int getPathIndex();
 }

@@ -15,6 +15,7 @@ import java.util.Arrays;
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
+ * @author Havish Sripada - 12808 RevAmped Robotics
  * @version 1.0, 3/11/2024
  */
 public class PathChain {
@@ -142,42 +143,78 @@ public class PathChain {
         return callbacks;
     }
 
+    /**
+     * This resets the PathCallbacks of this PathChain.
+     */
+
     public void resetCallbacks() {
         for (PathCallback callback : callbacks) {
             callback.reset();
         }
     }
 
+    /**
+     * This sets the deceleration type of the PathChain.
+     * @param decelerationType the deceleration type to set
+     */
     public void setDecelerationType(DecelerationType decelerationType) {
         this.decelerationType = decelerationType;
     }
 
+    /**
+     * This returns the deceleration type of the PathChain.
+     * @return the deceleration type of the PathChain
+     */
     public DecelerationType getDecelerationType() {
         return decelerationType;
     }
 
+    /**
+     * This returns the length of the PathChain.
+     * @return the length of the PathChain
+     */
     public double length() {
         return length;
     }
 
+    /**
+     * This sets the deceleration start multiplier of the PathChain.
+     * @param decelerationStartMultiplier the deceleration start multiplier to set
+     */
     public void setDecelerationStartMultiplier(double decelerationStartMultiplier) {
         this.decelerationStartMultiplier = decelerationStartMultiplier;
     }
 
+    /**
+     * This returns the deceleration start multiplier of the PathChain.
+     * @return the deceleration start multiplier of the PathChain
+     */
     public double getDecelerationStartMultiplier() {
         return decelerationStartMultiplier;
     }
 
+    /**
+     * This returns the end pose of the PathChain.
+     * @return the end pose of the PathChain
+     */
     public Pose endPose() {
         Path last = pathChain.get(pathChain.size() - 1);
         return last.endPose();
     }
 
+    /**
+     * This returns the end point of the PathChain.
+     * @return the end point of the PathChain
+     */
     public Pose endPoint() {
         Path last = pathChain.get(pathChain.size() - 1);
         return last.getLastControlPoint();
     }
 
+    /**
+     * This sets the constraints for all Paths in the PathChain.
+     * @param constraints the constraints to set
+     */
     public void setConstraintsForAll(PathConstraints constraints) {
         this.constraints = constraints;
         for (Path path : pathChain) {
@@ -200,30 +237,62 @@ public class PathChain {
             this.t = t;
         }
 
+        /**
+         * This returns the index of the path in the chain.
+         * @return the index of the path in the chain
+         */
         public int getPathIndex() {
             return pathIndex;
         }
 
+        /**
+         * This returns the t-value of the point in the path.
+         * @return the t-value of the point in the path
+         */
         public double getT() {
             return t;
         }
 
+        /**
+         * This returns the path in the chain.
+         * @return the path in the chain
+         */
         public Path getPath(PathChain pathChain) {
             return pathChain.getPath(pathIndex);
         }
 
+        /**
+         * This returns the pose of the point in the path.
+         * @param pathChain this is the path chain
+         * @return the pose of the point in the path
+         */
         public Pose getPose(PathChain pathChain) {
             return pathChain.getPath(pathIndex).getPose(t);
         }
 
+        /**
+         * This returns the point in the path.
+         * @param pathChain this is the path chain
+         * @return the point in the path
+         */
         public Pose getPoint(PathChain pathChain) {
             return pathChain.getPath(pathIndex).getPoint(t);
         }
 
+        /**
+         * This returns the tangent vector of the point in the path.
+         * @param pathChain this is the path chain
+         * @return the tangent vector of the point in the path
+         */
         public Vector getTangentVector(PathChain pathChain) {
             return pathChain.getPath(pathIndex).getTangentVector(t);
         }
 
+        /**
+         * This returns the heading goal of the path.
+         * @param pathChain this is the path chain
+         * @return the heading goal of the path
+         */
         public double getHeadingGoal(PathChain pathChain) {
             return pathChain.getPath(pathIndex).getHeadingGoal(t);
         }
@@ -249,10 +318,19 @@ public class PathChain {
         return new PathT(pathChain.size()-1, currentT);
     }
 
+    /**
+     * Sets the path's heading interpolation
+     * @param headingInterpolator the heading interpolation to set
+     */
     public void setHeadingInterpolator(HeadingInterpolator headingInterpolator) {
         this.headingInterpolator = headingInterpolator;
     }
 
+    /**
+     * This returns the heading goal of the path.
+     * @param pathTValue this is the path and t-value
+     * @return the heading goal of the path
+     */
     public double getHeadingGoal(PathT pathTValue) {
         if (headingInterpolator != null) {
             double sumLength = 0;
@@ -268,14 +346,38 @@ public class PathChain {
         return pathTValue.getHeadingGoal(this);
     }
 
+    /**
+     * This returns the tangent vector of the point in the path.
+     * @param pathTValue this is the path and t-value
+     * @return the tangent vector of the point in the path
+     */
+    public Vector getTangentVector(PathT pathTValue) {
+        return pathTValue.getTangentVector(this);
+    }
+
+    /**
+     * This returns the pose of the point in the path.
+     * @param pathTValue this is the path and t-value
+     * @return the pose of the point in the path
+     */
     public Pose getPose(PathT pathTValue) {
         return pathTValue.getPose(this);
     }
 
+    /**
+     * This returns the point in the path, without a heading goal.
+     * @param pathTValue this is the path and t-value
+     * @return the point in the path
+     */
     public Pose getPoint(PathT pathTValue) {
         return pathTValue.getPoint(this);
     }
 
+    /**
+     * This returns the pose information of the point in the path (with the heading goal).
+     * @param pathTValue this is the path and t-value
+     * @return the pose information of the point in the path
+     */
     public PathPoint getPoseInformation(PathT pathTValue) {
         return new PathPoint(pathTValue.getT(), pathTValue.getPose(this), pathTValue.getTangentVector(this));
     }

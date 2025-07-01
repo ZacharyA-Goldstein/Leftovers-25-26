@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
+ * @author Havish Sripada - 12808 RevAmped Robotics
  * @version 1.0, 3/11/2024
  */
 public class PathBuilder {

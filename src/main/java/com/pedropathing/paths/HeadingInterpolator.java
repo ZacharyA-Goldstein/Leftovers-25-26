@@ -31,11 +31,20 @@ import java.util.Map;
  * </code></pre>
  *
  * @author Jacob Ophoven - 18535, Frozen Code
+ * @author Havish Sripada - 12808 RevAmped Robotics
  */
 @FunctionalInterface
 public interface HeadingInterpolator {
+    /**
+     * This returns the heading interpolation for the PathPoint
+     * @param closestPoint the PathPoint where the desired heading interpolation is to be found
+     * @return the heading interpolation
+     */
     double interpolate(PathPoint closestPoint);
 
+    /**
+     * This class allows chaining HeadingInterpolators.
+     */
     class PiecewiseNode {
         double initialTValue;
         double finalTValue;
@@ -53,14 +62,23 @@ public interface HeadingInterpolator {
             this.interpolator = interpolator;
         }
 
+        /**
+         * @return this returns the initial-tvalue where the heading interpolation begins
+         */
         public double getInitialTValue() {
             return initialTValue;
         }
 
+        /**
+         * @return this returns the final t-value where the heading interpolation ends
+         */
         public double getFinalTValue() {
             return finalTValue;
         }
 
+        /**
+         * @return this returns the heading interpolation
+         */
         public HeadingInterpolator getInterpolator() {
             return interpolator;
         }

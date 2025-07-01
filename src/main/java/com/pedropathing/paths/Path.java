@@ -2,6 +2,7 @@ package com.pedropathing.paths;
 
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Integrator;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 
@@ -15,6 +16,7 @@ import java.util.ArrayList;
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
+ * @author Havish Sripada - 12808 RevAmped Robotics
  * @version 1.0, 3/10/2024
  */
 public class Path {
@@ -26,6 +28,7 @@ public class Path {
     private Vector closestPointTangentVector;
     private Vector closestPointNormalVector;
     private Pose closestPose;
+    private Integrator distanceCalculator = new Integrator();
     
     // A multiplier for the zero power acceleration to change the speed the robot decelerates at
     // the end of paths.
@@ -145,7 +148,7 @@ public class Path {
     }
 
     /**
-     * This gets the closest Point from a specified pose to the BezierCurve with a Newton search
+     * This gets the closest point from a specified pose to the BezierCurve with a Newton search
      * that is limited to some specified step limit.
      *
      * @param pose        the pose.
@@ -158,6 +161,12 @@ public class Path {
         return getPoseInformation(initialTValueGuess);
     }
 
+    /**
+     * This gets the closest point from a specified pose to the BezierCurve with a Newton search
+     * @param pose the pose
+     * @param searchLimit the maximum number of iterations to run
+     * @return the closest point
+     */
     public PathPoint getClosestPoint(Pose pose, int searchLimit) {
         return getClosestPoint(pose, searchLimit, closestPointTValue);
     }
@@ -171,10 +180,20 @@ public class Path {
         return getClosestPoint(pose, BEZIER_CURVE_SEARCH_LIMIT);
     }
 
+    /**
+     * This gets the closest pose to the specified pose.
+     * @return the closest pose
+     */
     public PathPoint getClosestPose() {
         return new PathPoint(closestPointTValue, closestPose, closestPointTangentVector);
     }
 
+    /**
+     * This updates the closest pose to the specified pose.
+     * @param currentPose the pose to find the closest point to
+     * @param searchLimit the maximum number of iterations to run
+     * @return the closest point
+     */
     public PathPoint updateClosestPose(Pose currentPose, int searchLimit) {
         PathPoint closestPoint = getClosestPoint(currentPose, searchLimit);
         closestPointTValue = closestPoint.getTValue();
@@ -185,8 +204,29 @@ public class Path {
         return closestPoint;
     }
 
+    /**
+     * This updates the closest pose to the specified pose.
+     * @param currentPose the pose to find the closest point to
+     * @return the closest point
+     */
     public PathPoint updateClosestPose(Pose currentPose) {
         return updateClosestPose(currentPose, BEZIER_CURVE_SEARCH_LIMIT);
+    }
+
+    /**
+     * This updates the distance to the specified pose.
+     * @param update the distance traveled in the last loop of the code
+     */
+    public void updateDistance(double update) {
+        distanceCalculator.update(update);
+    }
+
+    /**
+     * This returns the distance to the specified pose.
+     * @return the distance to the specified pose
+     */
+    public double getDistance() {
+        return distanceCalculator.getIntegral();
     }
 
     /**
@@ -233,11 +273,21 @@ public class Path {
         return curve.getPose(t);
     }
 
+    /**
+     * This returns the pose at the specified t-value.
+     * @param t the t-value
+     * @return the pose at the specified t-value
+     */
     public Pose getPose(double t) {
         Pose position = curve.getPose(t);
         return new Pose(position.getX(), position.getY(), getHeadingGoal(t));
     }
 
+    /**
+     * This returns the PathPoint at the specified t-value.
+     * @param t the t-value
+     * @return the PathPoint at the specified t-value
+     */
     public PathPoint getPoseInformation(double t) {
         return new PathPoint(t, getPose(t), getTangentVector(t));
     }

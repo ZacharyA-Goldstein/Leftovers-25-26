@@ -361,7 +361,7 @@ public class Follower {
         vectorCalculator.update(useDrive, useHeading, useCentripetal, useTranslational, manualDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, errorCalculator.getDriveError(), errorCalculator.getHeadingError());
     }
 
-    public void updateErrorAndVectors() { updateErrors(); updateVectors();}
+    public void updateErrorAndVectors() {updateErrors(); updateVectors();}
 
 
     /**

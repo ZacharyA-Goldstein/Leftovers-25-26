@@ -1,5 +1,7 @@
 package com.pedropathing.util;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * This is the NanoTimer class. It is an elapsed time clock with nanosecond precision, or at least
  * as precise as the System.nanoTime() is.
@@ -33,6 +35,15 @@ public class NanoTimer {
      */
     public long getElapsedTime() {
         return System.nanoTime() - startTime;
+    }
+
+    /**
+     * This returns the elapsed time in the given time unit since the start time of the NanoTimer.
+     * @param unit the time unit to convert to
+     * @return this returns the elapsed time in the given time unit.
+     */
+    public double getElapsedTime(TimeUnit unit) {
+        return unit.convert(getElapsedTime(), TimeUnit.NANOSECONDS);
     }
 
     /**
