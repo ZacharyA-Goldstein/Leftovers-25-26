@@ -12,35 +12,14 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 /**
  * This is the OTOSLocalizer class. This class extends the Localizer superclass and is a
- * localizer that uses the SparkFun OTOS. The diagram below, which is modified from
- * Road Runner, shows a typical set up.
- *
- * The view is from the top of the robot looking downwards.
- *
- * left on robot is the y positive direction
- *
- * forward on robot is the x positive direction
- *
- *                         forward (x positive)
- *                                △
- *                                |
- *                                |
- *                         /--------------\
- *                         |              |
- *                         |              |
- *                         | ||        || |
- *  left (y positive) <--- | ||        || |  
- *                         |     ____     |
- *                         |     ----     |
- *                         \--------------/
+ * localizer that uses the SparkFun OTOS.
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 7/20/2024
  */
 public class OTOSLocalizer implements Localizer {
-    private HardwareMap hardwareMap;
     private Pose startPose;
-    private SparkFunOTOS otos;
+    private final SparkFunOTOS otos;
     private SparkFunOTOS.Pose2D otosPose;
     private SparkFunOTOS.Pose2D otosVel;
     private SparkFunOTOS.Pose2D otosAcc;
@@ -66,9 +45,8 @@ public class OTOSLocalizer implements Localizer {
      */
 
     public OTOSLocalizer(HardwareMap map, OTOSConstants constants, Pose setStartPose) {
-        hardwareMap = map;
 
-        otos = hardwareMap.get(SparkFunOTOS.class, constants.hardwareMapName);
+        otos = map.get(SparkFunOTOS.class, constants.hardwareMapName);
 
         otos.setLinearUnit(constants.linearUnit);
         otos.setAngularUnit(constants.angleUnit);

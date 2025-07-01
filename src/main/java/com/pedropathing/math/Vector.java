@@ -1,164 +1,187 @@
 package com.pedropathing.math;
 
 import androidx.annotation.NonNull;
-
 import com.pedropathing.geometry.Pose;
 
-/**
- * This is the Vector class. This class handles storing information about vectors, which are
- * basically Points but using polar coordinates as the default. The main reason this class exists
- * is because some vector math needs to be done in the Follower, and dot products and cross
- * products of Points just don't seem right. Also, there are a few more methods in here that make
- * using Vectors a little easier than using a Point in polar coordinates.
- *
- * @author Anyi Lin - 10158 Scott's Bots
- * @author Aaron Yang - 10158 Scott's Bots
- * @author Harrison Womack - 10158 Scott's Bots
- * @version 1.0, 3/11/2024
- */
-public class Vector {
-
-    // IMPORTANT NOTE: theta is defined in radians.
-    // These are the values of the coordinate defined by this Point, in both polar and
-    // Cartesian systems.
-    private double magnitude;
-    private double theta;
-    private double xComponent;
-    private double yComponent;
-
     /**
-     * This creates a new Vector with zero magnitude and direction.
-     */
-    public Vector() {
-        setComponents(0, 0);
-    }
-
-    public Vector(Pose pose) {
-        setOrthogonalComponents(pose.getX(), pose.getY());
-    }
-
-    /**
-     * This creates a new Vector with a specified magnitude and direction.
+     * Represents a 2D vector with both polar (magnitude, theta) and Cartesian (x, y) components.
+     * Provides methods for setting and retrieving vector properties, as well as converting between
+     * polar and Cartesian representations.
+     * <p>
+     * Vectors are useful for mathematical operations in robotics, such as calculating directions,
+     * magnitudes, and performing vector math (dot/cross products, rotations, etc.).
+     * </p>
      *
-     * @param magnitude magnitude of the Vector.
-     * @param theta the direction of the Vector in radians.
-     */
-    public Vector(double magnitude, double theta) {
-        setComponents(magnitude, theta);
-    }
-
-    /**
-     * This sets the components of the Vector in regular vector coordinates.
+     * <p>
+     * Authors:
+     * <ul>
+     *   <li>Anyi Lin - 10158 Scott's Bots</li>
+     *   <li>Aaron Yang - 10158 Scott's Bots</li>
+     *   <li>Harrison Womack - 10158 Scott's Bots</li>
+     * </ul>
+     * </p>
      *
-     * @param magnitude sets the magnitude of this Vector.
-     * @param theta sets the theta value of this Vector.
+     * @version 1.0, 3/11/2024
      */
-    public void setComponents(double magnitude, double theta) {
-        double[] orthogonalComponents;
-        if (magnitude<0) {
-            this.magnitude = -magnitude;
-            this.theta = MathFunctions.normalizeAngle(theta+Math.PI);
-        } else {
-            this.magnitude = magnitude;
-            this.theta = MathFunctions.normalizeAngle(theta);
+    public class Vector {
+
+        /** The magnitude (length) of the vector. */
+        private double magnitude;
+        /** The direction (angle in radians) of the vector. */
+        private double theta;
+        /** The x component of the vector in Cartesian coordinates. */
+        private double xComponent;
+        /** The y component of the vector in Cartesian coordinates. */
+        private double yComponent;
+
+        /**
+         * Constructs a new Vector with zero magnitude and direction.
+         */
+        public Vector() {
+            setComponents(0, 0);
         }
-        orthogonalComponents = Pose.polarToCartesian(magnitude, theta);
-        xComponent = orthogonalComponents[0];
-        yComponent = orthogonalComponents[1];
-    }
 
-    /**
-     * This sets only the magnitude of the Vector.
-     *
-     * @param magnitude sets the magnitude of this Vector.
-     */
-    public void setMagnitude(double magnitude) {
-        setComponents(magnitude, theta);
-    }
+        /**
+         * Constructs a new Vector from a given Pose's x and y coordinates.
+         *
+         * @param pose the Pose object to extract x and y from
+         */
+        public Vector(Pose pose) {
+            setOrthogonalComponents(pose.getX(), pose.getY());
+        }
 
-    /**
-     * This sets only the angle, theta, of the Vector.
-     *
-     * @param theta sets the angle, or theta value, of this Vector.
-     */
-    public void setTheta(double theta) {
-        setComponents(magnitude, theta);
-    }
+        /**
+         * Constructs a new Vector with a specified magnitude and direction.
+         *
+         * @param magnitude the magnitude (length) of the vector
+         * @param theta the direction (angle in radians) of the vector
+         */
+        public Vector(double magnitude, double theta) {
+            setComponents(magnitude, theta);
+        }
 
-    /**
-     * This rotates the Vector by an angle, theta.
-     *
-     * @param theta2 the angle to be added.
-     */
-    public void rotateVector(double theta2) {
-        setTheta(theta+theta2);
-    }
+        /**
+         * Sets the vector's magnitude and direction (polar coordinates).
+         * Updates the Cartesian components accordingly.
+         *
+         * @param magnitude the magnitude to set
+         * @param theta the direction (angle in radians) to set
+         */
+        public void setComponents(double magnitude, double theta) {
+            double[] orthogonalComponents;
+            if (magnitude < 0) {
+                this.magnitude = -magnitude;
+                this.theta = MathFunctions.normalizeAngle(theta + Math.PI);
+            } else {
+                this.magnitude = magnitude;
+                this.theta = MathFunctions.normalizeAngle(theta);
+            }
+            orthogonalComponents = Pose.polarToCartesian(magnitude, theta);
+            xComponent = orthogonalComponents[0];
+            yComponent = orthogonalComponents[1];
+        }
 
-    /**
-     * This sets the orthogonal components of the Vector. These orthogonal components are assumed
-     * to be in the direction of the x-axis and y-axis. In other words, this is setting the
-     * coordinates of the Vector using x and y coordinates instead of a direction and magnitude.
-     *
-     * @param xComponent sets the x component of this Vector.
-     * @param yComponent sets the y component of this Vector.
-     */
-    public void setOrthogonalComponents(double xComponent, double yComponent) {
-        double[] polarComponents;
-        this.xComponent = xComponent;
-        this.yComponent = yComponent;
-        polarComponents = Pose.cartesianToPolar(xComponent, yComponent);
-        magnitude = polarComponents[0];
-        theta = polarComponents[1];
-    }
+        /**
+         * Sets only the magnitude of the vector, keeping the direction unchanged.
+         *
+         * @param magnitude the new magnitude
+         */
+        public void setMagnitude(double magnitude) {
+            setComponents(magnitude, theta);
+        }
 
-    /**
-     * Returns the magnitude of this Vector.
-     *
-     * @return returns the magnitude.
-     */
-    public double getMagnitude() {
-        return magnitude;
-    }
+        /**
+         * Sets only the direction (theta) of the vector, keeping the magnitude unchanged.
+         *
+         * @param theta the new direction (angle in radians)
+         */
+        public void setTheta(double theta) {
+            setComponents(magnitude, theta);
+        }
 
-    /**
-     * Returns the theta value, or angle, of this Vector.
-     *
-     * @return returns the theta value.
-     */
-    public double getTheta() {
-        return theta;
-    }
+        /**
+         * Rotates the vector by a given angle (in radians).
+         *
+         * @param theta2 the angle to add to the current direction
+         */
+        public void rotateVector(double theta2) {
+            setTheta(theta + theta2);
+        }
 
-    /**
-     * Returns the x component of this Vector.
-     *
-     * @return returns the x component.
-     */
-    public double getXComponent() {
-        return xComponent;
-    }
+        /**
+         * Sets the vector's Cartesian components (x, y).
+         * Updates the polar representation accordingly.
+         *
+         * @param xComponent the x component to set
+         * @param yComponent the y component to set
+         */
+        public void setOrthogonalComponents(double xComponent, double yComponent) {
+            double[] polarComponents;
+            this.xComponent = xComponent;
+            this.yComponent = yComponent;
+            polarComponents = Pose.cartesianToPolar(xComponent, yComponent);
+            magnitude = polarComponents[0];
+            theta = polarComponents[1];
+        }
 
-    /**
-     * Returns the y component of this Vector.
-     *
-     * @return returns the y component.
-     */
-    public double getYComponent() {
-        return yComponent;
-    }
+        /**
+         * Returns the magnitude (length) of the vector.
+         *
+         * @return the magnitude
+         */
+        public double getMagnitude() {
+            return magnitude;
+        }
 
-    public Vector copy() {
-        return new Vector(this.magnitude, this.theta);
-    }
+        /**
+         * Returns the direction (angle in radians) of the vector.
+         *
+         * @return the theta value
+         */
+        public double getTheta() {
+            return theta;
+        }
 
-    @NonNull
-    @Override
-    public String toString() {
-        return "Vector{" +
-                "magnitude=" + magnitude +
-                ", theta=" + theta +
-                ", xComponent=" + xComponent +
-                ", yComponent=" + yComponent +
-                '}';
+        /**
+         * Returns the x component of the vector.
+         *
+         * @return the x component
+         */
+        public double getXComponent() {
+            return xComponent;
+        }
+
+        /**
+         * Returns the y component of the vector.
+         *
+         * @return the y component
+         */
+        public double getYComponent() {
+            return yComponent;
+        }
+
+        /**
+         * Returns a copy of this vector.
+         *
+         * @return a new Vector with the same magnitude and direction
+         */
+        public Vector copy() {
+            return new Vector(this.magnitude, this.theta);
+        }
+
+        /**
+         * Returns a string representation of the vector, including magnitude, theta, x, and y components.
+         *
+         * @return a string describing the vector
+         */
+        @NonNull
+        @Override
+        public String toString() {
+            return "Vector{" +
+                    "magnitude=" + magnitude +
+                    ", theta=" + theta +
+                    ", xComponent=" + xComponent +
+                    ", yComponent=" + yComponent +
+                    '}';
+        }
     }
-}

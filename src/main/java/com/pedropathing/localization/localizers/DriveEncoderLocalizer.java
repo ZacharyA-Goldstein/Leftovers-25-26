@@ -23,17 +23,16 @@ import com.qualcomm.robotcore.hardware.IMU;
  */
 
 public class DriveEncoderLocalizer implements Localizer {
-    private HardwareMap hardwareMap;
     private Pose startPose;
     private Pose displacementPose;
     private Pose currentVelocity;
     private Matrix prevRotationMatrix;
-    private NanoTimer timer;
+    private final NanoTimer timer;
     private long deltaTimeNano;
-    private Encoder leftFront;
-    private Encoder rightFront;
-    private Encoder leftRear;
-    private Encoder rightRear;
+    private final Encoder leftFront;
+    private final Encoder rightFront;
+    private final Encoder leftRear;
+    private final Encoder rightRear;
     private double totalHeading;
     public static double FORWARD_TICKS_TO_INCHES;
     public static double STRAFE_TICKS_TO_INCHES;
@@ -59,8 +58,6 @@ public class DriveEncoderLocalizer implements Localizer {
      * @param setStartPose the Pose to start from
      */
     public DriveEncoderLocalizer(HardwareMap map, DriveEncoderConstants constants, Pose setStartPose) {
-        hardwareMap = map;
-
         FORWARD_TICKS_TO_INCHES = constants.forwardTicksToInches;
         STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
         TURN_TICKS_TO_RADIANS = constants.turnTicksToInches;
@@ -68,10 +65,10 @@ public class DriveEncoderLocalizer implements Localizer {
         ROBOT_WIDTH = constants.robot_Width;
         ROBOT_LENGTH = constants.robot_Length;
 
-        leftFront = new Encoder(hardwareMap.get(DcMotorEx.class, constants.leftFrontMotorName));
-        leftRear = new Encoder(hardwareMap.get(DcMotorEx.class, constants.leftRearMotorName));
-        rightRear = new Encoder(hardwareMap.get(DcMotorEx.class, constants.rightRearMotorName));
-        rightFront = new Encoder(hardwareMap.get(DcMotorEx.class, constants.rightFrontMotorName));
+        leftFront = new Encoder(map.get(DcMotorEx.class, constants.leftFrontMotorName));
+        leftRear = new Encoder(map.get(DcMotorEx.class, constants.leftRearMotorName));
+        rightRear = new Encoder(map.get(DcMotorEx.class, constants.rightRearMotorName));
+        rightFront = new Encoder(map.get(DcMotorEx.class, constants.rightFrontMotorName));
 
         leftFront.setDirection(constants.leftFrontEncoderDirection);
         leftRear.setDirection(constants.leftRearEncoderDirection);

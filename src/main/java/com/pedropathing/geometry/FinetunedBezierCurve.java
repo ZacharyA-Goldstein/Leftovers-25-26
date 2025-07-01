@@ -1,7 +1,5 @@
 package com.pedropathing.geometry;
 
-import androidx.annotation.NonNull;
-
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathConstraints;
@@ -9,14 +7,14 @@ import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 public class FinetunedBezierCurve extends BezierCurve {
     private final Pose endPoint;
     private double crossingThreshold;
-    private BezierCurve modifiedCurve;
+    private final BezierCurve modifiedCurve;
     private final double pathEndTValueConstraint;
     private double unmodifiedSegmentLength;
+
     private PathConstraints constraints;
 
     public FinetunedBezierCurve(ArrayList<Pose> controlPoints, Pose endPoint, int searchLimit) {

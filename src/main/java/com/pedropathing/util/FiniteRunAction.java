@@ -18,7 +18,7 @@ public class FiniteRunAction implements PathCallback {
     private int targetCount = 1;
     private boolean initialized = false;
 
-    private PathCallback callback;
+    private final PathCallback callback;
 
     /**
      * This creates a new FiniteRunAction with a Runnable containing the code to be run for this action.

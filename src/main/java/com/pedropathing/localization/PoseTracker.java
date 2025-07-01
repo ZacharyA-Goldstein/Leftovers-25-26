@@ -1,8 +1,6 @@
 package com.pedropathing.localization;
-//import static com.pedropathing.follower.old.OldFollowerConstants.localizers;
 
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -21,11 +19,10 @@ import com.pedropathing.math.Vector;
  * @version 1.0, 3/4/2024
  */
 public class PoseTracker {
-    private HardwareMap hardwareMap;
 
-    private IMU imu;
+    private final IMU imu;
 
-    private Localizer localizer;
+    private final Localizer localizer;
 
     private Pose startingPose = new Pose(0,0,0);
 
@@ -47,13 +44,11 @@ public class PoseTracker {
     private long currentPoseTime;
 
     /**
-     * Creates a new PoseTracker from a HardwareMap and a Localizer.
+     * Creates a new PoseTracker from a Localizer.
      *
-     * @param hardwareMap the HardwareMap
      * @param localizer the Localizer
      */
-    public PoseTracker(HardwareMap hardwareMap, Localizer localizer) {
-        this.hardwareMap = hardwareMap;
+    public PoseTracker(Localizer localizer) {
         this.localizer = localizer;
 
         if (localizer.getClass() != PinpointLocalizer.class) {
@@ -195,10 +190,8 @@ public class PoseTracker {
     public Pose getPose() {
         if (currentPose == null) {
             currentPose = localizer.getPose();
-            return applyOffset(currentPose);
-        } else {
-            return applyOffset(currentPose);
         }
+        return applyOffset(currentPose);
     }
 
     /**
@@ -211,10 +204,8 @@ public class PoseTracker {
     public Pose getRawPose() {
         if (currentPose == null) {
             currentPose = localizer.getPose();
-            return currentPose;
-        } else {
-            return currentPose;
         }
+        return currentPose;
     }
 
     /**

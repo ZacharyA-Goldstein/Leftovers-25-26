@@ -81,6 +81,6 @@ public class FollowerBuilder {
     }
 
     public Follower build() {
-        return new Follower(hardwareMap, constants, localizer, drivetrain, constraints);
+        return new Follower(constants, localizer, drivetrain, constraints);
     }
 }

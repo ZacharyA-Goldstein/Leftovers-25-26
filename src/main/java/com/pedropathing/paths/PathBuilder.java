@@ -330,11 +330,21 @@ public class PathBuilder {
         return this;
     }
 
+    /**
+     * This adds a callback to the PathBuilder.
+     */
     public PathBuilder addCallback(PathCallback callback) {
         this.callbacks.add(new FiniteRunAction(callback));
         return this;
     }
 
+    /**
+     * This adds a callback to the PathBuilder that will run on every loop of the PathChain.
+     * This is useful for callbacks that need to run every loop, such as updating telemetry.
+     *
+     * @param callback The callback to add.
+     * @return This returns itself with the updated data.
+     */
     public PathBuilder addLoopedCallback(PathCallback callback) {
         this.callbacks.add(callback);
         return this;

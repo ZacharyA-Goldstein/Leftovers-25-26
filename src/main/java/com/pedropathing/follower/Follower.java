@@ -7,7 +7,6 @@ import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.paths.PathPoint;
 import com.pedropathing.util.DashboardPoseTracker;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
@@ -38,7 +37,7 @@ public class Follower {
     public ErrorCalculator errorCalculator;
     public VectorCalculator vectorCalculator;
     public Drivetrain drivetrain;
-    private DashboardPoseTracker dashboardPoseTracker;
+    private final DashboardPoseTracker dashboardPoseTracker;
 
     private Pose currentPose;
     private PathPoint closestPose;
@@ -63,17 +62,16 @@ public class Follower {
 
     /**
      * This creates a new Follower given a HardwareMap.
-     * @param hardwareMap HardwareMap required
      * @param constants FollowerConstants to use
      * @param localizer Localizer to use
      * @param drivetrain Drivetrain to use
      * @param pathConstraints PathConstraints to use
      */
-    public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain, PathConstraints pathConstraints) {
+    public Follower(FollowerConstants constants, Localizer localizer, Drivetrain drivetrain, PathConstraints pathConstraints) {
         this.constants = constants;
         this.pathConstraints = pathConstraints;
 
-        poseTracker = new PoseTracker(hardwareMap, localizer);
+        poseTracker = new PoseTracker(localizer);
         errorCalculator = new ErrorCalculator(constants);
         vectorCalculator = new VectorCalculator(constants);
         this.drivetrain = drivetrain;
@@ -101,13 +99,12 @@ public class Follower {
 
     /**
      * This creates a new Follower given a HardwareMap.
-     * @param hardwareMap HardwareMap required
      * @param constants FollowerConstants to use
      * @param localizer Localizer to use
      * @param drivetrain Drivetrain to use
      */
-    public Follower(HardwareMap hardwareMap, FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
-        this(hardwareMap, constants, localizer, drivetrain, PathConstraints.defaultConstraints);
+    public Follower(FollowerConstants constants, Localizer localizer, Drivetrain drivetrain) {
+        this(constants, localizer, drivetrain, PathConstraints.defaultConstraints);
     }
 
     public void setCentripetalScaling(double set) {
