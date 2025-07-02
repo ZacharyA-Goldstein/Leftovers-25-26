@@ -42,8 +42,8 @@ public class Follower {
     private Pose currentPose = new Pose();
     private PathPoint closestPose = new PathPoint();
     private PathPoint previousClosestPose = new PathPoint();
-    private Path currentPath = null;
-    private PathChain currentPathChain = null;
+    private Path currentPath = new Path();
+    private PathChain currentPathChain = new PathChain(new Path());
 
     private int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
@@ -85,6 +85,9 @@ public class Follower {
         centripetalScaling = constants.centripetalScaling;
         turnHeadingErrorThreshold = constants.turnHeadingErrorThreshold;
         automaticHoldEnd = constants.automaticHoldEnd;
+
+        currentPathChain = null;
+        currentPath = null;
 
         breakFollowing();
     }

@@ -109,6 +109,10 @@ public class Path {
         this(curve, PathConstraints.defaultConstraints);
     }
 
+    public Path() {
+        this(new BezierCurve(new Pose(), new Pose(), new Pose()), PathConstraints.defaultConstraints);
+    }
+
     /**
      * This sets the heading interpolation to linear with a specified start heading and end heading
      * for the Path. This will interpolate across the entire length of the Path, so there may be
