@@ -42,8 +42,8 @@ public class Follower {
     private Pose currentPose = new Pose();
     private PathPoint closestPose = new PathPoint();
     private PathPoint previousClosestPose = new PathPoint();
-    private Path currentPath;
-    private PathChain currentPathChain;
+    private Path currentPath = null;
+    private PathChain currentPathChain = null;
 
     private int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
@@ -58,7 +58,7 @@ public class Follower {
     public boolean useCentripetal = true;
     public boolean useHeading = true;
     public boolean useDrive = true;
-    private ElapsedTime zeroVelocityDetectedTimer;
+    private ElapsedTime zeroVelocityDetectedTimer = null;
     private Runnable resetFollowing = null;
 
     /**
