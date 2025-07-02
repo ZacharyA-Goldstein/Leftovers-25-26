@@ -30,6 +30,14 @@ public class Matrix {
     private int colCount;
 
     /**
+     * A constructor that creates a zero matrix of size 0x0
+     * This is used for empty matrices
+     */
+    public Matrix() {
+        this(0, 0);
+    }
+
+    /**
      * A constructor that creates a zero matrix of specified dimensions
      * @param rowCount number of rows
      * @param colCount number of columns

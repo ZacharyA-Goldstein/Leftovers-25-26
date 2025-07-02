@@ -37,7 +37,7 @@ public class BezierCurve {
     private double UNIT_TO_TIME;
     private double length;
 
-    private Matrix cachedMatrix;
+    private Matrix cachedMatrix = new Matrix();
 
     private int[][] diffPowers;
     private int[][] diffCoefficients;
