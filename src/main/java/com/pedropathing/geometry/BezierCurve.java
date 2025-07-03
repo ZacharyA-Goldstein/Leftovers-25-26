@@ -22,7 +22,7 @@ import java.util.List;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/5/2024
  */
-public class BezierCurve {
+public class BezierCurve implements Curve {
 
     private ArrayList<Pose> controlPoints;
 
@@ -32,7 +32,7 @@ public class BezierCurve {
 
     private final int DASHBOARD_DRAWING_APPROXIMATION_STEPS = 100;
 
-    private double[][] dashboardDrawingPoints;
+    private double[][] panelsDrawingPoints;
 
     private double UNIT_TO_TIME;
     private double length;
@@ -82,29 +82,27 @@ public class BezierCurve {
         endTangent.setOrthogonalComponents(controlPoints.get(controlPoints.size()-1).getX()-controlPoints.get(controlPoints.size()-2).getX(),
                 controlPoints.get(controlPoints.size()-1).getY()-controlPoints.get(controlPoints.size()-2).getY());
         endTangent = MathFunctions.normalizeVector(endTangent);
-        initializeDashboardDrawingPoints();
+        initializePanelsDrawingPoints();
     }
 
     /**
-     * This creates the Array that holds the Points to draw on the Dashboard.
+     * This creates the Array that holds the Points to draw on Panels.
      */
-    public void initializeDashboardDrawingPoints() {
-        this.dashboardDrawingPoints = new double[2][this.DASHBOARD_DRAWING_APPROXIMATION_STEPS + 1];
+    public void initializePanelsDrawingPoints() {
+        this.panelsDrawingPoints = new double[2][this.DASHBOARD_DRAWING_APPROXIMATION_STEPS + 1];
         for (int i = 0; i <= this.DASHBOARD_DRAWING_APPROXIMATION_STEPS; i++) {
             Pose currentPoint = this.getPose(i/(double) (this.DASHBOARD_DRAWING_APPROXIMATION_STEPS));
-            this.dashboardDrawingPoints[0][i] = currentPoint.getX();
-            this.dashboardDrawingPoints[1][i] = currentPoint.getY();
+            this.panelsDrawingPoints[0][i] = currentPoint.getX();
+            this.panelsDrawingPoints[1][i] = currentPoint.getY();
         }
     }
 
     /**
-     * This returns a 2D Array of doubles containing the x and y positions of points to draw on FTC
-     * Dashboard.
-     *
-     * @return returns the 2D Array to draw on FTC Dashboard
+     * This returns a 2D Array of doubles containing the x and y positions of points to draw on Panels.
+     * @return returns the 2D Array to draw on Panels
      */
-    public double[][] getDashboardDrawingPoints() {
-        return this.dashboardDrawingPoints;
+    public double[][] getPanelsDrawingPoints() {
+        return this.panelsDrawingPoints;
     }
 
     /**
@@ -314,7 +312,8 @@ public class BezierCurve {
      * @param t this is the t value of the parametric curve. t is clamped to be between 0 and 1 inclusive.
      * @return this returns the approximated second derivative.
      */
-    public Vector getApproxSecondDerivative(double t) {
+    @Override
+    public Vector getNormalVector(double t) {
         double current = getDerivative(t).getTheta();
         double deltaCurrent = getDerivative(t + 0.0001).getTheta();
 

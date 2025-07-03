@@ -121,7 +121,7 @@ public class BezierPoint extends BezierCurve {
      * @return this returns the approximated second derivative, which is the zero Vector.
      */
     @Override
-    public Vector getApproxSecondDerivative(double t) {
+    public Vector getNormalVector(double t) {
         return new Vector();
     }
 

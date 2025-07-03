@@ -1,6 +1,7 @@
 package com.pedropathing.paths;
 
 import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.Curve;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Integrator;
 import com.pedropathing.math.MathFunctions;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
  * @version 1.0, 3/10/2024
  */
 public class Path {
-    private final BezierCurve curve;
+    private final Curve curve;
     private PathConstraints constraints;
     private double closestPointCurvature;
     private double closestPointTValue = 0;
@@ -95,7 +96,7 @@ public class Path {
      * @param curve the BezierCurve.
      * @param constraints the constraints.
      */
-    public Path(BezierCurve curve, PathConstraints constraints) {
+    public Path(Curve curve, PathConstraints constraints) {
         this.curve = curve;
         setConstraints(constraints);
     }
@@ -105,7 +106,7 @@ public class Path {
      *
      * @param curve the BezierCurve.
      */
-    public Path(BezierCurve curve) {
+    public Path(Curve curve) {
         this(curve, PathConstraints.defaultConstraints);
     }
 
@@ -228,7 +229,7 @@ public class Path {
         closestPointTValue = closestPoint.getTValue();
         closestPose = closestPoint.getPose();
         closestPointTangentVector = closestPoint.getTangentVector();
-        closestPointNormalVector = curve.getApproxSecondDerivative(closestPointTValue);
+        closestPointNormalVector = curve.getNormalVector(closestPointTValue);
         closestPointCurvature = curve.getCurvature(closestPointTValue);
         return closestPoint;
     }
@@ -613,13 +614,13 @@ public class Path {
     }
 
     /**
-     * This returns a 2D Array of doubles containing the x and y positions of points to draw on FTC
-     * Dashboard.
+     * This returns a 2D Array of doubles containing the x and y positions of points to draw on
+     * Panels.
      *
-     * @return returns the 2D Array to draw on FTC Dashboard
+     * @return returns the 2D Array to draw on Panels
      */
-    public double[][] getDashboardDrawingPoints() {
-        return curve.getDashboardDrawingPoints();
+    public double[][] getPanelsDrawingPoints() {
+        return curve.getPanelsDrawingPoints();
     }
 
     /**
