@@ -93,7 +93,7 @@ public class Drawing {
      * @param look the parameters used to draw the Path with
      */
     public static void drawPath(Path path, Look look) {
-        double[][] points = path.getDashboardDrawingPoints();
+        double[][] points = path.getPanelsDrawingPoints();
 
         canvas.add(new Line(
                         new Point(

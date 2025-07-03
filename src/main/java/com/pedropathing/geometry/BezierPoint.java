@@ -40,7 +40,7 @@ public class BezierPoint extends BezierCurve {
         super();
         this.pose = pose;
         length = approximateLength();
-        super.initializeDashboardDrawingPoints();
+        super.initializePanelsDrawingPoints();
     }
 
     /**
