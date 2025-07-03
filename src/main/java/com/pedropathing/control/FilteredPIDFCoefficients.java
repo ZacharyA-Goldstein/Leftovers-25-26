@@ -17,10 +17,6 @@ public class FilteredPIDFCoefficients {
     public double T;
     public double F;
 
-    public FeedForwardConstant feedForwardConstantEquation;
-
-    private boolean usingEquation = true;
-
     /**
      * This creates a new CustomFilteredPIDFCoefficients with constant coefficients.
      *
@@ -49,12 +45,11 @@ public class FilteredPIDFCoefficients {
      * @param f the equation for the feedforward factor.
      */
     public FilteredPIDFCoefficients(double p, double i, double d, double t, FeedForwardConstant f) {
-        usingEquation = true;
         P = p;
         I = i;
         D = d;
         T = t;
-        feedForwardConstantEquation = f;
+        F = f.getConstant(1);
     }
 
     /**
@@ -65,8 +60,7 @@ public class FilteredPIDFCoefficients {
      * @return This returns the coefficient for the feedforward factor.
      */
     public double getCoefficient(double input) {
-        if (!usingEquation) return F;
-        return feedForwardConstantEquation.getConstant(input);
+        return F*input;
     }
 
     public void setCoefficients(double p, double i, double d, double t, double f) {
