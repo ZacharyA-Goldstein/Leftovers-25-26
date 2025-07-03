@@ -111,13 +111,12 @@ public class BezierCurve implements Curve {
      * point is a row vector.
      */
     public void generateBezierCurve() {
-        this.cachedMatrix = new Matrix(BezierCurveMatrixSupplier.getCharacteristicMatrix(this.controlPoints.size() - 1));
         Matrix controlPointMatrix = new Matrix(this.controlPoints.size(), 2);
         for (int i = 0; i < this.controlPoints.size(); i++) {
             Pose p = this.controlPoints.get(i);
             controlPointMatrix.set(i, new double[]{p.getX(), p.getY()});
         }
-        this.cachedMatrix.multiply(controlPointMatrix);
+        this.cachedMatrix = BezierCurveMatrixSupplier.getCharacteristicMatrix(this.controlPoints.size() - 1).multiply(controlPointMatrix);
         initializeDegreeArray();
         initializeCoefficientArray();
     }
@@ -231,8 +230,7 @@ public class BezierCurve implements Curve {
     public Pose getPose(double t) {
         t = MathFunctions.clamp(t, 0, 1);
 
-        Matrix outPos = new Matrix(new double[][]{getTVector(t, 0)});
-        outPos.multiply(this.cachedMatrix);
+        Matrix outPos = (new Matrix(new double[][]{getTVector(t, 0)})).multiply(this.cachedMatrix);
         return new Pose(outPos.get(0, 0), outPos.get(0, 1));
     }
 
@@ -262,8 +260,7 @@ public class BezierCurve implements Curve {
     public Vector getDerivative(double t) {
         t = MathFunctions.clamp(t, 0, 1);
 
-        Matrix outVel = new Matrix(new double[][]{getTVector(t, 1)});
-        outVel.multiply(this.cachedMatrix);
+        Matrix outVel = (new Matrix(new double[][]{getTVector(t, 1)})).multiply(this.cachedMatrix);
         Vector output = new Vector();
         output.setOrthogonalComponents(outVel.get(0, 0), outVel.get(0, 1));
         return output;
@@ -279,8 +276,7 @@ public class BezierCurve implements Curve {
     public Vector getSecondDerivative(double t) {
         t = MathFunctions.clamp(t, 0, 1);
 
-        Matrix outAccel = new Matrix(new double[][]{getTVector(t, 2)});
-        outAccel.multiply(this.cachedMatrix);
+        Matrix outAccel = (new Matrix(new double[][]{getTVector(t, 2)})).multiply(this.cachedMatrix);
         Vector output = new Vector();
         output.setOrthogonalComponents(outAccel.get(0, 0), outAccel.get(0, 1));
         return output;
@@ -295,13 +291,11 @@ public class BezierCurve implements Curve {
     public Matrix getPointCharacteristics(double t){
         t = MathFunctions.clamp(t, 0, 1);
 
-        Matrix output = new Matrix(new double[][]{
+        return new Matrix(new double[][]{
                 getTVector(t, 0),
                 getTVector(t, 1),
                 getTVector(t, 2)
-        });
-        output.multiply(this.cachedMatrix);
-        return output;
+        }).multiply(this.cachedMatrix);
     }
 
     /**

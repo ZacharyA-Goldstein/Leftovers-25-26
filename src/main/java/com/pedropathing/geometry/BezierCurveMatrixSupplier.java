@@ -75,7 +75,7 @@ public class BezierCurveMatrixSupplier {
         }
 
         // multiply to obtain a characteristic matrix that doesn't have the appropriate negative signs yet
-        rowMultOp.multiply(output);
+        rowMultOp = rowMultOp.multiply(output);
 
         // flip signs if necessary
         // similar to the signs of a cofactor matrix
