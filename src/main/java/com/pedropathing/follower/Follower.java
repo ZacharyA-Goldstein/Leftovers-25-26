@@ -1,6 +1,5 @@
 package com.pedropathing.follower;
 
-import com.bylazar.ftcontrol.panels.integration.TelemetryManager;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.drivetrain.Drivetrain;
@@ -18,14 +17,14 @@ import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathCallback;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.math.Vector;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.pedropathing.util.Timer;
 
 /**
  * This is the Follower class. It handles the actual following of the paths and all the on-the-fly
  * calculations that are relevant for movement.
  *
- * @author Anyi Lin - 10158 Scott's Bots
  * @author Baron Henderson - 20077 The Indubitables
+ * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.1.0, 5/1/2025
@@ -42,8 +41,8 @@ public class Follower {
     private Pose currentPose = new Pose();
     private PathPoint closestPose = new PathPoint();
     private PathPoint previousClosestPose = new PathPoint();
-    private Path currentPath = new Path();
-    private PathChain currentPathChain = new PathChain(new Path());
+    private Path currentPath = null;
+    private PathChain currentPathChain = null;
 
     private int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
@@ -58,7 +57,7 @@ public class Follower {
     public boolean useCentripetal = true;
     public boolean useHeading = true;
     public boolean useDrive = true;
-    private ElapsedTime zeroVelocityDetectedTimer = null;
+    private Timer zeroVelocityDetectedTimer = null;
     private Runnable resetFollowing = null;
 
     /**
@@ -85,9 +84,6 @@ public class Follower {
         centripetalScaling = constants.centripetalScaling;
         turnHeadingErrorThreshold = constants.turnHeadingErrorThreshold;
         automaticHoldEnd = constants.automaticHoldEnd;
-
-        currentPathChain = null;
-        currentPath = null;
 
         breakFollowing();
     }
@@ -417,10 +413,10 @@ public class Follower {
 
         if (poseTracker.getVelocity().getMagnitude() < 1.0 && currentPath.getClosestPointTValue() > 0.8
                 && zeroVelocityDetectedTimer == null && isBusy) {
-            zeroVelocityDetectedTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+            zeroVelocityDetectedTimer = new Timer();
         }
 
-        if (!(currentPath.isAtParametricEnd() || ( zeroVelocityDetectedTimer != null && zeroVelocityDetectedTimer.milliseconds() > 500.0))) {
+        if (!(currentPath.isAtParametricEnd() || ( zeroVelocityDetectedTimer != null && zeroVelocityDetectedTimer.getElapsedTime() > 500.0))) {
             return;
         }
 
@@ -777,13 +773,14 @@ public class Follower {
     }
 
     /**
-     * This is a debugging method that prints out the current state of the Follower.
-     * @param telemetryManager The TelemetryManager to use for debugging.
+     * This is a debugging method that returns a String array of debug information.
      */
-    public void debug(TelemetryManager telemetryManager) {
-        telemetryManager.debug(poseTracker.debugString());
-        telemetryManager.debug(errorCalculator.debugString());
-        telemetryManager.debug(vectorCalculator.debugString());
-        telemetryManager.debug(drivetrain.debugString());
+    public String[] debug() {
+        String[] info = new String[4];
+        info[0] = poseTracker.debugString();
+        info[1] = errorCalculator.debugString();
+        info[2] = vectorCalculator.debugString();
+        info[3] = drivetrain.debugString();
+        return info;
     }
 }

@@ -1,11 +1,7 @@
 package com.pedropathing.paths;
 
-
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A heading interpolator is a function that takes a path and returns the heading goal the robot

@@ -1,7 +1,5 @@
 package com.pedropathing.paths;
 
-import com.qualcomm.robotcore.util.ElapsedTime;
-
 import java.util.concurrent.TimeUnit;
 
 /**
