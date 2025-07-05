@@ -38,7 +38,7 @@ public class Follower {
     public ErrorCalculator errorCalculator;
     public VectorCalculator vectorCalculator;
     public Drivetrain drivetrain;
-    private final PoseHistory dashboardPoseTracker;
+    private final PoseHistory poseHistory;
 
     private Pose currentPose = new Pose();
     private PathPoint closestPose = new PathPoint();
@@ -78,7 +78,7 @@ public class Follower {
         vectorCalculator = new VectorCalculator(constants);
         this.drivetrain = drivetrain;
 
-        dashboardPoseTracker = new PoseHistory(poseTracker);
+        poseHistory = new PoseHistory(poseTracker);
 
         BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
         holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
@@ -351,7 +351,7 @@ public class Follower {
     public void updatePose() {
         poseTracker.update();
         currentPose = poseTracker.getPose();
-        dashboardPoseTracker.update();
+        poseHistory.update();
     }
 
     /** Calls an update to the ErrorCalculator, which updates the robot's current error. */
@@ -372,7 +372,7 @@ public class Follower {
      * This also updates all the Follower's PIDFs, which updates the motor powers.
      */
     public void update() {
-        dashboardPoseTracker.update();
+        poseHistory.update();
         updateConstants();
         updatePose();
         updateDrivetrain();
@@ -712,7 +712,7 @@ public class Follower {
     public PoseTracker getPoseTracker() { return poseTracker; }
     public ErrorCalculator getErrorCalculator() { return errorCalculator; }
     public VectorCalculator getVectorCalculator() { return vectorCalculator; }
-    public PoseHistory getDashboardPoseTracker() { return dashboardPoseTracker; }
+    public PoseHistory getPoseHistory() { return poseHistory; }
     public void setXMovement(double xMovement) { drivetrain.setXMovement(xMovement); }
     public void setYMovement(double yMovement) { drivetrain.setYMovement(yMovement); }
 
