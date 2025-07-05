@@ -3,14 +3,14 @@ package com.pedropathing.util;
 import com.pedropathing.localization.PoseTracker;
 
 /**
- * This is the DashboardPoseTracker class. This tracks the pose history of the robot through a
+ * This is the PoseHistory class. This tracks the pose history of the robot through a
  * PoseTracker, adding to the pose history at specified increments of time and storing the history
  * for a specified length of time.
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 5/13/2024
  */
-public class DashboardPoseTracker {
+public class PoseHistory {
     private double[] xPositions;
     private double[] yPositions;
     private PoseTracker poseUpdater;
@@ -20,11 +20,11 @@ public class DashboardPoseTracker {
     private final int TRACKING_SIZE = TRACKING_LENGTH / (int) UPDATE_TIME;
 
     /**
-     * This creates a new DashboardPoseTracker from a PoseTracker.
+     * This creates a new PoseHistory from a PoseTracker.
      *
      * @param poseUpdater the PoseTracker
      */
-    public DashboardPoseTracker(PoseTracker poseUpdater) {
+    public PoseHistory(PoseTracker poseUpdater) {
         this.poseUpdater = poseUpdater;
         xPositions = new double[TRACKING_SIZE];
         yPositions = new double[TRACKING_SIZE];
@@ -38,7 +38,7 @@ public class DashboardPoseTracker {
     }
 
     /**
-     * This updates the DashboardPoseTracker. When the specified update time has passed from the last
+     * This updates the PoseHistory. When the specified update time has passed from the last
      * pose history log, another pose can be logged. The least recent log is also removed.
      */
     public void update() {

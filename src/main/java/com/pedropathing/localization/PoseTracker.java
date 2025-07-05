@@ -314,12 +314,17 @@ public class PoseTracker {
         return localizer;
     }
 
+    /**
+     * This returns the IMU heading.
+     *
+     * @return the IMU heading
+     */
     public double getIMU() {
         return localizer.getIMU();
     }
 
     /**
-     *
+     * This resets the IMU of the localizer.
      */
     public void resetIMU() throws InterruptedException {
         localizer.resetIMU();

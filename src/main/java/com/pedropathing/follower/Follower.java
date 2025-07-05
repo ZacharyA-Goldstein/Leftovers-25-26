@@ -7,7 +7,7 @@ import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.Drivetrain;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.paths.PathPoint;
-import com.pedropathing.util.DashboardPoseTracker;
+import com.pedropathing.util.PoseHistory;
 
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.geometry.Pose;
@@ -38,7 +38,7 @@ public class Follower {
     public ErrorCalculator errorCalculator;
     public VectorCalculator vectorCalculator;
     public Drivetrain drivetrain;
-    private final DashboardPoseTracker dashboardPoseTracker;
+    private final PoseHistory dashboardPoseTracker;
 
     private Pose currentPose = new Pose();
     private PathPoint closestPose = new PathPoint();
@@ -78,7 +78,7 @@ public class Follower {
         vectorCalculator = new VectorCalculator(constants);
         this.drivetrain = drivetrain;
 
-        dashboardPoseTracker = new DashboardPoseTracker(poseTracker);
+        dashboardPoseTracker = new PoseHistory(poseTracker);
 
         BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
         holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
@@ -712,7 +712,7 @@ public class Follower {
     public PoseTracker getPoseTracker() { return poseTracker; }
     public ErrorCalculator getErrorCalculator() { return errorCalculator; }
     public VectorCalculator getVectorCalculator() { return vectorCalculator; }
-    public DashboardPoseTracker getDashboardPoseTracker() { return dashboardPoseTracker; }
+    public PoseHistory getDashboardPoseTracker() { return dashboardPoseTracker; }
     public void setXMovement(double xMovement) { drivetrain.setXMovement(xMovement); }
     public void setYMovement(double yMovement) { drivetrain.setYMovement(yMovement); }
 
