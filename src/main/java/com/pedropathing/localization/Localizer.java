@@ -1,7 +1,6 @@
 package com.pedropathing.localization;
 
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.hardware.IMU;
 
 import com.pedropathing.math.Vector;
 
@@ -100,7 +99,7 @@ public interface Localizer {
      *
      * @return returns the IMU if it exists
      */
-    IMU getIMU();
+    double getIMU();
 
     /**
      * This returns whether if any component of robot's position is NaN.

@@ -52,7 +52,7 @@ public class BezierPoint extends BezierCurve {
      */
     @Override
     public Vector getEndTangent() {
-        return MathFunctions.copyVector(endTangent);
+        return endTangent.copy();
     }
 
     /**
@@ -97,7 +97,7 @@ public class BezierPoint extends BezierCurve {
      */
     @Override
     public Vector getDerivative(double t) {
-        return MathFunctions.copyVector(endTangent);
+        return endTangent.copy();
     }
 
     /**

@@ -1,10 +1,6 @@
 package com.pedropathing.localization;
 
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.hardware.IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-import com.pedropathing.localization.localizers.PinpointLocalizer;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 
@@ -20,15 +16,13 @@ import com.pedropathing.math.Vector;
  */
 public class PoseTracker {
 
-    private final IMU imu;
-
     private final Localizer localizer;
 
     private Pose startingPose = new Pose(0,0,0);
 
-    private Pose currentPose = startingPose;
+    private Pose currentPose = startingPose.copy();
 
-    private Pose previousPose = startingPose;
+    private Pose previousPose = startingPose.copy();
 
     private Vector currentVelocity = new Vector();
 
@@ -51,14 +45,11 @@ public class PoseTracker {
     public PoseTracker(Localizer localizer) {
         this.localizer = localizer;
 
-        if (localizer.getClass() != PinpointLocalizer.class) {
-            try {
-                localizer.resetIMU();
-            } catch (InterruptedException ignored) {
-            }
+        try {
+            localizer.resetIMU();
+        } catch (InterruptedException ignored) {
+            System.out.println("PoseTracker: resetIMU() interrupted");
         }
-
-        imu = localizer.getIMU();
     }
 
 
@@ -246,7 +237,7 @@ public class PoseTracker {
      */
     public Vector getVelocity() {
         if (currentVelocity == null) currentVelocity = localizer.getVelocityVector();
-        return MathFunctions.copyVector(currentVelocity);
+        return currentVelocity.copy();
     }
 
     /**
@@ -267,17 +258,17 @@ public class PoseTracker {
      */
     public Vector getAcceleration() {
         if (currentAcceleration == null) {
-            currentAcceleration = MathFunctions.subtractVectors(getVelocity(), previousVelocity);
+            currentAcceleration = getVelocity().minus(previousVelocity);
             currentAcceleration.setMagnitude(currentAcceleration.getMagnitude() / ((currentPoseTime - previousPoseTime) / Math.pow(10.0, 9)));
         }
-        return MathFunctions.copyVector(currentAcceleration);
+        return currentAcceleration.copy();
     }
 
     /**
      * This resets the heading of the robot to the IMU's heading, using Road Runner's pose reset.
      */
     public void resetHeadingToIMU() {
-        if (imu != null) {
+        if (Double.isNaN(getIMU()) || Double.isInfinite(getIMU())) {
             localizer.setPose(new Pose(getPose().getX(), getPose().getY(), getNormalizedIMUHeading() + startingPose.getHeading()));
         }
     }
@@ -288,7 +279,7 @@ public class PoseTracker {
      * method.
      */
     public void resetHeadingToIMUWithOffsets() {
-        if (imu != null) {
+        if (Double.isNaN(getIMU()) || Double.isInfinite(getIMU())) {
             setCurrentPoseWithOffset(new Pose(getPose().getX(), getPose().getY(), getNormalizedIMUHeading() + startingPose.getHeading()));
         }
     }
@@ -299,8 +290,8 @@ public class PoseTracker {
      * @return returns the normalized IMU heading.
      */
     public double getNormalizedIMUHeading() {
-        if (imu != null) {
-            return MathFunctions.normalizeAngle(-imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        if (Double.isNaN(getIMU()) || Double.isInfinite(getIMU())) {
+            return MathFunctions.normalizeAngle(-getIMU());
         }
         return 0;
     }
@@ -321,6 +312,10 @@ public class PoseTracker {
      */
     public Localizer getLocalizer() {
         return localizer;
+    }
+
+    public double getIMU() {
+        return localizer.getIMU();
     }
 
     /**

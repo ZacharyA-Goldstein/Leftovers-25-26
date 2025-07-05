@@ -1,7 +1,5 @@
 package com.pedropathing.control;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 /**
  * This is the KalmanFilter class. This creates a Kalman filter that is used to smooth out data.
  *
@@ -52,9 +50,11 @@ public class KalmanFilter {
         return state;
     }
 
-    public void debug(Telemetry telemetry) {
-        telemetry.addData("state", state);
-        telemetry.addData("variance", variance);
-        telemetry.addData("Kalman gain", kalmanGain);
+    public String[] output() {
+        return new String[]{
+                "State: " + state,
+                "Variance: " + variance,
+                "Kalman Gain: " + kalmanGain
+        };
     }
 }

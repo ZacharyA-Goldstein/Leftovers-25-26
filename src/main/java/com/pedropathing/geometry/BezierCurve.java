@@ -81,7 +81,7 @@ public class BezierCurve implements Curve {
         UNIT_TO_TIME = 1.0d/length;
         endTangent.setOrthogonalComponents(controlPoints.get(controlPoints.size()-1).getX()-controlPoints.get(controlPoints.size()-2).getX(),
                 controlPoints.get(controlPoints.size()-1).getY()-controlPoints.get(controlPoints.size()-2).getY());
-        endTangent = MathFunctions.normalizeVector(endTangent);
+        endTangent = endTangent.normalize();
         initializePanelsDrawingPoints();
     }
 
@@ -127,7 +127,7 @@ public class BezierCurve implements Curve {
      * @return returns the end tangent Vector.
      */
     public Vector getEndTangent() {
-        return MathFunctions.copyVector(endTangent);
+        return endTangent.copy();
     }
 
     /**
@@ -247,7 +247,7 @@ public class BezierCurve implements Curve {
         Vector secondDerivative = getSecondDerivative(t);
 
         if (derivative.getMagnitude() == 0) return 0;
-        return (MathFunctions.crossProduct(derivative, secondDerivative))/Math.pow(derivative.getMagnitude(),3);
+        return (derivative.dot(secondDerivative))/Math.pow(derivative.getMagnitude(),3);
     }
 
     /**
@@ -410,11 +410,11 @@ public class BezierCurve implements Curve {
         for (int i = 0; i < searchLimit; i++) {
             Pose lastPoint = getPose(initialTValueGuess);
 
-            Vector differenceVector = new Vector(MathFunctions.subtractPoses(lastPoint, pose));
+            Vector differenceVector = new Vector(lastPoint.minus(pose));
 
-            double firstDerivative = 2 * MathFunctions.dotProduct(getDerivative(initialTValueGuess), differenceVector);
+            double firstDerivative = 2 * getDerivative(initialTValueGuess).dot(differenceVector);
             double secondDerivative = 2 * (Math.pow(getDerivative(initialTValueGuess).getMagnitude(), 2) +
-                    MathFunctions.dotProduct(differenceVector, getSecondDerivative(initialTValueGuess)));
+                    differenceVector.dot(getSecondDerivative(initialTValueGuess)));
 
             initialTValueGuess = MathFunctions.clamp(initialTValueGuess - firstDerivative / (secondDerivative + 1e-9), 0, 1);
             if (getPose(initialTValueGuess).distanceFrom(lastPoint) < 0.1) break;

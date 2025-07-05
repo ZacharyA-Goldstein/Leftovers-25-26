@@ -1,7 +1,8 @@
-package com.pedropathing.follower;
+package com.pedropathing;
 
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
@@ -174,18 +175,18 @@ public class VectorCalculator {
         if (driveError == -1)
             return new Vector(maxPowerScaling, currentPath.getClosestPointTangentVector().getTheta());
 
-        Vector driveVelocity = new Vector(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta());
+        Vector driveVelocity = new Vector(velocity.dot(currentPath.getClosestPointTangentVector().normalize()), currentPath.getClosestPointTangentVector().getTheta());
         if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
             secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude() * Math.signum(driveError));
             secondaryDrivePIDF.updateError(driveError);
             driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
-            return MathFunctions.copyVector(driveVector);
+            return driveVector.copy();
         }
 
         secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude() * Math.signum(driveError));
         drivePIDF.updateError(driveError);
         driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
-        return MathFunctions.copyVector(driveVector);
+        return driveVector.copy();
     }
 
     /**
@@ -204,12 +205,12 @@ public class VectorCalculator {
             secondaryHeadingPIDF.updateFeedForwardInput(MathFunctions.getTurnDirection(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal()));
             secondaryHeadingPIDF.updateError(headingError);
             headingVector = new Vector(MathFunctions.clamp(secondaryHeadingPIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), currentPose.getHeading());
-            return MathFunctions.copyVector(headingVector);
+            return headingVector.copy();
         }
         headingPIDF.updateFeedForwardInput(MathFunctions.getTurnDirection(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal()));
         headingPIDF.updateError(headingError);
         headingVector = new Vector(MathFunctions.clamp(headingPIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), currentPose.getHeading());
-        return MathFunctions.copyVector(headingVector);
+        return headingVector.copy();
     }
 
     /**
@@ -223,13 +224,13 @@ public class VectorCalculator {
     public Vector getCorrectiveVector() {
         Vector centripetal = getCentripetalForceCorrection();
         Vector translational = getTranslationalCorrection();
-        Vector corrective = MathFunctions.addVectors(centripetal, translational);
+        Vector corrective = centripetal.plus(translational);
 
         if (corrective.getMagnitude() > maxPowerScaling) {
-            return MathFunctions.addVectors(centripetal, MathFunctions.scalarMultiplyVector(translational, MathFunctions.findNormalizingScaling(centripetal, translational, maxPowerScaling)));
+            return centripetal.plus(translational.times(MathFunctions.findNormalizingScaling(centripetal, translational, maxPowerScaling)));
         }
 
-        correctiveVector = MathFunctions.copyVector(corrective);
+        correctiveVector = corrective.copy();
 
         return corrective;
     }
@@ -247,35 +248,35 @@ public class VectorCalculator {
         Vector translationalVector = translationalError.copy();
 
         if (!(currentPath.isAtParametricEnd() || currentPath.isAtParametricStart())) {
-            translationalVector = MathFunctions.subtractVectors(translationalVector, new Vector(MathFunctions.dotProduct(translationalVector, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta()));
+            translationalVector = translationalVector.minus(new Vector(translationalVector.dot(currentPath.getClosestPointTangentVector().normalize()), currentPath.getClosestPointTangentVector().getTheta()));
 
-            secondaryTranslationalIntegralVector = MathFunctions.subtractVectors(secondaryTranslationalIntegralVector, new Vector(MathFunctions.dotProduct(secondaryTranslationalIntegralVector, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta()));
-            translationalIntegralVector = MathFunctions.subtractVectors(translationalIntegralVector, new Vector(MathFunctions.dotProduct(translationalIntegralVector, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta()));
+            secondaryTranslationalIntegralVector = secondaryTranslationalIntegralVector.minus(new Vector(secondaryTranslationalIntegralVector.dot(currentPath.getClosestPointTangentVector().normalize()), currentPath.getClosestPointTangentVector().getTheta()));
+            translationalIntegralVector = translationalIntegralVector.minus(new Vector(translationalIntegralVector.dot( currentPath.getClosestPointTangentVector().normalize()), currentPath.getClosestPointTangentVector().getTheta()));
         }
 
-        if (MathFunctions.distance(currentPose, closestPose) < translationalPIDFSwitch && useSecondaryTranslationalPID) {
+        if (currentPose.distanceFrom(closestPose) < translationalPIDFSwitch && useSecondaryTranslationalPID) {
             secondaryTranslationalIntegral.updateError(translationalVector.getMagnitude());
-            secondaryTranslationalIntegralVector = MathFunctions.addVectors(secondaryTranslationalIntegralVector, new Vector(secondaryTranslationalIntegral.runPIDF() - previousSecondaryTranslationalIntegral, translationalVector.getTheta()));
+            secondaryTranslationalIntegralVector = secondaryTranslationalIntegralVector.plus(new Vector(secondaryTranslationalIntegral.runPIDF() - previousSecondaryTranslationalIntegral, translationalVector.getTheta()));
             previousSecondaryTranslationalIntegral = secondaryTranslationalIntegral.runPIDF();
 
             secondaryTranslationalPIDF.updateFeedForwardInput(1);
             secondaryTranslationalPIDF.updateError(translationalVector.getMagnitude());
             translationalVector.setMagnitude(secondaryTranslationalPIDF.runPIDF());
-            translationalVector = MathFunctions.addVectors(translationalVector, secondaryTranslationalIntegralVector);
+            translationalVector = translationalVector.plus(secondaryTranslationalIntegralVector);
         } else {
             translationalIntegral.updateError(translationalVector.getMagnitude());
-            translationalIntegralVector = MathFunctions.addVectors(translationalIntegralVector, new Vector(translationalIntegral.runPIDF() - previousTranslationalIntegral, translationalVector.getTheta()));
+            translationalIntegralVector = translationalIntegralVector.plus(new Vector(translationalIntegral.runPIDF() - previousTranslationalIntegral, translationalVector.getTheta()));
             previousTranslationalIntegral = translationalIntegral.runPIDF();
 
             translationalPIDF.updateFeedForwardInput(1);
             translationalPIDF.updateError(translationalVector.getMagnitude());
             translationalVector.setMagnitude(translationalPIDF.runPIDF());
-            translationalVector = MathFunctions.addVectors(translationalVector, translationalIntegralVector);
+            translationalVector = translationalVector.plus(translationalIntegralVector);
         }
 
         translationalVector.setMagnitude(MathFunctions.clamp(translationalVector.getMagnitude(), 0, maxPowerScaling));
 
-        this.translationalVector = MathFunctions.copyVector(translationalVector);
+        this.translationalVector = translationalVector.copy();
 
         return translationalVector;
     }
@@ -299,7 +300,7 @@ public class VectorCalculator {
             curvature = (yDoublePrime) / (Math.pow(Math.sqrt(1 + Math.pow(yPrime, 2)), 3));
         }
         if (Double.isNaN(curvature)) return new Vector();
-        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * mass * Math.pow(MathFunctions.dotProduct(velocity, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * Math.signum(currentPath.getClosestPointNormalVector().getTheta()));
+        centripetalVector = new Vector(MathFunctions.clamp(centripetalScaling * mass * Math.pow(velocity.dot(currentPath.getClosestPointTangentVector().normalize()), 2) * curvature, -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta() + Math.PI / 2 * Math.signum(currentPath.getClosestPointNormalVector().getTheta()));
         return centripetalVector;
     }
 
@@ -349,24 +350,24 @@ public class VectorCalculator {
         averagePreviousVelocity = new Vector();
 
         for (int i = 0; i < velocities.size() / 2; i++) {
-            averageVelocity = MathFunctions.addVectors(averageVelocity, velocities.get(i));
+            averageVelocity = averageVelocity.plus(velocities.get(i));
         }
-        averageVelocity = MathFunctions.scalarMultiplyVector(averageVelocity, 1.0 / ((double) velocities.size() / 2));
+        averageVelocity = averageVelocity.times(1.0 / ((double) velocities.size() / 2));
 
         for (int i = velocities.size() / 2; i < velocities.size(); i++) {
-            averagePreviousVelocity = MathFunctions.addVectors(averagePreviousVelocity, velocities.get(i));
+            averagePreviousVelocity = averagePreviousVelocity.plus(velocities.get(i));
         }
-        averagePreviousVelocity = MathFunctions.scalarMultiplyVector(averagePreviousVelocity, 1.0 / ((double) velocities.size() / 2));
+        averagePreviousVelocity = averagePreviousVelocity.times(1.0 / ((double) velocities.size() / 2));
 
-        accelerations.add(MathFunctions.subtractVectors(averageVelocity, averagePreviousVelocity));
+        accelerations.add(averageVelocity.minus(averagePreviousVelocity));
         accelerations.remove(accelerations.size() - 1);
 
         averageAcceleration = new Vector();
 
         for (int i = 0; i < accelerations.size(); i++) {
-            averageAcceleration = MathFunctions.addVectors(averageAcceleration, accelerations.get(i));
+            averageAcceleration = averageAcceleration.plus(accelerations.get(i));
         }
-        averageAcceleration = MathFunctions.scalarMultiplyVector(averageAcceleration, 1.0 / accelerations.size());
+        averageAcceleration = averageAcceleration.times(1.0 / accelerations.size());
     }
 
     public boolean isTeleopDrive() {

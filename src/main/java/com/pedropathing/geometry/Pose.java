@@ -1,13 +1,7 @@
 package com.pedropathing.geometry;
 
-import androidx.annotation.NonNull;
-
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 /**
  * Represents a pose in 2D space, consisting of an \`x\` and \`y\` position and a heading (orientation).
@@ -53,7 +47,7 @@ public final class Pose {
      * @param heading the heading in radians
      */
     public Pose(double x, double y, double heading) {
-        this(x, y, heading, CoordinateSystems.PEDRO);
+        this(x, y, heading, PedroCoordinates.INSTANCE);
     }
 
     /**
@@ -64,16 +58,6 @@ public final class Pose {
      */
     public Pose(double x, double y) {
         this(x, y, 0);
-    }
-
-    /**
-     * Constructs a pose from a Pose2D and a coordinate system.
-     *
-     * @param pose2d the Pose2D object
-     * @param coordinateSystem the coordinate system
-     */
-    public Pose(Pose2D pose2d, CoordinateSystem coordinateSystem) {
-        this(pose2d.getX(DistanceUnit.INCH), pose2d.getY(DistanceUnit.INCH), pose2d.getHeading(AngleUnit.RADIANS), coordinateSystem);
     }
 
     /**
@@ -203,6 +187,7 @@ public final class Pose {
 
     /**
      * Multiplies the pose by a scalar.
+     * This scales x, y, and heading by the scalar value, but does not change the coordinate system.
      *
      * @param scalar the scalar value
      * @return the resulting pose
@@ -214,6 +199,17 @@ public final class Pose {
                 heading * scalar,
                 coordinateSystem
         );
+    }
+
+    /**
+     * This scales the current Pose by a given scale factor.
+     * The heading or coordinate system is not affected.
+     *
+     * @param scalar the scale factor
+     * @return returns the scaled Pose
+     */
+    public Pose scale(double scalar) {
+        return new Pose(getX() * scalar, getY() * scalar, getHeading(), coordinateSystem);
     }
 
     /**
@@ -241,6 +237,17 @@ public final class Pose {
     }
 
     /**
+     * This returns a Pose that is the linear combination of the current pose and another pose.
+     * @param other the other pose
+     * @param scaleThis the coefficient for the current pose
+     * @param scaleOther the second coefficient for the other pose
+     * @return the resulting pose
+     */
+    public Pose linearCombination(Pose other, double scaleThis, double scaleOther) {
+        return times(scaleThis).plus(other.times(scaleOther));
+    }
+
+    /**
      * Checks if this pose is approximately equal to another pose within a given accuracy.
      *
      * @param other the other pose
@@ -265,6 +272,21 @@ public final class Pose {
     }
 
     /**
+     * This rotates this pose by the given theta
+     *
+     * @param theta the angle to rotate by.
+     * @param rotateHeading whether to adjust the Pose heading too.
+     * @return the rotated Pose.
+     */
+    public Pose rotate(double theta, boolean rotateHeading) {
+        double x = getX() * Math.cos(theta) - getY() * Math.sin(theta);
+        double y = getX() * Math.sin(theta) + getY() * Math.cos(theta);
+        double heading = rotateHeading ? MathFunctions.normalizeAngle(getHeading() + theta) : getHeading();
+
+        return new Pose(x, y, heading, coordinateSystem);
+    }
+
+    /**
      * Converts this pose to the specified coordinate system.
      *
      * @param coordinateSystem the target coordinate system
@@ -272,34 +294,6 @@ public final class Pose {
      */
     public Pose getAsCoordinateSystem(CoordinateSystem coordinateSystem) {
         return coordinateSystem.convertFromFtcStandard(this.coordinateSystem.convertToFtcStandard(this));
-    }
-
-    /**
-     * Converts this pose to Pedro coordinates.
-     *
-     * @return the pose in Pedro coordinates
-     */
-    public Pose getAsPedroCoordinates() {
-        return getAsCoordinateSystem(CoordinateSystems.PEDRO);
-    }
-
-    /**
-     * Converts this pose to FTC standard coordinates.
-     *
-     * @return the pose in FTC standard coordinates
-     */
-    public Pose getAsFtcStandardCoordinates() {
-        return getAsCoordinateSystem(CoordinateSystems.FTC);
-    }
-
-    /**
-     * Converts this pose to a \`Pose2D\` in the specified coordinate system.
-     *
-     * @param coordinateSystem the target coordinate system
-     * @return the pose as a \`Pose2D\`
-     */
-    public Pose2D getAsPose2d(CoordinateSystem coordinateSystem) {
-        return new Pose2D(DistanceUnit.INCH, getAsCoordinateSystem(coordinateSystem).getX(), getAsCoordinateSystem(coordinateSystem).getY(), AngleUnit.RADIANS, getAsCoordinateSystem(coordinateSystem).getHeading());
     }
 
     /**
@@ -347,12 +341,16 @@ public final class Pose {
         return new Pose(x, y, heading);
     }
 
+    /** Returns a new pose with the same coordinate system, keeping x, y, and heading. */
+    public Pose copy() {
+        return new Pose(x, y, heading, coordinateSystem);
+    }
+
     /**
      * Returns a string representation of the pose in the format (x, y, heading in degrees).
      *
      * @return a string representation of the pose
      */
-    @NonNull
     @Override
     public String toString() {
         return "(" + getX() + ", " + getY() + ", " + Math.toDegrees(getHeading()) + ")";

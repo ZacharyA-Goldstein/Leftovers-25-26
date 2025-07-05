@@ -249,7 +249,7 @@ public class Path {
      * @param current the current pose
      */
     public void updateDistance(PathPoint previous, PathPoint current) {
-        distanceCalculator.update(MathFunctions.distance(previous.pose, closestPose), current.tValue - previous.tValue);
+        distanceCalculator.update(previous.pose.distanceFrom(closestPose), current.tValue - previous.tValue);
     }
 
     /**
@@ -377,7 +377,7 @@ public class Path {
      * @return returns the normal Vector at the closest Point.
      */
     public Vector getClosestPointNormalVector() {
-        return MathFunctions.copyVector(closestPointNormalVector);
+        return closestPointNormalVector.copy();
     }
 
     /**
@@ -386,7 +386,7 @@ public class Path {
      * @return returns the tangent Vector at the closest Point.
      */
     public Vector getClosestPointTangentVector() {
-        return MathFunctions.copyVector(closestPointTangentVector);
+        return closestPointTangentVector.copy();
     }
 
     /**

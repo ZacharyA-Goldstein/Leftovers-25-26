@@ -68,144 +68,6 @@ public class MathFunctions {
     }
 
     /**
-     * This returns the distance between a Pose and another Pose.
-     *
-     * @param one this is the first Pose.
-     * @param two this is the second Pose.
-     * @return returns the distance between the two.
-     */
-    public static double distance(Pose one, Pose two) {
-        return Math.sqrt(Math.pow(one.getX() - two.getX(), 2) + Math.pow(one.getY() - two.getY(), 2));
-    }
-
-    /**
-     * This returns a Pose that is the sum of the two input Pose.
-     *
-     * @param one the first Pose
-     * @param two the second Pose
-     * @return returns the sum of the two Pose.
-     */
-    public static Pose addPoses(Pose one, Pose two) {
-        return new Pose(one.getX() + two.getX(), one.getY() + two.getY(), one.getHeading() + two.getHeading());
-    }
-
-
-    /**
-     * This subtracts the second Pose from the first Pose and returns the result as a Pose.
-     * Do note that order matters here.
-     *
-     * @param one the first Pose.
-     * @param two the second Pose.
-     * @return returns the difference of the two Pose.
-     */
-    public static Pose subtractPoses(Pose one, Pose two) {
-        return new Pose(one.getX() - two.getX(), one.getY() - two.getY(), one.getHeading() - two.getHeading());
-    }
-
-    /**
-     * This rotates the given pose by the given theta,
-     *
-     * @param pose the Pose to rotate.
-     * @param theta the angle to rotate by.
-     * @param rotateHeading whether to adjust the Pose heading too.
-     * @return the rotated Pose.
-     */
-    public static Pose rotatePose(Pose pose, double theta, boolean rotateHeading) {
-        double x = pose.getX() * Math.cos(theta) - pose.getY() * Math.sin(theta);
-        double y = pose.getX() * Math.sin(theta) + pose.getY() * Math.cos(theta);
-        double heading = rotateHeading ? normalizeAngle(pose.getHeading() + theta) : pose.getHeading();
-
-        return new Pose(x, y, heading);
-    }
-
-    /**
-     * Copies a Vector, but with a different reference location in the memory. So basically a deep
-     * copy.
-     *
-     * @param vector Vector to be deep copied.
-     * @return returns the copied Vector.
-     */
-    public static Vector copyVector(Vector vector) {
-        return new Vector(vector.getMagnitude(), vector.getTheta());
-    }
-
-    /**
-     * This multiplies a Vector by a scalar and returns the result as a Vector.
-     *
-     * @param vector the Vector being multiplied.
-     * @param scalar the scalar multiplying into the Vector.
-     * @return returns the scaled Vector.
-     */
-    public static Vector scalarMultiplyVector(Vector vector, double scalar) {
-        return new Vector(vector.getMagnitude() * scalar, vector.getTheta());
-    }
-
-    /**
-     * This normalizes a Vector to be of magnitude 1, unless the Vector is the zero Vector.
-     * In that case, it just returns back the zero Vector but with a different memory location.
-     *
-     * @param vector the Vector being normalized.
-     * @return returns the normalized (or zero) Vector.
-     */
-    public static Vector normalizeVector(Vector vector) {
-        if (vector.getMagnitude() == 0) {
-            return new Vector(0.0, vector.getTheta());
-        } else {
-            return new Vector(vector.getMagnitude() / Math.abs(vector.getMagnitude()), vector.getTheta());
-        }
-    }
-
-    /**
-     * This returns a Vector that is the sum of the two input Vectors.
-     *
-     * @param one the first Vector.
-     * @param two the second Vector.
-     * @return returns the sum of the Vectors.
-     */
-    public static Vector addVectors(Vector one, Vector two) {
-        Vector returnVector = new Vector();
-        returnVector.setOrthogonalComponents(one.getXComponent() + two.getXComponent(), one.getYComponent() + two.getYComponent());
-        return returnVector;
-    }
-
-    /**
-     * This subtracts the second Vector from the first Vector and returns the result as a Vector.
-     * Do note that order matters here.
-     *
-     * @param one the first Vector.
-     * @param two the second Vector.
-     * @return returns the second Vector subtracted from the first Vector.
-     */
-    public static Vector subtractVectors(Vector one, Vector two) {
-        Vector returnVector = new Vector();
-        returnVector.setOrthogonalComponents(one.getXComponent() - two.getXComponent(), one.getYComponent() - two.getYComponent());
-        return returnVector;
-    }
-
-    /**
-     * This computes the dot product of the two Vectors.
-     *
-     * @param one the first Vector.
-     * @param two the second Vector.
-     * @return returns the dot product of the two Vectors.
-     */
-    public static double dotProduct(Vector one, Vector two) {
-        return one.getXComponent() * two.getXComponent() + one.getYComponent() * two.getYComponent();
-    }
-
-    /**
-     * This computes the first Vector crossed with the second Vector, so a cross product.
-     * Do note that order matters here.
-     *
-     * @param one the first Vector.
-     * @param two the second Vector.
-     * @return returns the cross product of the two Vectors.
-     */
-    public static double crossProduct(Vector one, Vector two) {
-        return one.getXComponent() * two.getYComponent() - one.getYComponent() * two.getXComponent();
-    }
-
-    /**
      * This returns whether a specified value is within a second specified value by plus/minus a
      * specified accuracy amount.
      *
@@ -227,14 +89,6 @@ public class MathFunctions {
      */
     public static boolean roughlyEquals(double one, double two) {
         return roughlyEquals(one, two, 0.0001);
-    }
-
-    public static double inToMM(double in) {
-        return in * 25.4;
-    }
-
-    public static double mmToIn(double mm) {
-        return mm / 25.4;
     }
 
     /**
@@ -262,36 +116,19 @@ public class MathFunctions {
     }
 
     /**
-     * This scales a Pose by a given scale factor. The heading is not affected.
-     * @param pose the Pose to be scaled
-     * @param scale the scale factor
-     * @return returns the scaled Pose
+         * Scales a number from one range to another.
+         *
+         * @param n  number to scale
+         * @param x1 lower bound range of n
+         * @param x2 upper bound range of n
+         * @param y1 lower bound of scale
+         * @param y2 upper bound of scale
+         * @return a double scaled to a value between y1 and y2, inclusive
      */
-    public static Pose scalePose(Pose pose, double scale) {
-        return new Pose(pose.getX() * scale, pose.getY() * scale, pose.getHeading());
-    }
-
-    /**
-     * This returns a Pose that is the linear combination of the two input Poses.
-     * @param one the first pose
-     * @param two the second pose
-     * @param scaleOne the first coefficient
-     * @param scaleTwo the second coefficient
-     * @return the resulting pose
-     */
-    public static Pose linearCombination(Pose one, Pose two, double scaleOne, double scaleTwo) {
-        return addPoses(scalePose(one, scaleOne), scalePose(two, scaleTwo));
-    }
-
-    /**
-     * This returns a Vector that is the linear combination of the two input Vectors.
-     * @param one the first vector
-     * @param two the second vector
-     * @param scaleOne the first coefficient
-     * @param scaleTwo the second coefficient
-     * @return the resulting vector
-     */
-    public static Vector linearCombination(Vector one, Vector two, double scaleOne, double scaleTwo) {
-        return addVectors(scalarMultiplyVector(one, scaleOne), scalarMultiplyVector(two, scaleTwo));
+    public static double scale(double n, double x1, double x2, double y1, double y2) {
+        if (x2 - x1 == 0) {
+            throw new IllegalArgumentException("Input range cannot be zero.");
+        }
+        return (n - x1) * (y2 - y1) / (x2 - x1) + y1;
     }
 }

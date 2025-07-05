@@ -39,11 +39,11 @@ public interface Curve {
         for (int i = 0; i < searchLimit; i++) {
             Pose lastPoint = getPose(initialTValueGuess);
 
-            Vector differenceVector = new Vector(MathFunctions.subtractPoses(lastPoint, pose));
+            Vector differenceVector = new Vector(lastPoint.minus(pose));
 
-            double firstDerivative = 2 * MathFunctions.dotProduct(getDerivative(initialTValueGuess), differenceVector);
+            double firstDerivative = 2 * getDerivative(initialTValueGuess).dot(differenceVector);
             double secondDerivative = 2 * (Math.pow(getDerivative(initialTValueGuess).getMagnitude(), 2) +
-                    MathFunctions.dotProduct(differenceVector, getSecondDerivative(initialTValueGuess)));
+                    differenceVector.dot(getSecondDerivative(initialTValueGuess)));
 
             initialTValueGuess = MathFunctions.clamp(initialTValueGuess - firstDerivative / (secondDerivative + 1e-9), 0, 1);
             if (getPose(initialTValueGuess).distanceFrom(lastPoint) < 0.1) break;
@@ -59,7 +59,7 @@ public interface Curve {
         Vector secondDerivative = getSecondDerivative(t);
 
         if (derivative.getMagnitude() == 0) return 0;
-        return (MathFunctions.crossProduct(derivative, secondDerivative))/Math.pow(derivative.getMagnitude(),3);
+        return (derivative.cross(secondDerivative))/Math.pow(derivative.getMagnitude(),3);
     }
 
     default double length() {

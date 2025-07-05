@@ -3,7 +3,6 @@ package com.pedropathing.geometry;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathConstraints;
-import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
 
@@ -80,10 +79,10 @@ public class FinetunedBezierLine extends BezierLine {
         if (t < crossingThreshold) {
             return super.getPose(t);
         } else if (crossingThreshold < pathEndTValueConstraint) {
-            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
-            return MathFunctions.linearCombination(super.getPose(t), modifiedCurve.getPose(t), scale, 1-scale);
+            double scale = MathFunctions.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return super.getPose(t).linearCombination(modifiedCurve.getPose(t), scale, 1-scale);
         } else {
-            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            double scale = MathFunctions.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
             return modifiedCurve.getPose(scale);
         }
     }
@@ -93,10 +92,10 @@ public class FinetunedBezierLine extends BezierLine {
         if (t < crossingThreshold) {
             return super.getDerivative(t);
         } else if (crossingThreshold < pathEndTValueConstraint) {
-            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
-            return MathFunctions.linearCombination(super.getDerivative(t), modifiedCurve.getDerivative(t), scale, 1-scale);
+            double scale = MathFunctions.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return super.getDerivative(t).linearCombination(modifiedCurve.getDerivative(t), scale, 1-scale);
         } else {
-            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            double scale = MathFunctions.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
             return modifiedCurve.getDerivative(scale);
         }
     }
@@ -106,10 +105,10 @@ public class FinetunedBezierLine extends BezierLine {
         if (t < crossingThreshold) {
             return super.getSecondDerivative(t);
         } else if (crossingThreshold < pathEndTValueConstraint) {
-            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
-            return MathFunctions.linearCombination(super.getSecondDerivative(t), modifiedCurve.getSecondDerivative(t), scale, 1-scale);
+            double scale = MathFunctions.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            return super.getSecondDerivative(t).linearCombination(modifiedCurve.getSecondDerivative(t), scale, 1-scale);
         } else {
-            double scale = Range.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
+            double scale = MathFunctions.scale(t, crossingThreshold, 1.0, 0.0, 1.0);
             return modifiedCurve.getSecondDerivative(scale);
         }
     }

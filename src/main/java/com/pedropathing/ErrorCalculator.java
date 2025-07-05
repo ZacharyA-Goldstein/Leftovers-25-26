@@ -1,7 +1,8 @@
-package com.pedropathing.follower;
+package com.pedropathing;
 
 import com.pedropathing.control.KalmanFilter;
 import com.pedropathing.control.KalmanFilterParameters;
+import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.math.Kinematics;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
@@ -88,13 +89,13 @@ public class ErrorCalculator {
             return 0;
         }
 
-        Vector distanceToGoalVector = MathFunctions.scalarMultiplyVector(MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector()), distanceToGoal);
-        Vector velocity = new Vector(MathFunctions.dotProduct(velocityVector, MathFunctions.normalizeVector(currentPath.getClosestPointTangentVector())), currentPath.getClosestPointTangentVector().getTheta());
+        Vector distanceToGoalVector = currentPath.getClosestPointTangentVector().normalize().times(distanceToGoal);
+        Vector velocity = new Vector(velocityVector.dot(currentPath.getClosestPointTangentVector().normalize()), currentPath.getClosestPointTangentVector().getTheta());
 
         Vector forwardHeadingVector = new Vector(1.0, currentPose.getHeading());
 
-        double forwardVelocity = MathFunctions.dotProduct(forwardHeadingVector, velocity);
-        double forwardDistanceToGoal = MathFunctions.dotProduct(forwardHeadingVector, distanceToGoalVector);
+        double forwardVelocity = forwardHeadingVector.dot(velocity);
+        double forwardDistanceToGoal = forwardHeadingVector.dot(distanceToGoalVector);
         double forwardVelocityGoal = Kinematics.getVelocityToStopWithDeceleration(
             forwardDistanceToGoal,
             constants.forwardZeroPowerAcceleration
@@ -108,8 +109,8 @@ public class ErrorCalculator {
             );
 
         Vector lateralHeadingVector = new Vector(1.0, currentPose.getHeading() - Math.PI / 2);
-        double lateralVelocity = MathFunctions.dotProduct(lateralHeadingVector, velocity);
-        double lateralDistanceToGoal = MathFunctions.dotProduct(lateralHeadingVector, distanceToGoalVector);
+        double lateralVelocity = lateralHeadingVector.dot(velocity);
+        double lateralDistanceToGoal = lateralHeadingVector.dot(distanceToGoalVector);
 
         double lateralVelocityGoal = Kinematics.getVelocityToStopWithDeceleration(
             lateralDistanceToGoal,
@@ -125,10 +126,10 @@ public class ErrorCalculator {
 
         Vector forwardVelocityError = new Vector(forwardVelocityGoal - forwardVelocityZeroPowerDecay - forwardVelocity, forwardHeadingVector.getTheta());
         Vector lateralVelocityError = new Vector(lateralVelocityGoal - lateralVelocityZeroPowerDecay - lateralVelocity, lateralHeadingVector.getTheta());
-        Vector velocityErrorVector = MathFunctions.addVectors(forwardVelocityError, lateralVelocityError);
+        Vector velocityErrorVector = forwardVelocityError.plus(lateralVelocityError);
 
         previousRawDriveError = rawDriveError;
-        rawDriveError = velocityErrorVector.getMagnitude() * Math.signum(MathFunctions.dotProduct(velocityErrorVector, currentPath.getClosestPointTangentVector()));
+        rawDriveError = velocityErrorVector.getMagnitude() * Math.signum(velocityErrorVector.dot(currentPath.getClosestPointTangentVector()));
 
         double projection = Kinematics.predictNextLoopVelocity(driveErrors[1], driveErrors[0]);
 
@@ -175,7 +176,7 @@ public class ErrorCalculator {
         } else {
             Vector offset = new Vector();
             offset.setOrthogonalComponents(currentPose.getX() - currentPath.getLastControlPoint().getX(), currentPose.getY() - currentPath.getLastControlPoint().getY());
-            distanceToGoal = MathFunctions.dotProduct(currentPath.getEndTangent(), offset);
+            distanceToGoal = currentPath.getEndTangent().dot(offset);
         }
 
         driveError = getDriveVelocityError(distanceToGoal);

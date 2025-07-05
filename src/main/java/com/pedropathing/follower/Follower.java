@@ -1,8 +1,10 @@
 package com.pedropathing.follower;
 
+import com.pedropathing.ErrorCalculator;
+import com.pedropathing.VectorCalculator;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
-import com.pedropathing.drivetrain.Drivetrain;
+import com.pedropathing.Drivetrain;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.paths.PathPoint;
 import com.pedropathing.util.DashboardPoseTracker;
@@ -392,7 +394,7 @@ public class Follower {
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
             currentPath.updateDistance(previousClosestPose,closestPose);
             updateErrorAndVectors();
-            drivetrain.getAndRunDrivePowers(MathFunctions.scalarMultiplyVector(getTranslationalCorrection(), holdPointTranslationalScaling), MathFunctions.scalarMultiplyVector(getHeadingVector(), holdPointHeadingScaling), new Vector(), poseTracker.getPose().getHeading());
+            drivetrain.getAndRunDrivePowers(getTranslationalCorrection().times(holdPointTranslationalScaling), getHeadingVector().times(holdPointHeadingScaling), new Vector(), poseTracker.getPose().getHeading());
 
             if(getHeadingError() < turnHeadingErrorThreshold && isTurning) {
                 isTurning = false;
@@ -455,7 +457,7 @@ public class Follower {
                 < currentPath.getPathEndVelocityConstraint()
             )
             && (
-                MathFunctions.distance(poseTracker.getPose(), closestPose.getPose())
+                poseTracker.getPose().distanceFrom(closestPose.getPose())
                 < currentPath.getPathEndTranslationalConstraint()
             )
             && (

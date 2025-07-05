@@ -1,7 +1,5 @@
 package com.pedropathing.control;
 
-import androidx.annotation.NonNull;
-
 /**
  * This is the CustomFilteredPIDFCoefficients class. This class handles holding coefficients for filtered PIDF
  * controllers.
@@ -71,7 +69,6 @@ public class FilteredPIDFCoefficients {
         F = f;
     }
 
-    @NonNull
     @Override
     public String toString() {
         return "P: " + P + ", I: " + I + ", D: " + D + ", T: " + T + ", F: " + F;

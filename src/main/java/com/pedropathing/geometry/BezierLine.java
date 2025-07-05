@@ -39,7 +39,7 @@ public class BezierLine extends BezierCurve {
         this.endPoint = endPose;
         length = approximateLength();
         UNIT_TO_TIME = 1 / length;
-        endTangent = MathFunctions.normalizeVector(getDerivative(1));
+        endTangent = getDerivative(1).normalize();
         super.initializePanelsDrawingPoints();
     }
 
@@ -58,7 +58,7 @@ public class BezierLine extends BezierCurve {
         if (initialize) {
             length = approximateLength();
             UNIT_TO_TIME = 1 / length;
-            endTangent = MathFunctions.normalizeVector(getDerivative(1));
+            endTangent = getDerivative(1).normalize();
             super.initializePanelsDrawingPoints();
         }
     }
@@ -70,7 +70,7 @@ public class BezierLine extends BezierCurve {
      */
     @Override
     public Vector getEndTangent() {
-        return MathFunctions.copyVector(endTangent);
+        return endTangent.copy();
     }
 
     /**
@@ -232,17 +232,17 @@ public class BezierLine extends BezierCurve {
 
     @Override
     public double getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
-        Vector BA = new Vector(MathFunctions.subtractPoses(getLastControlPoint(), getFirstControlPoint()));
-        Vector PA = new Vector(MathFunctions.subtractPoses(pose, getFirstControlPoint()));
+        Vector BA = new Vector(getLastControlPoint().minus(getFirstControlPoint()));
+        Vector PA = new Vector(pose.minus(getFirstControlPoint()));
 
-        return MathFunctions.clamp(MathFunctions.dotProduct(BA, PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
+        return MathFunctions.clamp(BA.dot(PA) / Math.pow(BA.getMagnitude(), 2), 0, 1);
     }
 
     @Override
     public void initialize() {
         length = approximateLength();
         UNIT_TO_TIME = 1 / length;
-        endTangent = MathFunctions.normalizeVector(getDerivative(1));
+        endTangent = getDerivative(1).normalize();
         super.initializePanelsDrawingPoints();
     }
 }

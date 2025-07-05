@@ -1,7 +1,5 @@
 package com.pedropathing.control;
 
-import androidx.annotation.NonNull;
-
 /**
  * This is the PIDFCoefficients class. This class handles holding coefficients for PIDF
  * controllers.
@@ -51,7 +49,6 @@ public class PIDFCoefficients {
         F = f;
     }
 
-    @NonNull
     @Override
     public String toString() {
         return "P: " + P + ", I: " + I + ", D: " + D + ", F: " + F;
