@@ -51,38 +51,38 @@ public final class PathConstraints {
      * This can be set individually for each Path, but this is the default.
      * Default Value: 4
      */
-    private final double zeroPowerAccelerationMultiplier;
+    private final double decelerationStrength;
 
     /**
      * Multiplier for when the path should start its deceleration
      */
-    private final double decelerationStartMultiplier;
+    private final double decelerationStart;
 
     /**
      * The number of steps in searching for the closest point
      */
     private final int BEZIER_CURVE_SEARCH_LIMIT;
 
-    public PathConstraints(double tValueConstraint, double velocityConstraint, double translationalConstraint, double headingConstraint, double timeoutConstraint, double zeroPowerAccelerationMultiplier, int BEZIER_CURVE_SEARCH_LIMIT, double decelerationStartMultiplier) {
+    public PathConstraints(double tValueConstraint, double velocityConstraint, double translationalConstraint, double headingConstraint, double timeoutConstraint, double decelerationStrength, int BEZIER_CURVE_SEARCH_LIMIT, double decelerationStart) {
         this.tValueConstraint = tValueConstraint;
         this.velocityConstraint = velocityConstraint;
         this.translationalConstraint = translationalConstraint;
         this.headingConstraint = headingConstraint;
         this.timeoutConstraint = timeoutConstraint;
-        this.zeroPowerAccelerationMultiplier = zeroPowerAccelerationMultiplier;
-        this.decelerationStartMultiplier = decelerationStartMultiplier;
+        this.decelerationStrength = decelerationStrength;
+        this.decelerationStart = decelerationStart;
         this.BEZIER_CURVE_SEARCH_LIMIT = BEZIER_CURVE_SEARCH_LIMIT;
     }
 
-    public PathConstraints(double tValueConstraint, double timeoutConstraint, double zeroPowerAccelerationMultiplier, double decelerationStartMultiplier) {
-        this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, zeroPowerAccelerationMultiplier, 10, decelerationStartMultiplier);
+    public PathConstraints(double tValueConstraint, double timeoutConstraint, double decelerationStrength, double decelerationStart) {
+        this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, decelerationStrength, 10, decelerationStart);
     }
 
     public PathConstraints(double tValueConstraint, double timeoutConstraint) {
-        this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, 4, 10, 1);
+        this(tValueConstraint, 0.1, 0.1, 0.007, timeoutConstraint, 1, 10, 1);
     }
 
-    public static PathConstraints defaultConstraints = new PathConstraints(0.995, 0.1, 0.1, 0.007, 100, 4, 10, 1);
+    public static PathConstraints defaultConstraints = new PathConstraints(0.995, 0.1, 0.1, 0.007, 100, 1, 10, 1);
 
     public double getVelocityConstraint() {
         return velocityConstraint;
@@ -104,12 +104,12 @@ public final class PathConstraints {
         return timeoutConstraint;
     }
 
-    public double getZeroPowerAccelerationMultiplier() {
-        return zeroPowerAccelerationMultiplier;
+    public double getDecelerationStrength() {
+        return decelerationStrength;
     }
 
-    public double getDecelerationStartMultiplier() {
-        return decelerationStartMultiplier;
+    public double getDecelerationStart() {
+        return decelerationStart;
     }
 
     public int getBEZIER_CURVE_SEARCH_LIMIT() {

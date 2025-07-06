@@ -46,7 +46,7 @@ public class Path {
     // Decreasing this will cause the deceleration at the end of the Path to be slower, making the
     // robot slower but reducing risk of end-of-path overshoots or localization slippage.
     // This can be set individually for each Path, but this is the default.
-    private double zeroPowerAccelerationMultiplier;
+    private double decelerationStrength;
 
     /**
      * When the robot is at the end of its current Path or PathChain and the velocity goes
@@ -495,8 +495,8 @@ public class Path {
      *
      * @param set This sets the multiplier.
      */
-    public void setZeroPowerAccelerationMultiplier(double set) {
-        zeroPowerAccelerationMultiplier = set;
+    public void setDecelerationStrength(double set) {
+        decelerationStrength = set;
     }
 
     /**
@@ -553,8 +553,8 @@ public class Path {
      *
      * @return This returns the deceleration multiplier.
      */
-    public double getZeroPowerAccelerationMultiplier() {
-        return zeroPowerAccelerationMultiplier;
+    public double getDecelerationStrength() {
+        return decelerationStrength;
     }
 
     /**
@@ -656,7 +656,7 @@ public class Path {
      * @param constraints the PathConstraints to set.
      */
     public void setConstraints(PathConstraints constraints) {
-        zeroPowerAccelerationMultiplier = constraints.getZeroPowerAccelerationMultiplier();
+        decelerationStrength = constraints.getDecelerationStrength();
         pathEndVelocityConstraint = constraints.getVelocityConstraint();
         pathEndTranslationalConstraint = constraints.getTranslationalConstraint();
         pathEndHeadingConstraint = constraints.getHeadingConstraint();

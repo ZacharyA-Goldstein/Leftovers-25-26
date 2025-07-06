@@ -29,7 +29,7 @@ public class PathChain {
         LAST_PATH
     }
     private DecelerationType decelerationType = DecelerationType.LAST_PATH;
-    private double decelerationStartMultiplier;
+    private double decelerationStart;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
     public HeadingInterpolator headingInterpolator = null;
 
@@ -56,7 +56,7 @@ public class PathChain {
      */
     public PathChain(PathConstraints constraints, Path... paths) {
         this.constraints = constraints;
-        decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
+        decelerationStart = constraints.getDecelerationStart();
 
         for (Path path : paths) {
             path.setConstraints(constraints);
@@ -88,7 +88,7 @@ public class PathChain {
      */
     public PathChain(PathConstraints constraints, ArrayList<Path> paths) {
         this.constraints = constraints;
-        decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
+        decelerationStart = constraints.getDecelerationStart();
 
         for (Path path : paths) {
             path.setConstraints(constraints);
@@ -179,18 +179,18 @@ public class PathChain {
 
     /**
      * This sets the deceleration start multiplier of the PathChain.
-     * @param decelerationStartMultiplier the deceleration start multiplier to set
+     * @param decelerationStart the deceleration start multiplier to set
      */
-    public void setDecelerationStartMultiplier(double decelerationStartMultiplier) {
-        this.decelerationStartMultiplier = decelerationStartMultiplier;
+    public void setDecelerationStart(double decelerationStart) {
+        this.decelerationStart = decelerationStart;
     }
 
     /**
      * This returns the deceleration start multiplier of the PathChain.
      * @return the deceleration start multiplier of the PathChain
      */
-    public double getDecelerationStartMultiplier() {
-        return decelerationStartMultiplier;
+    public double getDecelerationStart() {
+        return decelerationStart;
     }
 
     /**

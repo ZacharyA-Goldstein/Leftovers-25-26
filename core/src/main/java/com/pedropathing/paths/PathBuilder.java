@@ -24,7 +24,7 @@ public class PathBuilder {
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
-    private double decelerationStartMultiplier;
+    private double decelerationStart;
     private PathConstraints constraints;
     private HeadingInterpolator headingInterpolator;
 
@@ -37,7 +37,7 @@ public class PathBuilder {
      * Of course, you can split up the method calls onto separate lines for readability.
      */
     public PathBuilder(PathConstraints constraints) {
-        this.decelerationStartMultiplier = constraints.getDecelerationStartMultiplier();
+        this.decelerationStart = constraints.getDecelerationStart();
         this.constraints = constraints;
     }
 
@@ -241,8 +241,8 @@ public class PathBuilder {
      * @param set This sets the multiplier for the goal for the deceleration of the robot.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setZeroPowerAccelerationMultiplier(double set) {
-        this.paths.get(paths.size() - 1).setZeroPowerAccelerationMultiplier(set);
+    public PathBuilder setDecelerationStrength(double set) {
+        this.paths.get(paths.size() - 1).setDecelerationStrength(set);
         return this;
     }
 
@@ -357,7 +357,7 @@ public class PathBuilder {
         PathChain returnChain = new PathChain(paths);
         returnChain.setCallbacks(callbacks);
         returnChain.setDecelerationType(decelerationType);
-        returnChain.setDecelerationStartMultiplier(decelerationStartMultiplier);
+        returnChain.setDecelerationStart(decelerationStart);
         returnChain.setHeadingInterpolator(headingInterpolator);
 
         return returnChain;
@@ -376,7 +376,7 @@ public class PathBuilder {
      */
     public PathBuilder setGlobalDeceleration(double decelerationStartMultiplier) {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
-        this.decelerationStartMultiplier = decelerationStartMultiplier;
+        this.decelerationStart = decelerationStartMultiplier;
         return this;
     }
 
