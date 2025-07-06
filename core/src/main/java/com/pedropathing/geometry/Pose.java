@@ -293,7 +293,7 @@ public final class Pose {
      * @return the pose in the target coordinate system
      */
     public Pose getAsCoordinateSystem(CoordinateSystem coordinateSystem) {
-        return coordinateSystem.convertFromFtcStandard(this.coordinateSystem.convertToFtcStandard(this));
+        return coordinateSystem.convertFromPedro(this.coordinateSystem.convertToPedro(this));
     }
 
     /**

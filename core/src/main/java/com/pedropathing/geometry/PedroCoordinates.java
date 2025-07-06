@@ -14,26 +14,24 @@ public enum PedroCoordinates implements CoordinateSystem {
     INSTANCE;
 
     /**
-     * Converts a {@link Pose} from this coordinate system to FTC standard coordinates
+     * Converts a {@link Pose} to this coordinate system from Pedro coordinates
      *
-     * @param pose The {@link Pose} to convert, in this coordinate system
-     * @return The converted {@link Pose}, in FTC standard coordinates
+     * @param pose The {@link Pose} to convert, in the Pedro coordinate system
+     * @return The converted {@link Pose}, in Pedro coordinates
      */
     @Override
-    public Pose convertToFtcStandard(Pose pose) {
-        Pose normalizedPose = pose.minus(new Pose(72, 72));
-        return normalizedPose.rotate(-Math.PI / 2, true);
+    public Pose convertFromPedro(Pose pose) {
+        return pose;
     }
 
     /**
-     * Converts a {@link Pose} from FTC standard coordinates to this coordinate system
+     * Converts a {@link Pose} to Pedro coordinates from this coordinate system
      *
-     * @param pose The {@link Pose} to convert, in FTC standard coordinates
-     * @return The converted {@link Pose}, in this coordinate system
+     * @param pose The {@link Pose} to convert, in Pedro coordinates
+     * @return The converted {@link Pose}, in Pedro coordinate system
      */
     @Override
-    public Pose convertFromFtcStandard(Pose pose) {
-        Pose rotatedPose = pose.rotate(-Math.PI / 2, true);
-        return rotatedPose.plus(new Pose(72, 72));
+    public Pose convertToPedro(Pose pose) {
+        return pose;
     }
 }

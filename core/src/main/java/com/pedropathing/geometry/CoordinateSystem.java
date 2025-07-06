@@ -11,18 +11,18 @@ package com.pedropathing.geometry;
 public interface CoordinateSystem {
 
     /**
-     * Converts a {@link Pose} from this coordinate system to FTC standard coordinates
+     * Converts a {@link Pose} from this coordinate system to Pedro coordinates
      *
      * @param pose The {@link Pose} to convert, in this coordinate system
-     * @return The converted {@link Pose}, in FTC standard coordinates
+     * @return The converted {@link Pose}, in Pedro coordinates
      */
-    Pose convertToFtcStandard(Pose pose);
+    Pose convertToPedro(Pose pose);
 
     /**
-     * Converts a {@link Pose} from FTC standard coordinates to this coordinate system
+     * Converts a {@link Pose} from Pedro coordinates to this coordinate system
      *
-     * @param pose The {@link Pose} to convert, in FTC standard coordinates
+     * @param pose The {@link Pose} to convert, in Pedro coordinates
      * @return The converted {@link Pose}, in this coordinate system
      */
-    Pose convertFromFtcStandard(Pose pose);
+    Pose convertFromPedro(Pose pose);
 }
