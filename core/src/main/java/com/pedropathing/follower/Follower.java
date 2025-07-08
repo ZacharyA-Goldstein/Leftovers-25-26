@@ -5,6 +5,7 @@ import com.pedropathing.VectorCalculator;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.Drivetrain;
+import com.pedropathing.log.Logger;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.paths.PathPoint;
 import com.pedropathing.util.PoseHistory;
@@ -376,6 +377,7 @@ public class Follower {
         updateConstants();
         updatePose();
         updateDrivetrain();
+        Logger.update();
 
         if (manualDrive) {
             previousClosestPose = closestPose;
