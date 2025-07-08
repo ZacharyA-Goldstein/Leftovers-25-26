@@ -23,11 +23,11 @@ public class TwoWheelConstants {
 
     /** The y offset of the forward encoder (Deadwheel) from the center of the robot
      * Default Value: 1 */
-    public double forwardY = 1;
+    public double forwardPodY = 1;
 
     /** The x offset of the strafe encoder (Deadwheel) from the center of the robot
      * Default Value: -2.5 */
-    public double strafeX = -2.5;
+    public double strafePodX = -2.5;
 
     /** The Hardware Map Name of the IMU (built-in IMU will be Port 0, "imu")
      * Default Value: "imu" */
@@ -70,13 +70,13 @@ public class TwoWheelConstants {
         return this;
     }
 
-    public TwoWheelConstants forwardY(double forwardY) {
-        this.forwardY = forwardY;
+    public TwoWheelConstants forwardPodY(double forwardPodY) {
+        this.forwardPodY = forwardPodY;
         return this;
     }
 
-    public TwoWheelConstants strafeX(double strafeX) {
-        this.strafeX = strafeX;
+    public TwoWheelConstants strafePodX(double strafePodX) {
+        this.strafePodX = strafePodX;
         return this;
     }
 
@@ -116,8 +116,8 @@ public class TwoWheelConstants {
     public void defaults() {
         forwardTicksToInches = .001989436789;
         strafeTicksToInches = .001989436789;
-        forwardY = 1;
-        strafeX = -2.5;
+        forwardPodY = 1;
+        strafePodX = -2.5;
         IMU_HardwareMapName = "imu";
         forwardEncoder_HardwareMapName = "leftFront";
         strafeEncoder_HardwareMapName = "rightRear";

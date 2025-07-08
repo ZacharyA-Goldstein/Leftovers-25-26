@@ -26,15 +26,15 @@ public class ThreeWheelIMUConstants {
 
     /** The Y Offset of the Left Encoder (Deadwheel) from the center of the robot
      * Default Value: 1 */
-    public double leftY = 1;
+    public double leftPodY = 1;
 
     /** The Y Offset of the Right Encoder (Deadwheel) from the center of the robot
      * Default Value: -1 */
-    public double rightY = -1;
+    public double rightPodY = -1;
 
     /** The X Offset of the Strafe Encoder (Deadwheel) from the center of the robot
      * Default Value: -2.5 */
-    public double strafeX = -2.5;
+    public double strafePodX = -2.5;
 
     /** The Hardware Map Name of the IMU (built-in IMU will be Port 0, "imu")
      * Default Value: "imu" */
@@ -90,18 +90,18 @@ public class ThreeWheelIMUConstants {
         return this;
     }
 
-    public ThreeWheelIMUConstants leftY(double leftY) {
-        this.leftY = leftY;
+    public ThreeWheelIMUConstants leftPodY(double leftPodY) {
+        this.leftPodY = leftPodY;
         return this;
     }
 
-    public ThreeWheelIMUConstants rightY(double rightY) {
-        this.rightY = rightY;
+    public ThreeWheelIMUConstants rightPodY(double rightPodY) {
+        this.rightPodY = rightPodY;
         return this;
     }
 
-    public ThreeWheelIMUConstants strafeX(double strafeX) {
-        this.strafeX = strafeX;
+    public ThreeWheelIMUConstants strafePodX(double strafePodX) {
+        this.strafePodX = strafePodX;
         return this;
     }
 
@@ -149,9 +149,9 @@ public class ThreeWheelIMUConstants {
         forwardTicksToInches = .001989436789;
         strafeTicksToInches = .001989436789;
         turnTicksToInches = .001989436789;
-        leftY = 1;
-        rightY = -1;
-        strafeX = -2.5;
+        leftPodY = 1;
+        rightPodY = -1;
+        strafePodX = -2.5;
         IMU_HardwareMapName = "imu";
         leftEncoder_HardwareMapName = "leftFront";
         rightEncoder_HardwareMapName = "rightRear";

@@ -26,15 +26,15 @@ public class ThreeWheelConstants {
 
     /** The Y Offset of the Left Encoder (Deadwheel) from the center of the robot
      * Default Value: 1 */
-    public double leftY = 1;
+    public double leftPodY = 1;
 
     /** The Y Offset of the Right Encoder (Deadwheel) from the center of the robot
      * Default Value: -1 */
-    public double rightY = -1;
+    public double rightPodY = -1;
 
     /** The X Offset of the Strafe Encoder (Deadwheel) from the center of the robot
      * Default Value: -2.5 */
-    public double strafeX = -2.5;
+    public double strafePodX = -2.5;
 
     /** The name of the Left Encoder in the hardware map (name of the motor port it is plugged into)
      * Default Value: "leftFront" */
@@ -82,18 +82,18 @@ public class ThreeWheelConstants {
         return this;
     }
 
-    public ThreeWheelConstants leftY(double leftY) {
-        this.leftY = leftY;
+    public ThreeWheelConstants leftPodY(double leftPodY) {
+        this.leftPodY = leftPodY;
         return this;
     }
 
-    public ThreeWheelConstants rightY(double rightY) {
-        this.rightY = rightY;
+    public ThreeWheelConstants rightPodY(double rightPodY) {
+        this.rightPodY = rightPodY;
         return this;
     }
 
-    public ThreeWheelConstants strafeX(double strafeX) {
-        this.strafeX = strafeX;
+    public ThreeWheelConstants strafePodX(double strafePodX) {
+        this.strafePodX = strafePodX;
         return this;
     }
 
@@ -131,9 +131,9 @@ public class ThreeWheelConstants {
         forwardTicksToInches = .001989436789;
         strafeTicksToInches = .001989436789;
         turnTicksToInches = .001989436789;
-        leftY = 1;
-        rightY = -1;
-        strafeX = -2.5;
+        leftPodY = 1;
+        rightPodY = -1;
+        strafePodX = -2.5;
         leftEncoder_HardwareMapName = "leftFront";
         rightEncoder_HardwareMapName = "rightRear";
         strafeEncoder_HardwareMapName = "rightFront";

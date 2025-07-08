@@ -1,8 +1,14 @@
 package com.pedropathing.ftc.localization.constants;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.os.Build;
+
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+import java.util.OptionalDouble;
 
 /**
  * This is the PinpointConstants class. It holds many constants and parameters for the Pinpoint Localizer.
@@ -10,18 +16,18 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * @version 1.0, 12/24/2024
  */
 
-
+@TargetApi(Build.VERSION_CODES.N)
 public class PinpointConstants {
 
     /** The Y Offset of the Forward Encoder (Deadwheel) from the center of the robot in DistanceUnit
      * @see #distanceUnit
      * Default Value: 1 */
-    public  double forwardY = 1;
+    public  double forwardPodY = 1;
 
     /** The X Offset of the Strafe Encoder (Deadwheel) from the center of the robot in DistanceUnit
      * @see #distanceUnit
      * Default Value: -2.5 */
-    public  double strafeX = -2.5;
+    public  double strafePodX = -2.5;
 
     /** The Unit of Distance that the Pinpoint uses to measure distance
      * Default Value: DistanceUnit.INCH */
@@ -31,28 +37,17 @@ public class PinpointConstants {
      * Default Value: "pinpoint" */
     public  String hardwareMapName = "pinpoint";
 
-    /** Use custom yaw scalar for the Pinpoint (overrides the calibration of the Pinpoint
-     * Default Value: false */
-    public  boolean useYawScalar = false;
+    /** Custom Yaw Scalar for the Pinpoint (overrides the calibration of the Pinpoint) */
+    @SuppressLint("NewApi")
+    public OptionalDouble yawScalar = OptionalDouble.empty();
 
-    /** Custom Yaw Scalar for the Pinpoint (overrides the calibration of the Pinpoint
-     * @see #useYawScalar
-     * Default Value: 1.0 */
-    public  double yawScalar = 1.0;
-
-    /** Use custom encoder resolution for the Pinpoint
-     * Default Value: false */
-    public  boolean useCustomEncoderResolution = false;
-
-    /** The Encoder Resolution for the Pinpoint. Used if useCustomEncoderResolution is false
-     * @see #useCustomEncoderResolution
+    /** The Encoder Resolution for the Pinpoint. Used by default, but can be changed to a custom resolution.
      * Default Value: GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD */
     public  GoBildaPinpointDriver.GoBildaOdometryPods encoderResolution = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
 
-    /** The Encoder Resolution for the Pinpoint. Only used if useCustomEncoderResolution is true
-     * @see #useCustomEncoderResolution
-     * Default Value: 13.26291192 */
-    public  double customEncoderResolution = 13.26291192;
+    /** The Encoder Resolution for the Pinpoint. Unused by default, but can be used if you want to use a custom encoder resolution. */
+    @SuppressLint("NewApi")
+    public OptionalDouble customEncoderResolution = OptionalDouble.empty();
 
     /** The Encoder Direction for the Forward Encoder (Deadwheel)
      * Default Value: GoBildaPinpointDriver.EncoderDirection.REVERSED */
@@ -69,13 +64,13 @@ public class PinpointConstants {
         defaults();
     }
 
-    public PinpointConstants forwardY(double forwardY) {
-        this.forwardY = forwardY;
+    public PinpointConstants forwardPodY(double forwardPodY) {
+        this.forwardPodY = forwardPodY;
         return this;
     }
 
-    public PinpointConstants strafeX(double strafeX) {
-        this.strafeX = strafeX;
+    public PinpointConstants strafePodX(double strafePodX) {
+        this.strafePodX = strafePodX;
         return this;
     }
 
@@ -89,18 +84,8 @@ public class PinpointConstants {
         return this;
     }
 
-    public PinpointConstants useYawScalar(boolean useYawScalar) {
-        this.useYawScalar = useYawScalar;
-        return this;
-    }
-
     public PinpointConstants yawScalar(double yawScalar) {
-        this.yawScalar = yawScalar;
-        return this;
-    }
-
-    public PinpointConstants useCustomEncoderResolution(boolean useCustomEncoderResolution) {
-        this.useCustomEncoderResolution = useCustomEncoderResolution;
+        this.yawScalar = OptionalDouble.of(yawScalar);
         return this;
     }
 
@@ -110,7 +95,7 @@ public class PinpointConstants {
     }
 
     public PinpointConstants customEncoderResolution(double customEncoderResolution) {
-        this.customEncoderResolution = customEncoderResolution;
+        this.customEncoderResolution = OptionalDouble.of(customEncoderResolution);
         return this;
     }
 
@@ -125,15 +110,13 @@ public class PinpointConstants {
     }
 
     public void defaults() {
-        forwardY = 1;
-        strafeX = -2.5;
+        forwardPodY = 1;
+        strafePodX = -2.5;
         distanceUnit = DistanceUnit.INCH;
         hardwareMapName = "pinpoint";
-        useYawScalar = false;
-        yawScalar = 1.0;
-        useCustomEncoderResolution = false;
+        yawScalar = OptionalDouble.empty();
         encoderResolution = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
-        customEncoderResolution = 13.26291192;
+        customEncoderResolution = OptionalDouble.empty();
         forwardEncoderDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
         strafeEncoderDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
     }

@@ -60,8 +60,8 @@ public class TwoWheelLocalizer implements Localizer {
         FORWARD_TICKS_TO_INCHES = constants.forwardTicksToInches;
         STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
 
-        forwardEncoderPose = new Pose(0, constants.forwardY, 0);
-        strafeEncoderPose = new Pose(constants.strafeX, 0, Math.toRadians(90));
+        forwardEncoderPose = new Pose(0, constants.forwardPodY, 0);
+        strafeEncoderPose = new Pose(constants.strafePodX, 0, Math.toRadians(90));
 
         imu = map.get(IMU.class, constants.IMU_HardwareMapName);
         imu.initialize(new IMU.Parameters(constants.IMU_Orientation));

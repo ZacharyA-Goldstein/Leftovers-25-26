@@ -72,9 +72,9 @@ public class ThreeWheelIMULocalizer implements Localizer {
         STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
         TURN_TICKS_TO_RADIANS = constants.turnTicksToInches;
 
-        leftEncoderPose = new Pose(0, constants.leftY, 0);
-        rightEncoderPose = new Pose(0, constants.rightY, 0);
-        strafeEncoderPose = new Pose(constants.strafeX, 0, Math.toRadians(90));
+        leftEncoderPose = new Pose(0, constants.leftPodY, 0);
+        rightEncoderPose = new Pose(0, constants.rightPodY, 0);
+        strafeEncoderPose = new Pose(constants.strafePodX, 0, Math.toRadians(90));
 
         imu = map.get(IMU.class, constants.IMU_HardwareMapName);
         imu.initialize(new IMU.Parameters(constants.IMU_Orientation));

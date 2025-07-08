@@ -1,5 +1,7 @@
 package com.pedropathing.ftc.localization.localizers;
 
+import android.annotation.SuppressLint;
+
 import com.pedropathing.ftc.PoseConverter;
 import com.pedropathing.ftc.localization.constants.PinpointConstants;
 import com.pedropathing.geometry.PedroCoordinates;
@@ -52,17 +54,18 @@ public class PinpointLocalizer implements Localizer {
      * @param map the HardwareMap
      * @param setStartPose the Pose to start from
      */
+    @SuppressLint("NewApi")
     public PinpointLocalizer(HardwareMap map, PinpointConstants constants, Pose setStartPose){
 
         odo = map.get(GoBildaPinpointDriver.class,constants.hardwareMapName);
-        setOffsets(constants.forwardY, constants.strafeX, constants.distanceUnit);
+        setOffsets(constants.forwardPodY, constants.strafePodX, constants.distanceUnit);
 
-        if(constants.useYawScalar) {
-            odo.setYawScalar(constants.yawScalar);
+        if(!constants.yawScalar.isEmpty()) {
+            odo.setYawScalar(constants.yawScalar.getAsDouble());
         }
 
-        if(constants.useCustomEncoderResolution) {
-            odo.setEncoderResolution(constants.customEncoderResolution, DistanceUnit.INCH);
+        if(!constants.customEncoderResolution.isEmpty()) {
+            odo.setEncoderResolution(constants.customEncoderResolution.getAsDouble(), DistanceUnit.INCH);
         } else {
             odo.setEncoderResolution(constants.encoderResolution);
         }
