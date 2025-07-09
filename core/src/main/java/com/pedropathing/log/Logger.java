@@ -17,6 +17,12 @@ public final class Logger {
         subscribers.add(subscriber);
     }
 
+    public static void addSubscribers(LogSubscriber... subscribers) {
+        for (LogSubscriber subscriber : subscribers) {
+            addSubscriber(subscriber);
+        }
+    }
+
     public static void log(String key, Object value) {
         for (LogSubscriber subscriber : subscribers) {
             subscriber.onLog(key, value);

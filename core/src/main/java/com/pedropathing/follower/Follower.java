@@ -377,17 +377,19 @@ public class Follower {
         updateConstants();
         updatePose();
         updateDrivetrain();
-        Logger.update();
+
 
         if (manualDrive) {
             previousClosestPose = closestPose;
             closestPose = new PathPoint();
             updateErrorAndVectors();
             drivetrain.getAndRunDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseTracker.getPose().getHeading());
+            Logger.update();
             return;
         }
 
         if (currentPath == null) {
+            Logger.update();
             return;
         }
 
@@ -402,6 +404,7 @@ public class Follower {
                 isTurning = false;
                 isBusy = false;
             }
+            Logger.update();
             return;
         }
 
@@ -421,6 +424,7 @@ public class Follower {
         }
 
         if (!(currentPath.isAtParametricEnd() || ( zeroVelocityDetectedTimer != null && zeroVelocityDetectedTimer.getElapsedTime() > 500.0))) {
+            Logger.update();
             return;
         }
 
@@ -440,6 +444,7 @@ public class Follower {
                 }
             }
 
+            Logger.update();
             return;
         }
 
@@ -467,14 +472,18 @@ public class Follower {
                 < currentPath.getPathEndHeadingConstraint()
             )
         )) {
+            Logger.update();
             return;
         }
+
         if (holdPositionAtEnd) {
             holdPositionAtEnd = false;
             holdPoint(new BezierPoint(currentPath.getLastControlPoint()), currentPath.getHeadingGoal(1));
         } else {
             breakFollowing();
         }
+
+        Logger.update();
     }
 
     /** This checks if any PathCallbacks should be run right now, and runs them if applicable. */
