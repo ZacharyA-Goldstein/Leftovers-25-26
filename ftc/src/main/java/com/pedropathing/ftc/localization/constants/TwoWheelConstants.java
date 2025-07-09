@@ -1,8 +1,11 @@
 package com.pedropathing.ftc.localization.constants;
 
 
+import com.pedropathing.ftc.localization.CustomIMU;
 import com.pedropathing.ftc.localization.Encoder;
+import com.pedropathing.ftc.localization.RevHubIMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.IMU;
 
 /**
  * This is the TwoWheelConstants class. It holds many constants and parameters for the Two Wheel Localizer.
@@ -52,6 +55,11 @@ public class TwoWheelConstants {
     /** The direction of the strafe encoder
      * Default Value: Encoder.FORWARD */
     public double strafeEncoderDirection = Encoder.FORWARD;
+
+    /**
+     * This is the IMU that will be used for localization.
+     */
+    public CustomIMU imu = new RevHubIMU();
 
     /**
      * This creates a new TwoWheelConstants with default values.
@@ -110,6 +118,11 @@ public class TwoWheelConstants {
         return this;
     }
 
+    public TwoWheelConstants customIMU(CustomIMU customIMU) {
+        this.imu = customIMU;
+        return this;
+    }
+
     /**
      * This sets the default values for the this.
      */
@@ -124,5 +137,6 @@ public class TwoWheelConstants {
         IMU_Orientation = new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP, RevHubOrientationOnRobot.UsbFacingDirection.LEFT);
         forwardEncoderDirection = Encoder.REVERSE;
         strafeEncoderDirection = Encoder.FORWARD;
+        imu = new RevHubIMU();
     }
 }

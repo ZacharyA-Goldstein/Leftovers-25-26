@@ -268,7 +268,7 @@ public class PoseTracker {
      * This resets the heading of the robot to the IMU's heading, using Road Runner's pose reset.
      */
     public void resetHeadingToIMU() {
-        if (Double.isNaN(getIMU()) || Double.isInfinite(getIMU())) {
+        if (Double.isNaN(getIMUHeadingEstimate()) || Double.isInfinite(getIMUHeadingEstimate())) {
             localizer.setPose(new Pose(getPose().getX(), getPose().getY(), getNormalizedIMUHeading() + startingPose.getHeading()));
         }
     }
@@ -279,7 +279,7 @@ public class PoseTracker {
      * method.
      */
     public void resetHeadingToIMUWithOffsets() {
-        if (Double.isNaN(getIMU()) || Double.isInfinite(getIMU())) {
+        if (Double.isNaN(getIMUHeadingEstimate()) || Double.isInfinite(getIMUHeadingEstimate())) {
             setCurrentPoseWithOffset(new Pose(getPose().getX(), getPose().getY(), getNormalizedIMUHeading() + startingPose.getHeading()));
         }
     }
@@ -290,8 +290,8 @@ public class PoseTracker {
      * @return returns the normalized IMU heading.
      */
     public double getNormalizedIMUHeading() {
-        if (Double.isNaN(getIMU()) || Double.isInfinite(getIMU())) {
-            return MathFunctions.normalizeAngle(-getIMU());
+        if (Double.isNaN(getIMUHeadingEstimate()) || Double.isInfinite(getIMUHeadingEstimate())) {
+            return MathFunctions.normalizeAngle(-getIMUHeadingEstimate());
         }
         return 0;
     }
@@ -319,8 +319,8 @@ public class PoseTracker {
      *
      * @return the IMU heading
      */
-    public double getIMU() {
-        return localizer.getIMU();
+    public double getIMUHeadingEstimate() {
+        return localizer.getIMUHeading();
     }
 
     /**

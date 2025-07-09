@@ -194,7 +194,7 @@ public class OTOSLocalizer implements Localizer {
     }
 
     @Override
-    public double getIMU() {
+    public double getIMUHeading() {
         return Double.NaN;
     }
 

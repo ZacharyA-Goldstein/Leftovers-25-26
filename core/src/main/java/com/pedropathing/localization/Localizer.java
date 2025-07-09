@@ -95,11 +95,11 @@ public interface Localizer {
     void resetIMU() throws InterruptedException;
 
     /**
-     * This is overridden to return the IMU, if there is one.
+     * This is overridden to return the IMU's heading estimate, if there is one.
      *
-     * @return returns the IMU if it exists
+     * @return returns the IMU's heading estimate if it exists
      */
-    double getIMU();
+    double getIMUHeading();
 
     /**
      * This returns whether if any component of robot's position is NaN.

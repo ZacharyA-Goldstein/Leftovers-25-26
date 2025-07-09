@@ -268,7 +268,7 @@ public class DriveEncoderLocalizer implements Localizer {
     }
 
     @Override
-    public double getIMU() {
+    public double getIMUHeading() {
         return Double.NaN;
     }
 

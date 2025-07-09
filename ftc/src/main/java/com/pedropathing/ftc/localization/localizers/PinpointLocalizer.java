@@ -215,7 +215,7 @@ public class PinpointLocalizer implements Localizer {
     }
 
     @Override
-    public double getIMU() {
+    public double getIMUHeading() {
         return Double.NaN;
     }
 

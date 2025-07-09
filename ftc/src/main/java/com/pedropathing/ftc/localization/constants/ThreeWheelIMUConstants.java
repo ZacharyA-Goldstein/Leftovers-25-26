@@ -1,6 +1,8 @@
 package com.pedropathing.ftc.localization.constants;
 
+import com.pedropathing.ftc.localization.CustomIMU;
 import com.pedropathing.ftc.localization.Encoder;
+import com.pedropathing.ftc.localization.RevHubIMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
 /**
@@ -67,6 +69,11 @@ public class ThreeWheelIMUConstants {
     /** The direction of the Strafe Encoder
      * Default Value: Encoder.FORWARD */
     public double strafeEncoderDirection = Encoder.FORWARD;
+
+    /**
+     * This is the IMU that will be used for localization.
+     */
+    public CustomIMU imu = new RevHubIMU();
 
     /**
      * This creates a new ThreeWheelIMUConstants with default values.
@@ -145,6 +152,11 @@ public class ThreeWheelIMUConstants {
         return this;
     }
 
+    public ThreeWheelIMUConstants customIMU(CustomIMU customIMU) {
+        this.imu = customIMU;
+        return this;
+    }
+
     public void defaults() {
         forwardTicksToInches = .001989436789;
         strafeTicksToInches = .001989436789;
@@ -160,5 +172,6 @@ public class ThreeWheelIMUConstants {
         leftEncoderDirection = Encoder.REVERSE;
         rightEncoderDirection = Encoder.REVERSE;
         strafeEncoderDirection = Encoder.FORWARD;
+        imu = new RevHubIMU();
     }
 }

@@ -1,5 +1,6 @@
 package com.pedropathing.ftc.localization.localizers;
 
+import com.pedropathing.ftc.localization.CustomIMU;
 import com.pedropathing.ftc.localization.constants.ThreeWheelIMUConstants;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -39,7 +40,7 @@ public class ThreeWheelIMULocalizer implements Localizer {
     private final Pose rightEncoderPose;
     private final Pose strafeEncoderPose;
 
-    public final IMU imu;
+    public final CustomIMU imu;
     private double previousIMUOrientation;
     private double deltaRadians;
     private double totalHeading;
@@ -67,17 +68,16 @@ public class ThreeWheelIMULocalizer implements Localizer {
      * @param setStartPose the Pose to start from
      */
     public ThreeWheelIMULocalizer(HardwareMap map, ThreeWheelIMUConstants constants, Pose setStartPose) {
-
         FORWARD_TICKS_TO_INCHES = constants.forwardTicksToInches;
         STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
         TURN_TICKS_TO_RADIANS = constants.turnTicksToInches;
+        imu = constants.imu;
 
         leftEncoderPose = new Pose(0, constants.leftPodY, 0);
         rightEncoderPose = new Pose(0, constants.rightPodY, 0);
         strafeEncoderPose = new Pose(constants.strafePodX, 0, Math.toRadians(90));
 
-        imu = map.get(IMU.class, constants.IMU_HardwareMapName);
-        imu.initialize(new IMU.Parameters(constants.IMU_Orientation));
+        imu.initialize(map, constants.IMU_HardwareMapName, constants.IMU_Orientation);
 
         leftEncoder = new Encoder(map.get(DcMotorEx.class, constants.leftEncoder_HardwareMapName));
         rightEncoder = new Encoder(map.get(DcMotorEx.class, constants.rightEncoder_HardwareMapName));
@@ -210,7 +210,7 @@ public class ThreeWheelIMULocalizer implements Localizer {
         rightEncoder.update();
         strafeEncoder.update();
 
-        double currentIMUOrientation = MathFunctions.normalizeAngle(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        double currentIMUOrientation = MathFunctions.normalizeAngle(imu.getHeading());
         deltaRadians = MathFunctions.getTurnDirection(previousIMUOrientation, currentIMUOrientation) * MathFunctions.getSmallestAngleDifference(currentIMUOrientation, previousIMUOrientation);
         previousIMUOrientation = currentIMUOrientation;
     }
@@ -298,8 +298,8 @@ public class ThreeWheelIMULocalizer implements Localizer {
      * @return returns the IMU
      */
     @Override
-    public double getIMU() {
-        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+    public double getIMUHeading() {
+        return imu.getHeading();
     }
 
     /**
