@@ -8,6 +8,16 @@ package com.pedropathing.log;
  */
 @FunctionalInterface
 public interface LogSubscriber {
+    /**
+     * Called when a log event occurs.
+     *
+     * @param key   The key associated with the log event.
+     * @param value The value associated with the log event.
+     */
     void onLog(String key, Object value);
+
+    /**
+     * Update / Push the log subscriber.
+     */
     default void update() { }
 }
