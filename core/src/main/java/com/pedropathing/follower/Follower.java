@@ -19,7 +19,7 @@ import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathBuilder;
-import com.pedropathing.paths.PathCallback;
+import com.pedropathing.paths.callbacks.PathCallback;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.math.Vector;
 import com.pedropathing.util.Timer;

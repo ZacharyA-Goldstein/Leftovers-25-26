@@ -676,4 +676,12 @@ public class Path {
     public PathConstraints getConstraints() {
         return constraints;
     }
+
+    /**
+     * Gets the curve associated with this path
+     * @return the curve associated with this path
+     */
+    public Curve getCurve() {
+        return curve;
+    }
 }

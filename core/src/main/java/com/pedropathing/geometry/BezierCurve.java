@@ -434,4 +434,9 @@ public class BezierCurve implements Curve {
     public void setPathConstraints(PathConstraints pathConstraints) {
         this.pathConstraints = pathConstraints;
     }
+
+    @Override
+    public PathConstraints getPathConstraints() {
+        return pathConstraints;
+    }
 }

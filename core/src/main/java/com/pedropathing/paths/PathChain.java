@@ -2,6 +2,7 @@ package com.pedropathing.paths;
 
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
+import com.pedropathing.paths.callbacks.PathCallback;
 
 import java.util.ArrayList;
 import java.util.Arrays;
