@@ -5,7 +5,9 @@ import com.pedropathing.VectorCalculator;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.Drivetrain;
+import com.pedropathing.log.LogSubscriber;
 import com.pedropathing.log.Logger;
+import com.pedropathing.log.PedroLogger;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.paths.PathPoint;
 import com.pedropathing.util.PoseHistory;
@@ -78,8 +80,9 @@ public class Follower {
         errorCalculator = new ErrorCalculator(constants);
         vectorCalculator = new VectorCalculator(constants);
         this.drivetrain = drivetrain;
-
         poseHistory = new PoseHistory(poseTracker);
+
+        Logger.addSubscriber(new PedroLogger());
 
         BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
         holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
@@ -89,6 +92,11 @@ public class Follower {
         automaticHoldEnd = constants.automaticHoldEnd;
 
         breakFollowing();
+    }
+
+    public Follower(FollowerConstants constants, Localizer localizer, Drivetrain drivetrain, PathConstraints pathConstraints, LogSubscriber... logSubscribers) {
+        this(constants, localizer, drivetrain, pathConstraints);
+        Logger.addSubscribers(logSubscribers);
     }
 
     public void updateConstants() {

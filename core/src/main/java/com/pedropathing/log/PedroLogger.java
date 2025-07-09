@@ -2,7 +2,7 @@ package com.pedropathing.log;
 
 import java.util.HashMap;
 
-public class Test implements LogSubscriber {
+public class PedroLogger implements LogSubscriber {
     private HashMap<String, Object> data = new HashMap<>();
     @Override
     public void onLog(String key, Object value) {
