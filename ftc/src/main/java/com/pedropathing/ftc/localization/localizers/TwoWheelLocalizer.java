@@ -32,8 +32,8 @@ public class TwoWheelLocalizer implements Localizer {
     private long deltaTimeNano;
     private final Encoder forwardEncoder;
     private final Encoder strafeEncoder;
-    private final Pose forwardEncoderPose;
-    private final Pose strafeEncoderPose;
+    private final double strafePodX;
+    private final double forwardPodY;
     private double previousIMUOrientation;
     private double deltaRadians;
     private double totalHeading;
@@ -61,9 +61,8 @@ public class TwoWheelLocalizer implements Localizer {
         FORWARD_TICKS_TO_INCHES = constants.forwardTicksToInches;
         STRAFE_TICKS_TO_INCHES = constants.strafeTicksToInches;
         imu = constants.imu;
-
-        forwardEncoderPose = new Pose(0, constants.forwardPodY, 0);
-        strafeEncoderPose = new Pose(constants.strafePodX, 0, Math.toRadians(90));
+        strafePodX = constants.strafePodX;
+        forwardPodY = constants.forwardPodY;
 
         imu.initialize(map, constants.IMU_HardwareMapName, constants.IMU_Orientation);
 
@@ -217,9 +216,9 @@ public class TwoWheelLocalizer implements Localizer {
     public Matrix getRobotDeltas() {
         Matrix returnMatrix = new Matrix(3,1);
         // x/forward movement
-        returnMatrix.set(0,0, FORWARD_TICKS_TO_INCHES * (forwardEncoder.getDeltaPosition() - forwardEncoderPose.getY() * deltaRadians));
+        returnMatrix.set(0,0, FORWARD_TICKS_TO_INCHES * (forwardEncoder.getDeltaPosition() - forwardPodY * deltaRadians));
         //y/strafe movement
-        returnMatrix.set(1,0, STRAFE_TICKS_TO_INCHES * (strafeEncoder.getDeltaPosition() - strafeEncoderPose.getX() * deltaRadians));
+        returnMatrix.set(1,0, STRAFE_TICKS_TO_INCHES * (strafeEncoder.getDeltaPosition() - strafePodX * deltaRadians));
         // theta/turning
         returnMatrix.set(2,0, deltaRadians);
         return returnMatrix;
