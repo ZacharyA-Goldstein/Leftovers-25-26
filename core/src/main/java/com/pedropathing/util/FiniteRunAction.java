@@ -1,6 +1,6 @@
 package com.pedropathing.util;
 
-import com.pedropathing.paths.PathCallback;
+import com.pedropathing.paths.callbacks.PathCallback;
 
 /**
  * This is the FiniteRunAction class. It handles running Runnables once (or a specified number of times), until a reset is called.

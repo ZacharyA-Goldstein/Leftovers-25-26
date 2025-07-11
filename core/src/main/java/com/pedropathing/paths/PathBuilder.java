@@ -3,7 +3,12 @@ package com.pedropathing.paths;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Curve;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.callbacks.ParametricCallback;
+import com.pedropathing.paths.callbacks.PathCallback;
+import com.pedropathing.paths.callbacks.PoseCallback;
+import com.pedropathing.paths.callbacks.TemporalCallback;
 import com.pedropathing.util.FiniteRunAction;
 
 import java.util.ArrayList;
@@ -321,6 +326,7 @@ public class PathBuilder {
      *
      * @param t This sets the t-value (parametric time) on the Path for when to run the callback.
      * @param runnable This sets the code for the callback to run. Use lambda statements for this.
+     * @param follower This is the follower running your paths.
      * @return This returns itself with the updated data.
      */
     public PathBuilder addParametricCallback(double t, Follower follower, Runnable runnable) {
@@ -329,7 +335,23 @@ public class PathBuilder {
     }
 
     /**
-     * This adds a callback to the PathBuilder.
+     * This adds a pose callback on the last Path added to the PathBuilder.
+     * This callback is set to run after the follower crosses the closest point on the path relative to the specified point.
+     * @param targetPoint This is the target point relative to which the callback is set.
+     * @param follower This is the follower running your paths.
+     * @param runnable This sets the code for the callback to run. Use lambda statements for this.
+     * @param initialTValueGuess This should be a decent guess for the t-value of the point on the path closest to the target point. It doesn't need to be very precise, but it'll guide the search and allow for a more accurate computation.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addPoseCallback(Pose targetPoint, Follower follower, Runnable runnable, double initialTValueGuess) {
+        this.callbacks.add(new FiniteRunAction(new PoseCallback(follower, paths.size() - 1, targetPoint, runnable, initialTValueGuess, this.paths.get(paths.size() - 1).getCurve())));
+        return this;
+    }
+
+    /**
+     * This adds a callback to the PathChain.
+     * @param callback The callback to be added to the PathChain.
+     * @return This returns itself with the updated data.
      */
     public PathBuilder addCallback(PathCallback callback) {
         this.callbacks.add(new FiniteRunAction(callback));
@@ -350,7 +372,6 @@ public class PathBuilder {
 
     /**
      * This builds all the Path and callback information together into a PathChain.
-     *
      * @return This returns a PathChain made of all the specified paths and callbacks.
      */
     public PathChain build() {
@@ -364,7 +385,8 @@ public class PathBuilder {
     }
 
     /**
-     * Makes this decelerate based on the entire chain and not only the last path (recommended if the last path is short)
+     * Sets the PathChain to decelerate based on the entire chain and not only the last path (recommended if the final path is short)
+     * @return This returns itself with the updated data.
      */
     public PathBuilder setGlobalDeceleration() {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
@@ -373,6 +395,8 @@ public class PathBuilder {
 
     /**
      * Makes this decelerate based on the entire chain and not only the last path (recommended if the last path is short)
+     * @param decelerationStartMultiplier sets the DecelerationStartMultiplier to the PathConstraints. A lower DecelerationStartMultiplier will make the PathChain begin decelerating later, and vice-versa.
+     * @return This returns itself with the updated data.
      */
     public PathBuilder setGlobalDeceleration(double decelerationStartMultiplier) {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
@@ -381,7 +405,8 @@ public class PathBuilder {
     }
 
     /**
-     * Sets no deceleration to the pathchain
+     * Sets no deceleration to the PathChain
+     * @return This returns itself with the updated data.
      */
     public PathBuilder setNoDeceleration() {
         this.decelerationType = PathChain.DecelerationType.NONE;

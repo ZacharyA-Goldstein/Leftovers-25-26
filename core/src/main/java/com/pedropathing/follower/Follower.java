@@ -5,6 +5,9 @@ import com.pedropathing.VectorCalculator;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.Drivetrain;
+import com.pedropathing.log.LogSubscriber;
+import com.pedropathing.log.Logger;
+import com.pedropathing.log.PedroLogger;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.paths.PathPoint;
 import com.pedropathing.util.PoseHistory;
@@ -16,7 +19,7 @@ import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathBuilder;
-import com.pedropathing.paths.PathCallback;
+import com.pedropathing.paths.callbacks.PathCallback;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.math.Vector;
 import com.pedropathing.util.Timer;
@@ -77,8 +80,9 @@ public class Follower {
         errorCalculator = new ErrorCalculator(constants);
         vectorCalculator = new VectorCalculator(constants);
         this.drivetrain = drivetrain;
-
         poseHistory = new PoseHistory(poseTracker);
+
+        Logger.addSubscriber(new PedroLogger());
 
         BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
         holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
@@ -88,6 +92,11 @@ public class Follower {
         automaticHoldEnd = constants.automaticHoldEnd;
 
         breakFollowing();
+    }
+
+    public Follower(FollowerConstants constants, Localizer localizer, Drivetrain drivetrain, PathConstraints pathConstraints, LogSubscriber... logSubscribers) {
+        this(constants, localizer, drivetrain, pathConstraints);
+        Logger.addSubscribers(logSubscribers);
     }
 
     public void updateConstants() {
@@ -377,15 +386,18 @@ public class Follower {
         updatePose();
         updateDrivetrain();
 
+
         if (manualDrive) {
             previousClosestPose = closestPose;
             closestPose = new PathPoint();
             updateErrorAndVectors();
             drivetrain.getAndRunDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseTracker.getPose().getHeading());
+            Logger.update();
             return;
         }
 
         if (currentPath == null) {
+            Logger.update();
             return;
         }
 
@@ -400,6 +412,7 @@ public class Follower {
                 isTurning = false;
                 isBusy = false;
             }
+            Logger.update();
             return;
         }
 
@@ -419,6 +432,7 @@ public class Follower {
         }
 
         if (!(currentPath.isAtParametricEnd() || ( zeroVelocityDetectedTimer != null && zeroVelocityDetectedTimer.getElapsedTime() > 500.0))) {
+            Logger.update();
             return;
         }
 
@@ -438,6 +452,7 @@ public class Follower {
                 }
             }
 
+            Logger.update();
             return;
         }
 
@@ -465,14 +480,18 @@ public class Follower {
                 < currentPath.getPathEndHeadingConstraint()
             )
         )) {
+            Logger.update();
             return;
         }
+
         if (holdPositionAtEnd) {
             holdPositionAtEnd = false;
             holdPoint(new BezierPoint(currentPath.getLastControlPoint()), currentPath.getHeadingGoal(1));
         } else {
             breakFollowing();
         }
+
+        Logger.update();
     }
 
     /** This checks if any PathCallbacks should be run right now, and runs them if applicable. */

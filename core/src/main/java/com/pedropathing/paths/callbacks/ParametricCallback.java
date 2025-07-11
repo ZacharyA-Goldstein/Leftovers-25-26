@@ -1,4 +1,4 @@
-package com.pedropathing.paths;
+package com.pedropathing.paths.callbacks;
 
 import com.pedropathing.follower.Follower;
 
