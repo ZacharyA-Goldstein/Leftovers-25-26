@@ -272,6 +272,17 @@ public final class Pose {
     }
 
     /**
+     * Calculates the squared Euclidean distance from this pose to another pose.
+     * @param other the other pose
+     * @return the squared distance between the two poses
+     */
+    public double distSquared(Pose other) {
+        double xDist = other.x - x;
+        double yDist = other.y - y;
+        return xDist * xDist + yDist * yDist;
+    }
+
+    /**
      * This rotates this pose by the given theta
      *
      * @param theta the angle to rotate by.

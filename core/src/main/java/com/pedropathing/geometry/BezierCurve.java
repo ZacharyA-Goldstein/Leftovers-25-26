@@ -407,6 +407,21 @@ public class BezierCurve implements Curve {
      * @return the closest point t-value
      */
     public double getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
+        double[] searchEstimates = new double[]{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, initialTValueGuess};
+        double closestDist = 1e9;
+        double bestGuess = 0;
+
+        for (double t : searchEstimates) {
+            double dist = getPose(t).distSquared(pose);
+
+            if (dist < closestDist) {
+                closestDist = dist;
+                bestGuess = t;
+            }
+        }
+
+        initialTValueGuess = bestGuess;
+
         for (int i = 0; i < searchLimit; i++) {
             Pose lastPoint = getPose(initialTValueGuess);
 
