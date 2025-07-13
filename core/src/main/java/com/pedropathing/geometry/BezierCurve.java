@@ -247,7 +247,7 @@ public class BezierCurve implements Curve {
         Vector secondDerivative = getSecondDerivative(t);
 
         if (derivative.getMagnitude() == 0) return 0;
-        return (derivative.dot(secondDerivative))/Math.pow(derivative.getMagnitude(),3);
+        return (derivative.cross(secondDerivative))/Math.pow(derivative.getMagnitude(),3);
     }
 
     /**
