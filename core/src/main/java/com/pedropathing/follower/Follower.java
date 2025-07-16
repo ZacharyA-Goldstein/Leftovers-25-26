@@ -748,7 +748,8 @@ public class Follower {
         vectorCalculator.setConstants(constants);
         drivetrain.updateConstants();
     }
-    private double getHeadingGoal(double t) {
+
+    public double getHeadingGoal(double t) {
         if (currentPathChain != null) {
             return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, t));
         }
@@ -762,6 +763,14 @@ public class Follower {
         }
 
         return currentPath.getHeadingGoal(point);
+    }
+
+    /**
+     * This returns the closest point's heading goal
+     * @return returns the closest point's heading goal
+     */
+    public double getClosestPointHeadingGoal() {
+        return currentPath.getClosestPointHeadingGoal();
     }
 
     public Vector getClosestPointTangentVector() {
