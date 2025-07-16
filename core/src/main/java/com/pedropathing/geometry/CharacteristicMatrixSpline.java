@@ -2,6 +2,7 @@ package com.pedropathing.geometry;
 
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Matrix;
+import com.pedropathing.math.MatrixUtil;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathConstraints;
 
@@ -133,7 +134,7 @@ public class CharacteristicMatrixSpline implements Curve{
     @Override
     public ArrayList<Pose> getControlPoints() {
         ArrayList<Pose> output = new ArrayList<>();
-        Matrix transformedMatrix = CharacteristicMatrixSupplier.getBezierCharacteristicMatrix(this.controlMatrix.getRows() - 1).multiply(this.splineMatrix);
+        Matrix transformedMatrix = Matrix.rref(CharacteristicMatrixSupplier.getBezierCharacteristicMatrix(this.controlMatrix.getRows() - 1), MatrixUtil.eye(this.controlMatrix.getRows()))[1].multiply(this.splineMatrix);
         Matrix transformedControlPoints = transformedMatrix.multiply(this.controlMatrix);
         for (double[] row : transformedControlPoints.getMatrix()) {
             output.add(new Pose(row[0], row[1]));
