@@ -52,6 +52,7 @@ public class BezierCurve implements Curve {
             try {
                 throw new Exception("Too few control points");
             } catch (Exception e) {
+                // output to logger later
                 e.printStackTrace();
             }
         }
