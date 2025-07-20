@@ -111,46 +111,4 @@ public class CharacteristicMatrixSupplier {
         }
         return bezierMatrices.get(degree);
     }
-
-    /**
-     * This method creates a new instance of a cubic hermite spline's characteristic matrix
-     * @return characteristic matrix of the Matrix class
-     */
-    public static Matrix generateCubicHermiteMatrix(){
-        return new Matrix(new double[][]{
-                { 1,  0,  0,  0},
-                { 0,  1,  0,  0},
-                {-3, -2,  3,  1},
-                { 2,  1, -2, -1}
-        });
-    }
-
-    /**
-     * This method creates a new instance of a quintic hermite spline's characteristic matrix
-     * @return characteristic matrix of the Matrix class
-     */
-    public static Matrix generateQuinticHermiteMatrix(){
-        return new Matrix(new double[][]{
-                {  1,  0,    0,   0,  0,   0},
-                {  0,  1,    0,   0,  0,   0},
-                {  0,  0,  0.5,   0,  0,   0},
-                {-10, -6, -1.5,  10, -4, 0.5},
-                { 15,  8,  1.5, -15,  7,  -1},
-                { -6, -3, -0.5,   6, -3, 0.5}
-        });
-    }
-
-    /**
-     * This method creates a new instance of a cardinal spline's characteristic matrix
-     * @param s tautness parameter; tension is some literature (side note: 0.5 is the catmull-rom spline)
-     * @return characteristic matrix of the Matrix class
-     */
-    public static Matrix generateCardinalSpline(double s){
-        return new Matrix(new double[][]{
-                {    0,     1,         0,  0},
-                {   -s,     0,         s,  0},
-                {2 * s, s - 3, 3 - 2 * s, -s},
-                {   -s, 2 - s,     s - 2,  s}
-        });
-    }
 }
