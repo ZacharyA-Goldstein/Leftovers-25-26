@@ -52,6 +52,7 @@ public class BezierCurve implements Curve {
             try {
                 throw new Exception("Too few control points");
             } catch (Exception e) {
+                // output to logger later
                 e.printStackTrace();
             }
         }
@@ -116,7 +117,7 @@ public class BezierCurve implements Curve {
             Pose p = this.controlPoints.get(i);
             controlPointMatrix.set(i, new double[]{p.getX(), p.getY()});
         }
-        this.cachedMatrix = BezierCurveMatrixSupplier.getCharacteristicMatrix(this.controlPoints.size() - 1).multiply(controlPointMatrix);
+        this.cachedMatrix = CharacteristicMatrixSupplier.getBezierCharacteristicMatrix(this.controlPoints.size() - 1).multiply(controlPointMatrix);
         initializeDegreeArray();
         initializeCoefficientArray();
     }
@@ -423,16 +424,24 @@ public class BezierCurve implements Curve {
         initialTValueGuess = bestGuess;
 
         for (int i = 0; i < searchLimit; i++) {
-            Pose lastPoint = getPose(initialTValueGuess);
+            Matrix pointAtT = this.getPointCharacteristics(initialTValueGuess);
+            Pose lastPos = new Pose(pointAtT.get(0, 0), pointAtT.get(0, 1));
+            /*
+            Resultant matrix is:
+            [...] // first row is ignored
+            [(lastPos.x - pose.x) * x'(t) + (lastPos.y - pose.y) * y'(t)]
+            [(lastPos.x - pose.x) * x''(t) + (lastPos.y - pose.y) * y''(t)]
+             */
+            Matrix resultant = pointAtT.multiply(new Matrix(new double[][]{
+                    {(lastPos.getX() - pose.getX())},
+                    {(lastPos.getY() - pose.getY())}
+            }));
 
-            Vector differenceVector = new Vector(lastPoint.minus(pose));
-
-            double firstDerivative = 2 * getDerivative(initialTValueGuess).dot(differenceVector);
-            double secondDerivative = 2 * (Math.pow(getDerivative(initialTValueGuess).getMagnitude(), 2) +
-                    differenceVector.dot(getSecondDerivative(initialTValueGuess)));
+            double firstDerivative = 2 * resultant.get(1, 0);
+            double secondDerivative = 2 * (resultant.get(2, 0) + (pointAtT.get(1, 0) * pointAtT.get(1, 0) + (pointAtT.get(1, 1) * pointAtT.get(1, 1))));
 
             initialTValueGuess = MathFunctions.clamp(initialTValueGuess - firstDerivative / (secondDerivative + 1e-9), 0, 1);
-            if (getPose(initialTValueGuess).distanceFrom(lastPoint) < 0.1) break;
+            if (getPose(initialTValueGuess).distanceFrom(lastPos) < 0.1) break;
         }
 
         return initialTValueGuess;
