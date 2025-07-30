@@ -43,7 +43,7 @@ public class Integrator {
             sum += state * timer.getElapsedTime(TimeUnit.SECONDS);
             timer.resetTimer();
         } else {
-            sum += state * prevDifferentialVal;
+            sum += state;
         }
     }
 

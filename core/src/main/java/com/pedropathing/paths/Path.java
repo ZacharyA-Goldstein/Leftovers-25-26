@@ -28,6 +28,7 @@ public class Path {
     private Vector closestPointTangentVector;
     private Vector closestPointNormalVector;
     private Pose closestPose;
+    private Integrator distanceCalculator = new Integrator(Integrator.Differential.TVALUE)
 
     /**
      * A multiplier for the zero power acceleration to change the speed at which the robot decelerates at the end of paths.
@@ -36,16 +37,8 @@ public class Path {
      * Decreasing this value will slow down the deceleration at the end of the path, making the robot slower but reducing the risk of end-of-path overshoots or localization slippage.
      * <p>
      * This can be set individually for each Path, but this is the default value.
-     */
-    private Integrator distanceCalculator = new Integrator(Integrator.Differential.TVALUE);
-    
-    // A multiplier for the zero power acceleration to change the speed the robot decelerates at
-    // the end of paths.
-    // Increasing this will cause the robot to try to decelerate faster, at the risk of overshoots
-    // or localization slippage.
-    // Decreasing this will cause the deceleration at the end of the Path to be slower, making the
-    // robot slower but reducing risk of end-of-path overshoots or localization slippage.
-    // This can be set individually for each Path, but this is the default.
+     */;
+
     private double decelerationStrength;
 
     /**
@@ -248,7 +241,7 @@ public class Path {
      * @param current the current pose
      */
     public void updateDistance(PathPoint previous, PathPoint current) {
-        distanceCalculator.update(previous.pose.distanceFrom(closestPose), current.tValue - previous.tValue);
+        distanceCalculator.update(previous.pose.distanceFrom(current.pose));
     }
 
     /**
