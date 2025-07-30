@@ -17,7 +17,6 @@ import com.pedropathing.ftc.localization.localizers.ThreeWheelIMULocalizer;
 import com.pedropathing.ftc.localization.localizers.ThreeWheelLocalizer;
 import com.pedropathing.ftc.localization.localizers.TwoWheelLocalizer;
 import com.pedropathing.localization.Localizer;
-import com.pedropathing.log.LogSubscriber;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -34,12 +33,10 @@ public class FollowerBuilder {
     private final HardwareMap hardwareMap;
     private Localizer localizer;
     private Drivetrain drivetrain;
-    private ArrayList<LogSubscriber> logSubscribers;
 
     public FollowerBuilder(FollowerConstants constants, HardwareMap hardwareMap) {
         this.constants = constants;
         this.hardwareMap = hardwareMap;
-        this.logSubscribers = new ArrayList<>();
         constraints = PathConstraints.defaultConstraints;
     }
 
@@ -74,13 +71,6 @@ public class FollowerBuilder {
 
     public FollowerBuilder setDrivetrain(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
-        return this;
-    }
-
-    public FollowerBuilder addLogSubscriber(LogSubscriber logSubscriber) {
-        if (logSubscriber != null) {
-            logSubscribers.add(logSubscriber);
-        }
         return this;
     }
 

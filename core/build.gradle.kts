@@ -10,7 +10,7 @@ publishing {
     publications {
         register<MavenPublication>("release") {
             groupId = "com.pedropathing"
-            artifactId = "pedro"
+            artifactId = "core"
             version = property("version") as String
 
             from(components["java"])

@@ -5,9 +5,6 @@ import com.pedropathing.VectorCalculator;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.Drivetrain;
-import com.pedropathing.log.LogSubscriber;
-import com.pedropathing.log.Logger;
-import com.pedropathing.log.PedroLogger;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.paths.PathPoint;
 import com.pedropathing.util.PoseHistory;
@@ -82,8 +79,6 @@ public class Follower {
         this.drivetrain = drivetrain;
         poseHistory = new PoseHistory(poseTracker);
 
-        Logger.addSubscriber(new PedroLogger());
-
         BEZIER_CURVE_SEARCH_LIMIT = constants.BEZIER_CURVE_SEARCH_LIMIT;
         holdPointTranslationalScaling = constants.holdPointTranslationalScaling;
         holdPointHeadingScaling = constants.holdPointHeadingScaling;
@@ -92,11 +87,6 @@ public class Follower {
         automaticHoldEnd = constants.automaticHoldEnd;
 
         breakFollowing();
-    }
-
-    public Follower(FollowerConstants constants, Localizer localizer, Drivetrain drivetrain, PathConstraints pathConstraints, LogSubscriber... logSubscribers) {
-        this(constants, localizer, drivetrain, pathConstraints);
-        Logger.addSubscribers(logSubscribers);
     }
 
     public void updateConstants() {
@@ -392,12 +382,10 @@ public class Follower {
             closestPose = new PathPoint();
             updateErrorAndVectors();
             drivetrain.getAndRunDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseTracker.getPose().getHeading());
-            Logger.update();
             return;
         }
 
         if (currentPath == null) {
-            Logger.update();
             return;
         }
 
@@ -412,7 +400,6 @@ public class Follower {
                 isTurning = false;
                 isBusy = false;
             }
-            Logger.update();
             return;
         }
 
@@ -432,7 +419,6 @@ public class Follower {
         }
 
         if (!(currentPath.isAtParametricEnd() || ( zeroVelocityDetectedTimer != null && zeroVelocityDetectedTimer.getElapsedTime() > 500.0))) {
-            Logger.update();
             return;
         }
 
@@ -452,7 +438,6 @@ public class Follower {
                 }
             }
 
-            Logger.update();
             return;
         }
 
@@ -480,7 +465,6 @@ public class Follower {
                 < currentPath.getPathEndHeadingConstraint()
             )
         )) {
-            Logger.update();
             return;
         }
 
@@ -490,8 +474,6 @@ public class Follower {
         } else {
             breakFollowing();
         }
-
-        Logger.update();
     }
 
     /** This checks if any PathCallbacks should be run right now, and runs them if applicable. */
