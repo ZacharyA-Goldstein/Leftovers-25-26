@@ -1,12 +1,8 @@
 package com.pedropathing.ftc;
 
-import com.bylazar.ftcontrol.panels.Panels;
-import com.bylazar.ftcontrol.panels.json.Canvas;
-import com.bylazar.ftcontrol.panels.json.CanvasRotation;
-import com.bylazar.ftcontrol.panels.json.Circle;
-import com.bylazar.ftcontrol.panels.json.Line;
-import com.bylazar.ftcontrol.panels.json.Look;
-import com.bylazar.ftcontrol.panels.json.Point;
+import com.bylazar.field.FieldManager;
+import com.bylazar.field.PanelsField;
+import com.bylazar.field.Style;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
@@ -22,14 +18,21 @@ import com.pedropathing.util.PoseHistory;
  */
 public class Drawing {
     public static final double ROBOT_RADIUS = 9;
-    private static final Canvas canvas = new Canvas().withOffsets(-24 * 3, 24 * 3, CanvasRotation.DEG_270);
+    private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
-    private static final Look robotLook = new Look(
-            "", "#3F51B5", 0.0, 1.0
+    private static final Style robotLook = new Style(
+            "", "#3F51B5", 0.0
     );
-    private static final Look historyLook = new Look(
-            "", "#4CAF50", 0.0, 1.0
+    private static final Style historyLook = new Style(
+            "", "#4CAF50", 0.0
     );
+
+    /**
+     * This prepares Panels Field for using Pedro Offsets
+     */
+    public static void init() {
+        panelsField.setOffsets(PanelsField.INSTANCE.getPEDRO_PATHING());
+    }
 
     /**
      * This draws everything that will be used in the Follower's telemetryDebug() method. This takes
@@ -53,28 +56,22 @@ public class Drawing {
      * This draws a robot at a specified Pose with a specified
      * look. The heading is represented as a line.
      *
-     * @param pose the Pose to draw the robot at
-     * @param look the parameters used to draw the robot with
+     * @param pose  the Pose to draw the robot at
+     * @param style the parameters used to draw the robot with
      */
-    public static void drawRobot(Pose pose, Look look) {
-        canvas.add(
-                new Circle(
-                        new Point(pose.getX(), pose.getY()),
-                        ROBOT_RADIUS
-                ).withLook(look)
-        );
+    public static void drawRobot(Pose pose, Style style) {
+        panelsField.setStyle(style);
+        panelsField.moveCursor(pose.getX(), pose.getY());
+        panelsField.circle(ROBOT_RADIUS);
 
         Vector v = pose.getHeadingAsUnitVector();
         v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
         double x1 = pose.getX() + v.getXComponent() / 2, y1 = pose.getY() + v.getYComponent() / 2;
         double x2 = pose.getX() + v.getXComponent(), y2 = pose.getY() + v.getYComponent();
 
-        canvas.add(
-                new Line(
-                        new Point(x1, y1),
-                        new Point(x2, y2)
-                ).withLook(look)
-        );
+        panelsField.setStyle(style);
+        panelsField.moveCursor(x1, y1);
+        panelsField.line(x2, y2);
     }
 
     /**
@@ -89,23 +86,15 @@ public class Drawing {
     /**
      * This draws a Path with a specified look.
      *
-     * @param path the Path to draw
-     * @param look the parameters used to draw the Path with
+     * @param path  the Path to draw
+     * @param style the parameters used to draw the Path with
      */
-    public static void drawPath(Path path, Look look) {
+    public static void drawPath(Path path, Style style) {
         double[][] points = path.getPanelsDrawingPoints();
 
-        canvas.add(new Line(
-                        new Point(
-                                points[0][0],
-                                points[0][1]
-                        ),
-                        new Point(
-                                points[1][0],
-                                points[1][1]
-                        )
-                ).withLook(look)
-        );
+        panelsField.setStyle(style);
+        panelsField.moveCursor(points[0][0], points[0][1]);
+        panelsField.line(points[1][0], points[1][1]);
     }
 
     /**
@@ -113,11 +102,11 @@ public class Drawing {
      * specified look.
      *
      * @param pathChain the PathChain to draw
-     * @param look      the parameters used to draw the PathChain with
+     * @param style     the parameters used to draw the PathChain with
      */
-    public static void drawPath(PathChain pathChain, Look look) {
+    public static void drawPath(PathChain pathChain, Style style) {
         for (int i = 0; i < pathChain.size(); i++) {
-            drawPath(pathChain.getPath(i), look);
+            drawPath(pathChain.getPath(i), style);
         }
     }
 
@@ -125,24 +114,16 @@ public class Drawing {
      * This draws the pose history of the robot.
      *
      * @param poseTracker the PoseHistory to get the pose history from
-     * @param look        the parameters used to draw the pose history with
+     * @param style       the parameters used to draw the pose history with
      */
-    public static void drawPoseHistory(PoseHistory poseTracker, Look look) {
+    public static void drawPoseHistory(PoseHistory poseTracker, Style style) {
+        panelsField.setStyle(style);
+
         int size = poseTracker.getXPositionsArray().length;
         for (int i = 0; i < size - 1; i++) {
 
-            canvas.add(
-                    new Line(
-                            new Point(
-                                    poseTracker.getXPositionsArray()[i],
-                                    poseTracker.getYPositionsArray()[i]
-                            ),
-                            new Point(
-                                    poseTracker.getXPositionsArray()[i + 1],
-                                    poseTracker.getYPositionsArray()[i + 1]
-                            )
-                    ).withLook(look)
-            );
+            panelsField.moveCursor(poseTracker.getXPositionsArray()[i], poseTracker.getYPositionsArray()[i]);
+            panelsField.line(poseTracker.getXPositionsArray()[i + 1], poseTracker.getYPositionsArray()[i + 1]);
         }
     }
 
@@ -157,15 +138,8 @@ public class Drawing {
 
     /**
      * This tries to send the current packet to FTControl Panels.
-     *
-     * @return returns if the operation found data to send.
      */
-    public static boolean sendPacket() {
-        if (!canvas.isEmpty()) {
-            Panels.getTelemetry().sendCanvas(canvas);
-            canvas.clear();
-            return true;
-        }
-        return false;
+    public static void sendPacket() {
+        panelsField.update();
     }
 }

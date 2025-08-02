@@ -64,7 +64,7 @@ tasks.register<Jar>("sourcesJar") {
 
 dependencies {
     compileOnly(libs.bundles.ftc)
-    compileOnly(libs.ftcontrol)
+    compileOnly(libs.panels)
     api(project(":core"))
 }
 
