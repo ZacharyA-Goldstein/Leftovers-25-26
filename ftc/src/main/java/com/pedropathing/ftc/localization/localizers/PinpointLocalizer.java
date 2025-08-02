@@ -8,6 +8,7 @@ import com.pedropathing.geometry.PedroCoordinates;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import com.pedropathing.localization.Localizer;
@@ -33,11 +34,8 @@ public class PinpointLocalizer implements Localizer {
     private double previousHeading;
     private double totalHeading;
     private Pose startPose;
-    private long deltaTimeNano;
-    private final NanoTimer timer;
     private Pose currentVelocity;
     private Pose pinpointPose;
-    private boolean pinpointCooked = false;
 
     /**
      * This creates a new PinpointLocalizer from a HardwareMap, with a starting Pose at (0,0)
@@ -74,10 +72,8 @@ public class PinpointLocalizer implements Localizer {
 
         setStartPose(setStartPose);
         totalHeading = 0;
-        timer = new NanoTimer();
         pinpointPose = startPose;
         currentVelocity = new Pose();
-        deltaTimeNano = 1;
         previousHeading = setStartPose.getHeading();
     }
 
@@ -147,14 +143,11 @@ public class PinpointLocalizer implements Localizer {
      */
     @Override
     public void update() {
-        deltaTimeNano = timer.getElapsedTime();
-        timer.resetTimer();
         odo.update();
         Pose currentPinpointPose = PoseConverter.pose2DToPose(odo.getPosition(), PedroCoordinates.INSTANCE);
         totalHeading += MathFunctions.getSmallestAngleDifference(currentPinpointPose.getHeading(), previousHeading);
         previousHeading = currentPinpointPose.getHeading();
-        Pose deltaPose = currentPinpointPose.minus(pinpointPose);
-        currentVelocity = new Pose(deltaPose.getX() / (deltaTimeNano / Math.pow(10.0, 9)), deltaPose.getY() / (deltaTimeNano / Math.pow(10.0, 9)), deltaPose.getHeading() / (deltaTimeNano / Math.pow(10.0, 9)));
+        currentVelocity = new Pose(odo.getVelX(DistanceUnit.INCH), odo.getVelY(DistanceUnit.INCH), odo.getHeading(AngleUnit.RADIANS));
         pinpointPose = currentPinpointPose;
     }
 
