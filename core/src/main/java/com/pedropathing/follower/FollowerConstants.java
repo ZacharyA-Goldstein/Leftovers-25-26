@@ -360,6 +360,7 @@ public class FollowerConstants {
 
     public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) {
         this.secondaryTranslationalPIDFCoefficients = secondaryTranslationalPIDFCoefficients;
+        useSecondaryTranslationalPIDF = true;
     }
 
     public PIDFCoefficients getSecondaryTranslationalIntegral() {
@@ -384,6 +385,7 @@ public class FollowerConstants {
 
     public void setSecondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) {
         this.secondaryHeadingPIDFCoefficients = secondaryHeadingPIDFCoefficients;
+        useSecondaryHeadingPIDF = true;
     }
 
     public double getDrivePIDFSwitch() {
@@ -400,6 +402,7 @@ public class FollowerConstants {
 
     public void setSecondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) {
         this.secondaryDrivePIDFCoefficients = secondaryDrivePIDFCoefficients;
+        useSecondaryDrivePIDF = true;
     }
 
     public double getHoldPointTranslationalScaling() {
