@@ -179,9 +179,9 @@ public final class Pose {
         Pose inCurrentCoordinates = coordinateSystem == other.coordinateSystem ? other :
                 other.getAsCoordinateSystem(
                         coordinateSystem);
-        return new Pose(x + inCurrentCoordinates.x,
-                y + inCurrentCoordinates.y,
-                heading + inCurrentCoordinates.heading,
+        return new Pose(x - inCurrentCoordinates.x,
+                y - inCurrentCoordinates.y,
+                heading - inCurrentCoordinates.heading,
                 coordinateSystem);
     }
 
