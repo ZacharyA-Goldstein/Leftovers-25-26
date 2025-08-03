@@ -89,8 +89,9 @@ public class ErrorCalculator {
             return 0;
         }
 
-        Vector distanceToGoalVector = currentPath.getClosestPointTangentVector().normalize().times(distanceToGoal);
-        Vector velocity = new Vector(velocityVector.dot(currentPath.getClosestPointTangentVector().normalize()), currentPath.getClosestPointTangentVector().getTheta());
+        Vector tangent = currentPath.getClosestPointTangentVector().normalize();
+        Vector distanceToGoalVector = tangent.times(distanceToGoal);
+        Vector velocity = velocityVector.projectOnto(tangent);
 
         Vector forwardHeadingVector = new Vector(1.0, currentPose.getHeading());
 

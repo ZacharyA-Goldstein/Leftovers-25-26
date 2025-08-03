@@ -175,7 +175,7 @@ public class VectorCalculator {
         if (driveError == -1)
             return new Vector(maxPowerScaling, currentPath.getClosestPointTangentVector().getTheta());
 
-        Vector driveVelocity = new Vector(velocity.dot(currentPath.getClosestPointTangentVector().normalize()), currentPath.getClosestPointTangentVector().getTheta());
+        Vector driveVelocity = velocity.projectOnto(currentPath.getClosestPointTangentVector().normalize());
         if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
             secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude() * Math.signum(driveError));
             secondaryDrivePIDF.updateError(driveError);

@@ -273,4 +273,15 @@ public class Vector {
         double[] multiply = matrix.multiply(new Matrix(new double[][]{{xComponent}, {yComponent}})).getCol(0);
         return new Vector(multiply[0], multiply[1]);
     }
+
+    /**
+     * Projects this vector onto another vector.
+     *
+     * @param other the vector to project onto
+     * @return a new vector that is the projection of this vector onto the other vector
+     */
+    public Vector projectOnto(Vector other) {
+        double scale = this.dot(other) / other.getMagnitude();
+        return other.times(scale / other.getMagnitude());
+    }
 }
