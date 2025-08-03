@@ -12,7 +12,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven("https://mymaven.bylazar.com/releases")
+        maven("https://mymaven.bylazar.com/dev")
     }
 }
 
