@@ -4,7 +4,8 @@ ftc = "10.3.0"
 [libraries]
 ftc-robot-core = { group = "org.firstinspires.ftc", name = "RobotCore", version.ref = "ftc" }
 ftc-hardware = { group = "org.firstinspires.ftc", name = "Hardware", version.ref = "ftc" }
-ftcontrol = { group = "com.bylazar", name = "ftcontrol", version = "0.6.8" }
+panels = { group = "com.bylazar", name = "fullpanels", version = "0.0.23" }
+
 annotations = { group = "org.jetbrains", name = "annotations", version = "23.0.0" }
 
 [bundles]
