@@ -130,7 +130,7 @@ public class ErrorCalculator {
         Vector velocityErrorVector = forwardVelocityError.plus(lateralVelocityError);
 
         previousRawDriveError = rawDriveError;
-        rawDriveError = velocityErrorVector.getMagnitude() * Math.signum(velocityErrorVector.dot(currentPath.getClosestPointTangentVector()));
+        rawDriveError = velocityErrorVector.getMagnitude() * Math.signum(velocityErrorVector.dot(tangent));
 
         double projection = Kinematics.predictNextLoopVelocity(driveErrors[1], driveErrors[0]);
 
@@ -172,7 +172,7 @@ public class ErrorCalculator {
                     return -1;
                 }
             } else {
-                distanceToGoal = currentPath.length() - currentPath.getDistanceTraveled();
+                distanceToGoal = (1 - currentPath.getClosestPointTValue()) * currentPath.length();
             }
         } else {
             Vector offset = new Vector();
