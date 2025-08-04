@@ -40,7 +40,9 @@ public interface HeadingInterpolator {
     double interpolate(PathPoint closestPoint);
 
     /**
-     * This class allows chaining HeadingInterpolators.
+     * This class allows chaining HeadingInterpolators. Each PiecewiseNode represents a HeadingInterpolation for a segment of the path, which can be used to create a piecewise heading interpolation.
+     *
+     * @author Havish Sripada - 12808 RevAmped Robotics
      */
     class PiecewiseNode {
         double initialTValue;

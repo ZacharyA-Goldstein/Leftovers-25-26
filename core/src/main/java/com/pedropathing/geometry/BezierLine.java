@@ -245,4 +245,14 @@ public class BezierLine extends BezierCurve {
         endTangent = getDerivative(1).normalize();
         super.initializePanelsDrawingPoints();
     }
+
+    @Override
+    public double getPathCompletion(double t) {
+        return MathFunctions.clamp(t, 0, 1);
+    }
+
+    @Override
+    public double getT(double pathCompletion) {
+        return MathFunctions.clamp(pathCompletion, 0, 1);
+    }
 }

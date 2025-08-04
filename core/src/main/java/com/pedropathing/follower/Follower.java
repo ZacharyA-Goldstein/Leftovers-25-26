@@ -392,7 +392,6 @@ public class Follower {
         if (holdingPosition) {
             previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
-            currentPath.updateDistance(previousClosestPose,closestPose);
             updateErrorAndVectors();
             drivetrain.getAndRunDrivePowers(getTranslationalCorrection().times(holdPointTranslationalScaling), getHeadingVector().times(holdPointHeadingScaling), new Vector(), poseTracker.getPose().getHeading());
 
@@ -406,7 +405,6 @@ public class Follower {
         if (isBusy) {
             previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
-            currentPath.updateDistance(previousClosestPose, closestPose);
             if (followingPathChain) updateCallbacks();
 
             updateErrorAndVectors();
@@ -695,34 +693,172 @@ public class Follower {
     /** Return the centripetal scaling */
     public double getCentripetalScaling() { return centripetalScaling; }
 
+    /**
+     * This returns whether the Follower is currently in teleop drive mode.
+     * @return returns true if in teleop drive mode, false otherwise.
+     */
     public boolean isTeleopDrive() { return manualDrive; }
+
+    /**
+     * This returns the teleop heading vector, which is the vector that the robot should be heading towards
+     * @return returns the teleop heading vector
+     */
     public Vector getTeleopHeadingVector() { return vectorCalculator.getTeleopHeadingVector(); }
+
+    /**
+     * This returns the teleop drive vector, which is the vector that the robot should be driving towards
+     * @return returns the teleop drive vector
+     */
     public Vector getTeleopDriveVector() { return vectorCalculator.getTeleopDriveVector(); }
+
+    /**
+     * This returns the heading error, which is the difference between the robot's current heading and the closest point's heading goal.
+     * @return returns the heading error
+     */
     public double getHeadingError() { return errorCalculator.getHeadingError(); }
+
+    /**
+     * This returns the translational error, which is the difference between the robot's current position and the closest point's position.
+     * @return returns the translational error as a Vector.
+     */
     public Vector getTranslationalError() { return errorCalculator.getTranslationalError(); }
+
+    /**
+     * This returns the drive error, which is the difference between the robot's current position and the closest point's position projected onto the tangent vector.
+     * @return returns the drive error as a double.
+     */
     public double getDriveError() { return errorCalculator.getDriveError(); }
+
+    /**
+     * This returns the drive vector, which is the vector that the robot should be moving towards to reach the closest point on the Path.
+     * @return returns the drive vector
+     */
     public Vector getDriveVector() { return vectorCalculator.getDriveVector(); }
+
+    /**
+     * This returns the corrective vector, which is the vector that the robot should be moving towards to correct its position.
+     * @return returns the corrective vector
+     */
     public Vector getCorrectiveVector() { return vectorCalculator.getCorrectiveVector(); }
+
+    /**
+     * This returns the heading vector, which is the vector that the robot should be heading towards to reach the closest point on the Path.
+     * @return returns the heading vector
+     */
     public Vector getHeadingVector() { return vectorCalculator.getHeadingVector(); }
+
+    /**
+     * This returns the translational correction, which is the vector that the robot should be moving towards to correct its position.
+     * @return returns the translational correction
+     */
     public Vector getTranslationalCorrection() { return vectorCalculator.getTranslationalCorrection(); }
+
+    /**
+     * This returns the centripetal force correction, which is the vector that the robot should be moving towards to correct its position for centripetal force.
+     * @return returns the centripetal force correction
+     */
     public Vector getCentripetalForceCorrection() { return vectorCalculator.getCentripetalForceCorrection(); }
+
+    /**
+     * This returns the PoseHistory, which is a history of the robot's poses.
+     * @return returns the PoseHistory
+     */
     public PathConstraints getConstraints() { return pathConstraints; }
+
+    /**
+     * This returns the FollowerConstants, which are the constants used by the Follower.
+     * @return returns the FollowerConstants
+     */
     public FollowerConstants getConstants() { return constants; }
+
+    /**
+     * This sets the PathConstraints for the Follower.
+     * @param pathConstraints the PathConstraints to set
+     */
     public void setConstraints(PathConstraints pathConstraints) { this.pathConstraints = pathConstraints; }
+
+    /**
+     * This returns the Drivetrain used by the Follower.
+     * @return returns the Drivetrain
+     */
     public Drivetrain getDrivetrain() { return drivetrain; }
+
+    /**
+     * This returns the PoseTracker used by the Follower.
+     * @return returns the PoseTracker
+     */
     public PoseTracker getPoseTracker() { return poseTracker; }
+
+    /**
+     * This returns the ErrorCalculator used by the Follower.
+     * @return returns the ErrorCalculator
+     */
     public ErrorCalculator getErrorCalculator() { return errorCalculator; }
+
+    /**
+     * This returns the VectorCalculator used by the Follower.
+     * @return returns the VectorCalculator
+     */
     public VectorCalculator getVectorCalculator() { return vectorCalculator; }
+
+    /**
+     * This returns the PoseHistory used by the Follower.
+     * @return returns the PoseHistory
+     */
     public PoseHistory getPoseHistory() { return poseHistory; }
+
+    /**
+     * This sets the x movement of the drivetrain.
+     * @param xMovement the x movement to set
+     */
     public void setXMovement(double xMovement) { drivetrain.setXMovement(xMovement); }
+
+    /**
+     * This sets the y movement of the drivetrain.
+     * @param yMovement the y movement to set
+     */
     public void setYMovement(double yMovement) { drivetrain.setYMovement(yMovement); }
 
+    /**
+     * This sets the Drive PIDF coefficients for the Follower.
+     * @param drivePIDFCoefficients the Drive PIDF coefficients to set
+     */
     public void setDrivePIDFCoefficients(FilteredPIDFCoefficients drivePIDFCoefficients) { vectorCalculator.setDrivePIDFCoefficients(drivePIDFCoefficients); }
+
+    /**
+     * This sets the Secondary Drive PIDF coefficients for the Follower.
+     * @param secondaryDrivePIDFCoefficients the Secondary Drive PIDF coefficients to set
+     */
     public void setSecondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) { vectorCalculator.setSecondaryDrivePIDFCoefficients(secondaryDrivePIDFCoefficients); }
+
+    /**
+     * This sets the Heading PIDF coefficients for the Follower.
+     * @param headingPIDFCoefficients the Heading PIDF coefficients to set
+     */
     public void setHeadingPIDFCoefficients(PIDFCoefficients headingPIDFCoefficients) { vectorCalculator.setHeadingPIDFCoefficients(headingPIDFCoefficients); }
+
+    /**
+     * This sets the Secondary Heading PIDF coefficients for the Follower.
+     * @param secondaryHeadingPIDFCoefficients the Secondary Heading PIDF coefficients to set
+     */
     public void setSecondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) { vectorCalculator.setSecondaryHeadingPIDFCoefficients(secondaryHeadingPIDFCoefficients); }
+
+    /**
+     * This sets the Translational PIDF coefficients for the Follower.
+     * @param translationalPIDFCoefficients the Translational PIDF coefficients to set
+     */
     public void setTranslationalPIDFCoefficients(PIDFCoefficients translationalPIDFCoefficients) { vectorCalculator.setTranslationalPIDFCoefficients(translationalPIDFCoefficients); }
+
+    /**
+     * This sets the Secondary Translational PIDF coefficients for the Follower.
+     * @param secondaryTranslationalPIDFCoefficients the Secondary Translational PIDF coefficients to set
+     */
     public void setSecondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) { vectorCalculator.setSecondaryTranslationalPIDFCoefficients(secondaryTranslationalPIDFCoefficients); }
+
+    /**
+     * This sets the FollowerConstants for the Follower.
+     * @param constants the FollowerConstants to set
+     */
     public void setConstants(FollowerConstants constants) {
         this.constants = constants;
         updateConstants();
@@ -731,6 +867,11 @@ public class Follower {
         drivetrain.updateConstants();
     }
 
+    /**
+     * This returns the heading goal at a specific t-value.
+     * @param t the t-value to get the heading goal at
+     * @return returns the heading goal at the specified t-value
+     */
     public double getHeadingGoal(double t) {
         if (currentPathChain != null) {
             return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, t));
@@ -739,6 +880,11 @@ public class Follower {
         return currentPath.getHeadingGoal(t);
     }
 
+    /**
+     * This returns the heading goal at a specific PathPoint.
+     * @param point the PathPoint to get the heading goal at
+     * @return returns the heading goal at the specified PathPoint
+     */
     private double getHeadingGoal(PathPoint point) {
         if (currentPathChain != null) {
             return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, point.tValue));
@@ -755,10 +901,18 @@ public class Follower {
         return currentPath.getClosestPointHeadingGoal();
     }
 
+    /**
+     * This returns the closest point's tangent vector.
+     * @return returns the closest point's tangent vector
+     */
     public Vector getClosestPointTangentVector() {
         return getClosestPose().getTangentVector();
     }
 
+    /**
+     * This activates all the PIDFs used by the Follower.
+     * This is useful for debugging and testing purposes.
+     */
     public void activateAllPIDFs() {
         useDrive = true;
         useHeading = true;
@@ -766,6 +920,10 @@ public class Follower {
         useCentripetal = true;
     }
 
+    /**
+     * This deactivates all the PIDFs used by the Follower.
+     * This is useful for debugging and testing purposes.
+     */
     public void deactivateAllPIDFs() {
         useDrive = false;
         useHeading = false;
@@ -773,15 +931,61 @@ public class Follower {
         useCentripetal = false;
     }
 
+    /**
+     * This activates the Drive PIDF.
+     * This is useful for debugging and testing purposes.
+     */
     public void activateDrive() { useDrive = true; }
+
+    /**
+     * This activates the Heading PIDF.
+     * This is useful for debugging and testing purposes.
+     */
     public void activateHeading() { useHeading = true; }
+
+    /**
+     * This activates the Translational PIDF.
+     * This is useful for debugging and testing purposes.
+     */
     public void activateTranslational() { useTranslational = true; }
+
+    /**
+     * This activates the Centripetal PIDF.
+     * This is useful for debugging and testing purposes.
+     */
     public void activateCentripetal() { useCentripetal = true; }
+
+    /**
+     * This gets the distance traveled on the current Path.
+     * @return returns the distance traveled on the current Path.
+     */
     public double getDistanceTraveledOnPath() {
+        if (currentPath == null) {
+            return 0;
+        }
         return currentPath.getDistanceTraveled();
     }
+
+    /**
+     * This gets the proportion of the current Path that has been completed.
+     * @return returns the proportion of the current Path that has been completed.
+     */
     public double getPathCompletion() {
+        if (currentPath == null) {
+            return 0;
+        }
         return currentPath.getPathCompletion();
+    }
+
+    /**
+     * This gets the distance remaining on the current Path.
+     * @return returns the distance remaining on the current Path.
+     */
+    public double getDistanceRemaining() {
+        if (currentPath == null) {
+            return 0;
+        }
+        return currentPath.getDistanceRemaining();
     }
 
     /**

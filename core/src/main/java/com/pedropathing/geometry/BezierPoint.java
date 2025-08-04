@@ -218,4 +218,14 @@ public class BezierPoint extends BezierCurve {
     public double getClosestPoint(Pose pose, int searchLimit, double initialTValueGuess) {
         return 1;
     }
+
+    @Override
+    public double getT(double pathCompletion) {
+        return 1;
+    }
+
+    @Override
+    public double getPathCompletion(double t) {
+        return 1;
+    }
 }

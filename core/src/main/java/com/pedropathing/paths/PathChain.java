@@ -226,83 +226,70 @@ public class PathChain {
     /**
      * Represents a specific point within a {@link PathChain}, defined by a path index and a t-value (parametric position).
      * Provides utility methods to access the corresponding path, pose, point, tangent vector, and heading goal.
+     *
+     * @param pathIndex The index of the path in the chain.
+     * @param t         The t-value (parametric position) within the path.
+     *
+     * @author Havish Sripada - 12808 RevAmped Robotics
      */
-    public static class PathT {
-        /** The index of the path in the chain. */
-        final int pathIndex;
-        /** The t-value (parametric position) within the path. */
-        final double t;
-
+        public record PathT(int pathIndex, double t) {
         /**
          * This creates a new Path and T-Value pair from a path index and a t value.
+         *
          * @param pathIndex this specifies the index of the path in the chain
-         * @param t this is the t-value of the point in the path
+         * @param t         this is the t-value of the point in the path
          */
-        public PathT(int pathIndex, double t) {
-            this.pathIndex = pathIndex;
-            this.t = t;
-        }
+            public PathT {}
 
-        /**
-         * This returns the index of the path in the chain.
-         * @return the index of the path in the chain
-         */
-        public int getPathIndex() {
-            return pathIndex;
-        }
+            /**
+             * This returns the path in the chain.
+             *
+             * @return the path in the chain
+             */
+            public Path getPath(PathChain pathChain) {
+                return pathChain.getPath(pathIndex);
+            }
 
-        /**
-         * This returns the t-value of the point in the path.
-         * @return the t-value of the point in the path
-         */
-        public double getT() {
-            return t;
-        }
+            /**
+             * This returns the pose of the point in the path.
+             *
+             * @param pathChain this is the path chain
+             * @return the pose of the point in the path
+             */
+            public Pose getPose(PathChain pathChain) {
+                return pathChain.getPath(pathIndex).getPose(t);
+            }
 
-        /**
-         * This returns the path in the chain.
-         * @return the path in the chain
-         */
-        public Path getPath(PathChain pathChain) {
-            return pathChain.getPath(pathIndex);
-        }
+            /**
+             * This returns the point in the path.
+             *
+             * @param pathChain this is the path chain
+             * @return the point in the path
+             */
+            public Pose getPoint(PathChain pathChain) {
+                return pathChain.getPath(pathIndex).getPoint(t);
+            }
 
-        /**
-         * This returns the pose of the point in the path.
-         * @param pathChain this is the path chain
-         * @return the pose of the point in the path
-         */
-        public Pose getPose(PathChain pathChain) {
-            return pathChain.getPath(pathIndex).getPose(t);
-        }
+            /**
+             * This returns the tangent vector of the point in the path.
+             *
+             * @param pathChain this is the path chain
+             * @return the tangent vector of the point in the path
+             */
+            public Vector getTangentVector(PathChain pathChain) {
+                return pathChain.getPath(pathIndex).getTangentVector(t);
+            }
 
-        /**
-         * This returns the point in the path.
-         * @param pathChain this is the path chain
-         * @return the point in the path
-         */
-        public Pose getPoint(PathChain pathChain) {
-            return pathChain.getPath(pathIndex).getPoint(t);
+            /**
+             * This returns the heading goal of the path.
+             *
+             * @param pathChain this is the path chain
+             * @return the heading goal of the path
+             */
+            public double getHeadingGoal(PathChain pathChain) {
+                return pathChain.getPath(pathIndex).getHeadingGoal(t);
+            }
         }
-
-        /**
-         * This returns the tangent vector of the point in the path.
-         * @param pathChain this is the path chain
-         * @return the tangent vector of the point in the path
-         */
-        public Vector getTangentVector(PathChain pathChain) {
-            return pathChain.getPath(pathIndex).getTangentVector(t);
-        }
-
-        /**
-         * This returns the heading goal of the path.
-         * @param pathChain this is the path chain
-         * @return the heading goal of the path
-         */
-        public double getHeadingGoal(PathChain pathChain) {
-            return pathChain.getPath(pathIndex).getHeadingGoal(t);
-        }
-    }
 
     /**
      * This gets the path that corresponds to the given completion amount of the chain
@@ -385,6 +372,6 @@ public class PathChain {
      * @return the pose information of the point in the path
      */
     public PathPoint getPoseInformation(PathT pathTValue) {
-        return new PathPoint(pathTValue.getT(), pathTValue.getPose(this), pathTValue.getTangentVector(this));
+        return new PathPoint(pathTValue.t(), pathTValue.getPose(this), pathTValue.getTangentVector(this));
     }
 }

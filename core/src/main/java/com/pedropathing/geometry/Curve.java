@@ -16,6 +16,8 @@ public interface Curve {
     ArrayList<Pose> getControlPoints();
     void setPathConstraints(PathConstraints constraints);
     PathConstraints getPathConstraints();
+    double getPathCompletion(double t);
+    double getT(double pathCompletion);
 
     default Pose getFirstControlPoint() {
         return getControlPoints().get(0);

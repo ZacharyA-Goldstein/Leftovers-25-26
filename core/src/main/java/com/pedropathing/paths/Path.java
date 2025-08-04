@@ -3,7 +3,6 @@ package com.pedropathing.paths;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Curve;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Integrator;
 import com.pedropathing.math.Vector;
 
 import java.util.ArrayList;
@@ -28,7 +27,6 @@ public class Path {
     private Vector closestPointTangentVector;
     private Vector closestPointNormalVector;
     private Pose closestPose;
-    private Integrator distanceCalculator = new Integrator(Integrator.Differential.TVALUE)
 
     /**
      * A multiplier for the zero power acceleration to change the speed at which the robot decelerates at the end of paths.
@@ -236,28 +234,64 @@ public class Path {
     }
 
     /**
-     * This updates the distance to the specified pose.
-     * @param previous the previous pose
-     * @param current the current pose
-     */
-    public void updateDistance(PathPoint previous, PathPoint current) {
-        distanceCalculator.update(previous.pose.distanceFrom(current.pose));
-    }
-
-    /**
      * This returns the distance to the specified pose.
      * @return the distance to the specified pose
      */
-    public double getDistanceTraveled() {
-        return distanceCalculator.getIntegral();
+    public double getDistanceTraveled(double t) {
+        return getPathCompletion(t) * curve.length();
     }
 
     /**
      * This returns the path completion by distance
      * @return the current path completion
      */
+    public double getPathCompletion(double t) {
+        return curve.getPathCompletion(t);
+    }
+
+    /**
+     * This returns the path completion by distance at the closest point.
+     * @return the current path completion
+     */
+
     public double getPathCompletion() {
-        return getDistanceTraveled() / length();
+        return curve.getPathCompletion(closestPointTValue);
+    }
+
+    /**
+     * This returns the distance traveled by the robot along the Path.
+     * This is calculated by multiplying the path completion by the length of the BezierCurve.
+     *
+     * @return returns the distance traveled.
+     */
+    public double getDistanceTraveled() {
+        return getDistanceTraveled(closestPointTValue);
+    }
+
+    /**
+     * This returns the distance remaining to the end of the Path.
+     * @param t the t-value to calculate the distance remaining from.
+     * @return returns the distance remaining to the end of the Path.
+     */
+    public double getDistanceRemaining(double t) {
+        return curve.length() - getDistanceTraveled(t);
+    }
+
+    /**
+     * This returns the distance remaining to the end of the Path.
+     * @return returns the distance remaining to the end of the Path.
+     */
+    public double getDistanceRemaining() {
+        return getDistanceRemaining(closestPointTValue);
+    }
+
+    /**
+     * This returns the t-value of the Path at a specified path completion.
+     * @param pathCompletion the path completion to get the t-value for.
+     * @return returns the t-value of the Path at the specified path completion.
+     */
+    public double getTFromPathCompletion(double pathCompletion) {
+        return curve.getT(pathCompletion);
     }
 
     /**

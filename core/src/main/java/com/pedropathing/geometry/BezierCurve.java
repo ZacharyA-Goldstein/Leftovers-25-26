@@ -1,9 +1,10 @@
 package com.pedropathing.geometry;
-
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathConstraints;
+
+import static com.pedropathing.math.AbstractBijectiveMap.NumericBijectiveMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +24,6 @@ import java.util.List;
  * @version 1.0, 3/5/2024
  */
 public class BezierCurve implements Curve {
-
     private ArrayList<Pose> controlPoints;
 
     private Vector endTangent = new Vector();
@@ -42,6 +42,8 @@ public class BezierCurve implements Curve {
     private int[][] diffPowers;
     private int[][] diffCoefficients;
     protected PathConstraints pathConstraints;
+
+    protected NumericBijectiveMap completionMap = new NumericBijectiveMap();
 
     public BezierCurve() {
     }
@@ -142,9 +144,11 @@ public class BezierCurve implements Curve {
         Pose currentPoint;
         double approxLength = 0;
         for (int i = 1; i <= APPROXIMATION_STEPS; i++) {
-            currentPoint = getPose(i/(double)APPROXIMATION_STEPS);
+            double t = i/(double)APPROXIMATION_STEPS;
+            currentPoint = getPose(t);
             approxLength += previousPoint.distanceFrom(currentPoint);
             previousPoint = currentPoint;
+            completionMap.put(t, approxLength);
         }
         return approxLength;
     }
@@ -462,5 +466,26 @@ public class BezierCurve implements Curve {
     @Override
     public PathConstraints getPathConstraints() {
         return pathConstraints;
+    }
+
+    /**
+     * Returns the path completion at a given t value.
+     * This is used to get the percentage of the path that has been completed.
+     *
+     * @param t the t value of the parametric curve; [0, 1]
+     * @return returns the path completion as a decimal on the range [0,1].
+     */
+    public double getPathCompletion(double t) {
+        if (length == 0) return 0.0;
+        return completionMap.interpolateKey(t) / length;
+    }
+
+    /**
+     * Returns the t value corresponding to a given path completion percentage.
+     * @param pathCompletion the path completion percentage; [0, 1]
+     * @return returns the t value corresponding to the path completion percentage.
+     */
+    public double getT(double pathCompletion) {
+        return completionMap.interpolateValue(pathCompletion);
     }
 }

@@ -143,6 +143,7 @@ public class FinetunedBezierCurve extends BezierCurve {
             else approxLength2 += previousPoint.distanceFrom(currentPoint);
             previousPoint = currentPoint;
             unmodifiedSegmentLength = approxLength1;
+            completionMap.put(t, approxLength1 + approxLength2);
         }
         return approxLength1 + approxLength2;
     }

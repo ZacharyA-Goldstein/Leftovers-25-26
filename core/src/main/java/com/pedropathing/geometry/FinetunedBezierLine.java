@@ -134,6 +134,12 @@ public class FinetunedBezierLine extends BezierLine {
     }
 
     @Override
+    public double getPathCompletion(double t) {
+        if (t < crossingThreshold) return super.getPathCompletion(t);
+        return unmodifiedSegmentLength + (t - crossingThreshold) * (length() - unmodifiedSegmentLength);
+    }
+
+    @Override
     public BezierLine getReversed() {
         BezierLine reversed = new BezierLine(endPoint, getFirstControlPoint());
         reversed.initialize();
