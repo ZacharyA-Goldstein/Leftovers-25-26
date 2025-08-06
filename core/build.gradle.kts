@@ -6,6 +6,11 @@ dependencies {
     compileOnly(libs.annotations)
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 publishing {
     publications {
         register<MavenPublication>("release") {

@@ -24,6 +24,13 @@ android {
         }
     }
 
+    sourceSets {
+        getByName("main") {
+            java.srcDirs("src/main/kotlin")
+
+        }
+    }
+
     defaultConfig {
         minSdk = 23
     }
