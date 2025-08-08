@@ -191,13 +191,13 @@ public class FollowerConstants {
     /** Acceleration of the drivetrain when power is cut in inches/second^2 (should be negative)
      * if not negative, then the robot thinks that its going to go faster under 0 power
      *  Default Value: -34.62719
-     * @implNote This value is found via 'ForwardZeroPowerAccelerationTuner'*/
+     * This value is found via 'ForwardZeroPowerAccelerationTuner'*/
     public double forwardZeroPowerAcceleration = -34.62719;
 
     /** Acceleration of the drivetrain when power is cut in inches/second^2 (should be negative)
      * if not negative, then the robot thinks that its going to go faster under 0 power
      *  Default Value: -78.15554
-     * @implNote This value is found via 'LateralZeroPowerAccelerationTuner'*/
+     * This value is found via 'LateralZeroPowerAccelerationTuner'*/
     public double lateralZeroPowerAcceleration = -78.15554;
 
     /**

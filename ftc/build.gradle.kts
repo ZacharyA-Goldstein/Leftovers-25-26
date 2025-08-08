@@ -24,8 +24,15 @@ android {
         }
     }
 
+    sourceSets {
+        getByName("main") {
+            java.srcDirs("src/main/kotlin")
+
+        }
+    }
+
     defaultConfig {
-        minSdk = 23
+        minSdk = 21
     }
 }
 
@@ -72,8 +79,8 @@ publishing {
     publications {
         register<MavenPublication>("release") {
             groupId = "com.pedropathing"
-            artifactId = "local"
-            version = "1.1.0-SNAPSHOT-local"
+            artifactId = "ftc"
+            version = "1.1.0-SNAPSHOT"
 
             afterEvaluate {
                 from(components["release"])

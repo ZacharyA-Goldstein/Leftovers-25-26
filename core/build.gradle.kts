@@ -6,6 +6,12 @@ dependencies {
     compileOnly(libs.annotations)
 }
 
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    withSourcesJar()
+    withJavadocJar()
+}
+
 publishing {
     publications {
         register<MavenPublication>("release") {
