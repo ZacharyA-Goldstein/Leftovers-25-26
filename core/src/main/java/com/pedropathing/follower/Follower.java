@@ -999,4 +999,20 @@ public class Follower {
         info[3] = drivetrain.debugString();
         return info;
     }
+
+    /**
+     * This returns the acceleration of the robot.
+     * @return returns the acceleration as a Vector.
+     */
+    public Vector getAcceleration() {
+        return poseTracker.getAcceleration();
+    }
+
+    /**
+     * This returns the angular velocity of the robot.
+     * @return returns the angular velocity as a double.
+     */
+    public double getAngularVelocity() {
+        return poseTracker.getAngularVelocity();
+    }
 }

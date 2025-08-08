@@ -172,20 +172,20 @@ public class VectorCalculator {
             return new Vector(maxPowerScaling, currentPath.getClosestPointTangentVector().getTheta());
         }
 
-        if (driveError == -1)
-            return new Vector(maxPowerScaling, currentPath.getClosestPointTangentVector().getTheta());
+        if (driveError == -1) return new Vector(maxPowerScaling, currentPath.getClosestPointTangentVector().getTheta());
 
-        Vector driveVelocity = velocity.projectOnto(currentPath.getClosestPointTangentVector().normalize());
+        Vector tangent = currentPath.getClosestPointTangentVector().normalize();
+        Vector driveVelocity = velocity.projectOnto(tangent);
         if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
             secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude() * Math.signum(driveError));
             secondaryDrivePIDF.updateError(driveError);
-            driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
+            driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), tangent.getTheta());
             return driveVector.copy();
         }
 
         secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude() * Math.signum(driveError));
         drivePIDF.updateError(driveError);
-        driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), currentPath.getClosestPointTangentVector().getTheta());
+        driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), tangent.getTheta());
         return driveVector.copy();
     }
 

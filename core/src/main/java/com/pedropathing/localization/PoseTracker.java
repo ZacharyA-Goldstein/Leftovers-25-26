@@ -24,7 +24,7 @@ public class PoseTracker {
 
     private Pose previousPose = startingPose.copy();
 
-    private Vector currentVelocity = new Vector();
+    private Pose currentVelocity = new Pose();
 
     private Vector previousVelocity = new Vector();
 
@@ -236,8 +236,8 @@ public class PoseTracker {
      * @return returns the velocity of the robot.
      */
     public Vector getVelocity() {
-        if (currentVelocity == null) currentVelocity = localizer.getVelocityVector();
-        return currentVelocity.copy();
+        if (currentVelocity == null) currentVelocity = localizer.getVelocity();
+        return currentVelocity.getAsVector();
     }
 
     /**
@@ -246,7 +246,8 @@ public class PoseTracker {
      * @return returns the angular velocity of the robot.
      */
     public double getAngularVelocity() {
-        return MathFunctions.getTurnDirection(previousPose.getHeading(), getPose().getHeading()) * MathFunctions.getSmallestAngleDifference(getPose().getHeading(), previousPose.getHeading()) / ((currentPoseTime-previousPoseTime)/Math.pow(10.0, 9));
+        if (currentVelocity == null) currentVelocity = localizer.getVelocity();
+        return currentVelocity.getHeading();
     }
 
     /**
