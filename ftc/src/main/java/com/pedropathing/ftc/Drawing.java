@@ -17,7 +17,7 @@ import com.pedropathing.util.PoseHistory;
  * @version 1.1, 5/19/2025
  */
 public class Drawing {
-    public static final double ROBOT_RADIUS = 9;
+    public static final double ROBOT_RADIUS = 9; // woah
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
     private static final Style robotLook = new Style(
