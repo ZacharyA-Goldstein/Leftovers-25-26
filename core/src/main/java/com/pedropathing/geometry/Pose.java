@@ -326,20 +326,7 @@ public final class Pose {
      * @return an array \`[r, theta]\` where r is the radius and theta is the angle in radians
      */
     public static double[] cartesianToPolar(double x, double y) {
-        if (x == 0) {
-            if (y > 0) {
-                return new double[]{Math.abs(y), Math.PI / 2};
-            } else {
-                return new double[]{Math.abs(y), (3 * Math.PI) / 2};
-            }
-        }
-        double r = Math.sqrt(x * x + y * y);
-        if (x < 0) return new double[]{r, Math.PI + Math.atan(y / x)};
-        if (y > 0) {
-            return new double[]{r, Math.atan(y / x)};
-        } else {
-            return new double[]{r, (2 * Math.PI) + Math.atan(y / x)};
-        }
+        return new double[] {Math.sqrt(x * x + y * y), Math.atan2(y, x)};
     }
 
     /**
