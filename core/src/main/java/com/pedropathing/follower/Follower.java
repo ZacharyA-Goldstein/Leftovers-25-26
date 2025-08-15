@@ -1020,4 +1020,8 @@ public class Follower {
         this.currentPath = path;
         currentPath.init();
     }
+
+    public PathPoint getPreviousClosestPose() {
+        return previousClosestPose;
+    }
 }

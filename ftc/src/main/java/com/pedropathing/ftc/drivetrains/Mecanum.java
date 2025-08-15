@@ -249,4 +249,8 @@ public class Mecanum extends Drivetrain {
                 ", useBrakeModeInTeleOp=" + useBrakeModeInTeleOp +
                 '}';
     }
+
+    public List<DcMotorEx> getMotors() {
+        return motors;
+    }
 }
