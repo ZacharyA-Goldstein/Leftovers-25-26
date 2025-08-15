@@ -217,16 +217,6 @@ public class BezierLine extends BezierCurve {
     }
 
     /**
-     * Returns the conversion factor of one unit of distance into t value.
-     *
-     * @return returns the conversion factor.
-     */
-    @Override
-    public double UNIT_TO_TIME() {
-        return UNIT_TO_TIME;
-    }
-
-    /**
      * Returns the type of path. This is used in case we need to identify the type of BezierCurve
      * this is.
      *

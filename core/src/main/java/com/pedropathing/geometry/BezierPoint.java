@@ -205,17 +205,6 @@ public class BezierPoint extends BezierCurve {
     }
 
     /**
-     * Returns the conversion factor of one unit of distance into t value. There is no length or
-     * conversion factor to speak of for Points.
-     *
-     * @return returns the conversion factor.
-     */
-    @Override
-    public double UNIT_TO_TIME() {
-        return 0;
-    }
-
-    /**
      * Returns the type of path. This is used in case we need to identify the type of BezierCurve
      * this is.
      *

@@ -4,7 +4,10 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Curve;
+import com.pedropathing.geometry.CustomCurve;
+import com.pedropathing.geometry.FuturePose;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.pedropathing.paths.callbacks.ParametricCallback;
 import com.pedropathing.paths.callbacks.PathCallback;
 import com.pedropathing.paths.callbacks.PoseCallback;
@@ -12,6 +15,7 @@ import com.pedropathing.paths.callbacks.TemporalCallback;
 import com.pedropathing.util.FiniteRunAction;
 
 import java.util.ArrayList;
+import java.util.function.BooleanSupplier;
 
 /**
  * This is the PathBuilder class. This class makes it easier to create PathChains, so you don't have
@@ -73,37 +77,11 @@ public class PathBuilder {
     /**
      * This adds a default Path defined by a specified BezierCurve to the PathBuilder.
      *
-     * @param curve The curve is turned into a Path and added.
+     * @param curve This curve is turned into a Path and added.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder addPath(BezierCurve curve) {
-        this.paths.add(new Path(curve, constraints));
-        return this;
-    }
-
-
-
-    /**
-     * This adds a default Path defined by a specified BezierCurve to the PathBuilder.
-     *
-     * @param controlPoints This is the specified control points that define the BezierCurve.
-     * @return This returns itself with the updated data.
-     */
-    public PathBuilder addBezierCurve(ArrayList<Pose> controlPoints) {
-        return addPath(new BezierCurve(controlPoints));
-    }
-
-
-
-    /**
-     * This adds a default Path defined by a specified BezierLine to the PathBuilder.
-     *
-     * @param startPoint start point of the line.
-     * @param endPoint end point of the line.
-     * @return This returns itself with the updated data.
-     */
-    public PathBuilder addBezierLine(Pose startPoint, Pose endPoint) {
-        return addPath(new BezierLine(startPoint, endPoint));
+    public PathBuilder addPath(Curve curve) {
+        return addPath(new Path(curve, constraints));
     }
 
     /**
@@ -355,6 +333,76 @@ public class PathBuilder {
      */
     public PathBuilder addCallback(PathCallback callback) {
         this.callbacks.add(new FiniteRunAction(callback));
+
+        addPath(new CustomCurve(new Pose(0,0), new Pose(1,1), new Pose(2,2)) {
+            @Override
+            public void initialization() {
+
+            }
+
+            @Override
+            public String pathType() {
+                return "";
+            }
+
+            @Override
+            public CustomCurve getReversed() {
+                return null;
+            }
+
+            @Override
+            public Vector getDerivative(double t) {
+                return null;
+            }
+
+            @Override
+            public Pose getPose(double t) {
+                return null;
+            }
+
+            @Override
+            public Vector getSecondDerivative(double t) {
+                return null;
+            }
+        });
+
+        return this;
+    }
+
+    /**
+     * This is a condition for a callback to run. This class is functionally the same as a BooleanSupplier.
+     * It is used to check if the callback is ready to run.
+     */
+    public interface CallbackCondition {
+        boolean isReady();
+    }
+
+    /**
+     * This adds a callback to the PathBuilder that will run when a condition is met.
+     * This is useful for callbacks that need to run when a certain condition is met, such as a sensor reading.
+     *
+     * @param condition The condition that must be met for the callback to run.
+     * @param action The action to run when the condition is met.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addCallback(CallbackCondition condition, Runnable action) {
+        this.callbacks.add(new FiniteRunAction(new PathCallback() {
+            @Override
+            public boolean run() {
+                action.run();
+                return true;
+            }
+
+            @Override
+            public boolean isReady() {
+                return condition.isReady();
+            }
+
+            @Override
+            public int getPathIndex() {
+                return paths.size() - 1; // Assuming the callback is for the last path
+            }
+        }));
         return this;
     }
 

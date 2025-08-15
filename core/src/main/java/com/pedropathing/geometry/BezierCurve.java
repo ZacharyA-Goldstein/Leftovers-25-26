@@ -37,7 +37,6 @@ public class BezierCurve implements Curve {
 
     private double[][] panelsDrawingPoints;
 
-    private double UNIT_TO_TIME;
     private double length;
 
     private Matrix cachedMatrix = new Matrix();
@@ -143,12 +142,11 @@ public class BezierCurve implements Curve {
             for (FuturePose pose : futureControlPoints) {
                 controlPoints.add(pose.getPose());
             }
-            futureControlPoints = new ArrayList<>();
+            futureControlPoints.clear();
         }
         initialized = true;
         generateBezierCurve();
         length = approximateLength();
-        UNIT_TO_TIME = 1.0d/length;
         endTangent.setOrthogonalComponents(controlPoints.get(controlPoints.size()-1).getX()-controlPoints.get(controlPoints.size()-2).getX(),
                 controlPoints.get(controlPoints.size()-1).getY()-controlPoints.get(controlPoints.size()-2).getY());
         endTangent = endTangent.normalize();
@@ -371,9 +369,7 @@ public class BezierCurve implements Curve {
     }
 
     /**
-     * Because, for whatever reason, the second derivative returned by the getSecondDerivative(double t)
-     * method doesn't return the correct heading of the second derivative, this gets an approximate
-     * second derivative essentially using the limit method. I use this for its heading only.
+     * This gets an approximate second derivative essentially using the limit method. This is used for heading only
      *
      * @param t this is the t value of the parametric curve. t is clamped to be between 0 and 1 inclusive.
      * @return this returns the approximated second derivative.
@@ -438,16 +434,6 @@ public class BezierCurve implements Curve {
      */
     public double length() {
         return length;
-    }
-
-    /**
-     * Returns the conversion factor of one unit of distance into t-value. Since parametric functions
-     * are defined by t, which can mean time, I use "time" in some method names for conciseness.
-     *
-     * @return returns the conversion factor.
-     */
-    public double UNIT_TO_TIME() {
-        return UNIT_TO_TIME;
     }
 
     /**
