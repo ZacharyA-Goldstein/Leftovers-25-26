@@ -333,39 +333,6 @@ public class PathBuilder {
      */
     public PathBuilder addCallback(PathCallback callback) {
         this.callbacks.add(new FiniteRunAction(callback));
-
-        addPath(new CustomCurve(new Pose(0,0), new Pose(1,1), new Pose(2,2)) {
-            @Override
-            public void initialization() {
-
-            }
-
-            @Override
-            public String pathType() {
-                return "";
-            }
-
-            @Override
-            public CustomCurve getReversed() {
-                return null;
-            }
-
-            @Override
-            public Vector getDerivative(double t) {
-                return null;
-            }
-
-            @Override
-            public Pose getPose(double t) {
-                return null;
-            }
-
-            @Override
-            public Vector getSecondDerivative(double t) {
-                return null;
-            }
-        });
-
         return this;
     }
 
