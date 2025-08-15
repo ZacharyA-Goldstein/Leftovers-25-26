@@ -18,7 +18,7 @@ import com.pedropathing.math.Vector;
  * @author BeepBot99
  * @version 1.0, 4/2/2024
  */
-public final class Pose {
+public final class Pose implements FuturePose {
     private final double x;
     private final double y;
     private final double heading;
@@ -352,5 +352,19 @@ public final class Pose {
     @Override
     public String toString() {
         return "(" + getX() + ", " + getY() + ", " + Math.toDegrees(getHeading()) + ")";
+    }
+
+    /**
+     * A utility method to distinguish a Pose from a FuturePose.
+     * @return true, indicating that this Pose is initialized.
+     */
+    @Override
+    public boolean initialized() {
+        return true;
+    }
+
+    @Override
+    public Pose getPose() {
+        return this;
     }
 }

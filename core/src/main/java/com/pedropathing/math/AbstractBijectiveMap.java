@@ -68,52 +68,6 @@ public class AbstractBijectiveMap<T, S> implements BijectiveMap<T, S> {
     }
 
     /**
-     * A builder for creating a BijectiveMap.
-     * This allows for easy construction of a BijectiveMap with multiple key-value pairs.
-     *
-     * @param <T> the type of keys in the map
-     * @param <S> the type of values in the map
-     *
-     * @author Havish Sripada - 12808 RevAmped Robotics
-     */
-    public static class BijectiveMapBuilder<T, S> {
-        /**
-         * A builder for creating a BijectiveMap.
-         * This allows for easy construction of a BijectiveMap with multiple key-value pairs.
-         */
-        private final BijectiveMap<T, S> bijectiveMap = new AbstractBijectiveMap<>();
-
-        /**
-         * Adds a key-value pair to the BijectiveMap.
-         * @param key the key to add
-         * @param value the value to add
-         * @return the current BijectiveMapBuilder instance for method chaining
-         */
-        public BijectiveMapBuilder<T, S> put(T key, S value) {
-            bijectiveMap.put(key, value);
-            return this;
-        }
-
-        /**
-         * Builds the BijectiveMap with the added key-value pairs.
-         * @return the constructed BijectiveMap
-         */
-        public BijectiveMap<T, S> build() {
-            return bijectiveMap;
-        }
-
-        /**
-         * Clears the BijectiveMap, removing all key-value pairs.
-         * @return the current BijectiveMapBuilder instance for method chaining
-         */
-        public BijectiveMapBuilder<T, S> clear() {
-            bijectiveMap.getForwardMap().clear();
-            bijectiveMap.getReverseMap().clear();
-            return this;
-        }
-    }
-
-    /**
      * A numeric bijective map that allows for interpolation and finding closest keys/values.
      * This map supports double keys and values, allowing for numeric operations.
      *
@@ -325,23 +279,6 @@ public class AbstractBijectiveMap<T, S> implements BijectiveMap<T, S> {
          */
         public double interpolateValue(double value) {
             return reverseMap.interpolate(value);
-        }
-    }
-
-    /**
-     * A builder for creating a NumericBijectiveMap.
-     * This allows for easy construction of a NumericBijectiveMap with multiple key-value pairs.
-     *
-     * @author Havish Sripada - 12808 RevAmped Robotics
-     */
-    public static class NumericBijectiveMapBuilder extends BijectiveMapBuilder<Double, Double> {
-        public NumericBijectiveMapBuilder put(double key, double value) {
-            super.put(key, value);
-            return this;
-        }
-
-        public NumericBijectiveMap build() {
-            return (NumericBijectiveMap) super.build();
         }
     }
 }

@@ -16,8 +16,7 @@ import java.util.ArrayList;
  * @version 1.0, 3/9/2024
  */
 public class BezierPoint extends BezierCurve {
-
-    private final Pose pose;
+    private Pose pose;
     private Vector endTangent = new Vector();
     private double length;
 
@@ -40,6 +39,18 @@ public class BezierPoint extends BezierCurve {
         this.pose = pose;
         length = approximateLength();
         super.initializePanelsDrawingPoints();
+    }
+
+    public BezierPoint(FuturePose pose) {
+        super();
+        length = 0.0;
+        if (pose.initialized()) {
+            this.pose = pose.getPose();
+            super.initializePanelsDrawingPoints();
+        } else {
+            futureControlPoints = new ArrayList<>();
+            futureControlPoints.add(pose);
+        }
     }
 
     /**
@@ -73,6 +84,7 @@ public class BezierPoint extends BezierCurve {
      */
     @Override
     public Pose getPose(double t) {
+        if (pose == null) initialize();
         return new Pose(pose.getX(), pose.getY());
     }
 
@@ -227,5 +239,14 @@ public class BezierPoint extends BezierCurve {
     @Override
     public double getPathCompletion(double t) {
         return 1;
+    }
+
+    @Override
+    public void initialize() {
+        if (initialized) return;
+        initialized = true;
+        if (pose == null && !futureControlPoints.isEmpty()) pose = futureControlPoints.get(0).getPose();
+        length = approximateLength();
+        super.initializePanelsDrawingPoints();
     }
 }

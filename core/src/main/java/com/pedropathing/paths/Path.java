@@ -711,4 +711,12 @@ public class Path {
     public Curve getCurve() {
         return curve;
     }
+
+    /**
+     * Initializes the curve associated with this path.
+     * This is necessary to ensure that the curve is ready for use.
+     */
+    public void init() {
+        curve.initialize();
+    }
 }

@@ -4,6 +4,7 @@ import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is the BezierLine class. This class handles the creation of BezierLines, which is what I
@@ -17,9 +18,8 @@ import java.util.ArrayList;
  * @version 1.0, 3/9/2024
  */
 public class BezierLine extends BezierCurve {
-
-    private final Pose startPoint;
-    private final Pose endPoint;
+    private Pose startPoint;
+    private Pose endPoint;
 
     private Vector endTangent;
 
@@ -37,10 +37,19 @@ public class BezierLine extends BezierCurve {
         super();
         this.startPoint = startPose;
         this.endPoint = endPose;
-        length = approximateLength();
-        UNIT_TO_TIME = 1 / length;
-        endTangent = getDerivative(1).normalize();
-        super.initializePanelsDrawingPoints();
+        initialize();
+    }
+
+    public BezierLine(FuturePose startPose, FuturePose endPose) {
+        super();
+
+        if (startPose.initialized() && endPose.initialized()) {
+            this.startPoint = startPose.getPose();
+            this.endPoint = endPose.getPose();
+            initialize();
+        } else {
+            futureControlPoints = new ArrayList<>(List.of(startPose, endPose));
+        }
     }
 
     /**
@@ -49,6 +58,7 @@ public class BezierLine extends BezierCurve {
      *
      * @param startPose start pose of the line.
      * @param endPose end pose of the line.
+     * @param initialize whether to initialize the BezierLine immediately.
      */
     public BezierLine(Pose startPose, Pose endPose, boolean initialize) {
         super();
@@ -56,10 +66,7 @@ public class BezierLine extends BezierCurve {
         this.endPoint = endPose;
 
         if (initialize) {
-            length = approximateLength();
-            UNIT_TO_TIME = 1 / length;
-            endTangent = getDerivative(1).normalize();
-            super.initializePanelsDrawingPoints();
+            initialize();
         }
     }
 
@@ -240,6 +247,16 @@ public class BezierLine extends BezierCurve {
 
     @Override
     public void initialize() {
+        if (initialized) return;
+        if ((startPoint == null || endPoint == null) && !futureControlPoints.isEmpty()) {
+            if (startPoint == null) {
+                startPoint = futureControlPoints.get(0).getPose();
+            }
+            if (endPoint == null) {
+                endPoint = futureControlPoints.get(1).getPose();
+            }
+        }
+        initialized = true;
         length = approximateLength();
         UNIT_TO_TIME = 1 / length;
         endTangent = getDerivative(1).normalize();

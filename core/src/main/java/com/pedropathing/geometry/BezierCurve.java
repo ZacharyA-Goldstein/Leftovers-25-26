@@ -3,13 +3,12 @@ import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathConstraints;
-
 import static com.pedropathing.math.AbstractBijectiveMap.NumericBijectiveMap;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * This is the BezierCurve class. This class handles the creation of Bezier curves, which are used
@@ -25,6 +24,10 @@ import java.util.List;
  */
 public class BezierCurve implements Curve {
     private ArrayList<Pose> controlPoints;
+
+    protected ArrayList<FuturePose> futureControlPoints = new ArrayList<>();
+
+    protected boolean initialized = false;
 
     private Vector endTangent = new Vector();
 
@@ -45,33 +48,89 @@ public class BezierCurve implements Curve {
 
     protected NumericBijectiveMap completionMap = new NumericBijectiveMap();
 
+    /**
+     * This is the default constructor for the BezierCurve class. It initializes an empty BezierCurve.
+     * This is not recommended to use, as it does not set any control points or path constraints.
+     */
     public BezierCurve() {
     }
 
+    /**
+     * This constructor creates a BezierCurve with the specified control points and path constraints.
+     * @param controlPoints the control points for the BezierCurve, which must be at least 3 points.
+     * @param constraints the path constraints for the BezierCurve.
+     */
     public BezierCurve(List<Pose> controlPoints, PathConstraints constraints){
         this.pathConstraints = constraints;
         if (controlPoints.size()<3) {
             try {
                 throw new Exception("Too few control points");
             } catch (Exception e) {
-                // output to logger later
                 e.printStackTrace();
             }
         }
+
         this.controlPoints = new ArrayList<>(controlPoints);
         initialize();
     }
 
-    public BezierCurve(List<Pose> controlPoints){
+    /**
+     * This constructor creates a BezierCurve with the specified control points and path constraints.
+     * @param constraints the path constraints for the BezierCurve.
+     * @param controlPoints the control points for the BezierCurve, which must be at least 3 points.
+     */
+    protected BezierCurve(PathConstraints constraints, List<FuturePose> controlPoints) {
+        this.pathConstraints = constraints;
+        if (controlPoints.size()<3) {
+            try {
+                throw new Exception("Too few control points");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        boolean lazyInitialize = false;
+        ArrayList<Pose> initializedControlPoints = new ArrayList<>();
+        for (FuturePose pose : controlPoints) {
+            if (!pose.initialized()) {
+                lazyInitialize = true;
+                break;
+            }
+
+            initializedControlPoints.add(pose.getPose());
+        }
+
+        if (lazyInitialize) {
+            this.controlPoints = new ArrayList<>();
+            this.futureControlPoints = new ArrayList<>(controlPoints);
+        } else {
+            this.controlPoints = initializedControlPoints;
+            initialize();
+        }
+    }
+
+    /**
+     * This constructor creates a BezierCurve with the specified control points and the default path constraints.
+     * @param controlPoints the control points for the BezierCurve, which must be at least 3 points.
+     */
+    public BezierCurve(List<Pose> controlPoints) {
         this(controlPoints, PathConstraints.defaultConstraints);
     }
 
-
-    public BezierCurve(PathConstraints constraints, Pose... controlPoints) {
-        this(new ArrayList<>(Arrays.asList(controlPoints)), constraints);
+    /**
+     * This constructor creates a BezierCurve with the specified control points and path constraints.
+     * @param constraints the path constraints for the BezierCurve.
+     * @param controlPoints the control points for the BezierCurve, which must be at least 3 points.
+     */
+    public BezierCurve(PathConstraints constraints, FuturePose... controlPoints) {
+        this(constraints, new ArrayList<>(Arrays.asList(controlPoints)));
     }
 
-    public BezierCurve(Pose... controlPoints) {
+    /**
+     * This constructor creates a BezierCurve with the specified control points and the default path constraints.
+     * @param controlPoints the control points for the BezierCurve, which must be at least 3 points.
+     */
+    public BezierCurve(FuturePose... controlPoints) {
         this(PathConstraints.defaultConstraints, controlPoints);
     }
 
@@ -79,6 +138,14 @@ public class BezierCurve implements Curve {
      * This handles most of the initialization of the BezierCurve that is called from the constructor.
      */
     public void initialize() {
+        if (initialized) return; // If already initialized, do nothing
+        if (controlPoints.isEmpty() && !futureControlPoints.isEmpty()) {
+            for (FuturePose pose : futureControlPoints) {
+                controlPoints.add(pose.getPose());
+            }
+            futureControlPoints = new ArrayList<>();
+        }
+        initialized = true;
         generateBezierCurve();
         length = approximateLength();
         UNIT_TO_TIME = 1.0d/length;
@@ -451,14 +518,36 @@ public class BezierCurve implements Curve {
         return initialTValueGuess;
     }
 
+    /**
+     * Returns the closest point t-value to the specified pose.
+     * @param pose the pose to find the closest point to
+     * @return the closest point t-value
+     */
+    public double getClosestPoint(Pose pose, double initialTValueGuess) {
+        return getClosestPoint(pose, getPathConstraints().getBEZIER_CURVE_SEARCH_LIMIT(), initialTValueGuess);
+    }
+
+    /**
+     * Returns whether the t value is at the end of the parametric curve.
+     * @param t the t value of the parametric curve; [0, 1]
+     * @return true if at the end, false otherwise
+     */
     public boolean atParametricEnd(double t) {
         return t >= pathConstraints.getTValueConstraint();
     }
 
+    /**
+     * Sets the control points for this BezierCurve.
+     * @param controlPoints the new control points to set
+     */
     public void setControlPoints(ArrayList<Pose> controlPoints) {
         this.controlPoints = controlPoints;
     }
 
+    /**
+     * Sets the path constraints for this BezierCurve.
+     * @param pathConstraints the new path constraints to set
+     */
     public void setPathConstraints(PathConstraints pathConstraints) {
         this.pathConstraints = pathConstraints;
     }
@@ -487,5 +576,13 @@ public class BezierCurve implements Curve {
      */
     public double getT(double pathCompletion) {
         return completionMap.interpolateValue(pathCompletion);
+    }
+
+    /**
+     * Returns whether the BezierCurve has been initialized.
+     * @return true if the BezierCurve has been initialized, false otherwise.
+     */
+    public boolean isInitialized() {
+        return initialized;
     }
 }

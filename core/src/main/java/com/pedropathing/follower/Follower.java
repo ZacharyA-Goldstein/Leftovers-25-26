@@ -182,7 +182,7 @@ public class Follower {
         holdingPosition = true;
         isBusy = false;
         followingPathChain = false;
-        currentPath = new Path(point);
+        setPath(new Path(point));
         currentPath.setConstantHeadingInterpolation(heading);
         previousClosestPose = closestPose;
         closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
@@ -210,7 +210,7 @@ public class Follower {
         holdPositionAtEnd = holdEnd;
         isBusy = true;
         followingPathChain = false;
-        currentPath = path;
+        setPath(path);
         previousClosestPose = closestPose;
         closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
     }
@@ -260,7 +260,7 @@ public class Follower {
         followingPathChain = true;
         chainIndex = 0;
         currentPathChain = pathChain;
-        currentPath = pathChain.getPath(chainIndex);
+        setPath(pathChain.getPath(chainIndex));
         previousClosestPose = closestPose;
         closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
         currentPathChain.resetCallbacks();
@@ -425,7 +425,7 @@ public class Follower {
             isBusy = true;
             followingPathChain = true;
             chainIndex++;
-            currentPath = currentPathChain.getPath(chainIndex);
+            setPath(currentPathChain.getPath(chainIndex));
             previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
             updateErrorAndVectors();
@@ -1014,5 +1014,10 @@ public class Follower {
      */
     public double getAngularVelocity() {
         return poseTracker.getAngularVelocity();
+    }
+
+    private void setPath(Path path) {
+        this.currentPath = path;
+        currentPath.init();
     }
 }
