@@ -183,7 +183,7 @@ public class VectorCalculator {
             return driveVector.copy();
         }
 
-        secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude() * Math.signum(driveError));
+        secondaryDrivePIDF.updateFeedForwardInput((driveVelocity.getMagnitude() * driveVelocity.getMagnitude() + driveError) * Math.signum(driveError));
         drivePIDF.updateError(driveError);
         driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), tangent.getTheta());
         return driveVector.copy();
