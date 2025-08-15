@@ -17,7 +17,7 @@ import com.pedropathing.util.PoseHistory;
  * @version 1.1, 5/19/2025
  */
 public class Drawing {
-    public static final double ROBOT_RADIUS = 9;
+    public static final double ROBOT_RADIUS = 9; // woah
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
     private static final Style robotLook = new Style(
@@ -31,7 +31,7 @@ public class Drawing {
      * This prepares Panels Field for using Pedro Offsets
      */
     public static void init() {
-        panelsField.setOffsets(PanelsField.INSTANCE.getPEDRO_PATHING());
+        panelsField.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
     }
 
     /**
