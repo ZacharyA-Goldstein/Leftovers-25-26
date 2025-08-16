@@ -36,6 +36,7 @@ public class PathBuilder {
     private double decelerationStart;
     private PathConstraints constraints;
     private HeadingInterpolator headingInterpolator;
+    private Follower follower;
 
     /**
      * This is an constructor for the PathBuilder class so it can get started with specific constraints.
@@ -45,7 +46,8 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder(PathConstraints constraints) {
+    public PathBuilder(Follower follower, PathConstraints constraints) {
+        this.follower = follower;
         this.decelerationStart = constraints.getDecelerationStart();
         this.constraints = constraints;
     }
@@ -58,8 +60,8 @@ public class PathBuilder {
      * Then calling "follower.pathBuilder.[INSERT PATH BUILDING METHODS].build();
      * Of course, you can split up the method calls onto separate lines for readability.
      */
-    public PathBuilder() {
-        this(PathConstraints.defaultConstraints);
+    public PathBuilder(Follower follower) {
+        this(follower, PathConstraints.defaultConstraints);
     }
 
     /**
@@ -304,10 +306,9 @@ public class PathBuilder {
      *
      * @param t This sets the t-value (parametric time) on the Path for when to run the callback.
      * @param runnable This sets the code for the callback to run. Use lambda statements for this.
-     * @param follower This is the follower running your paths.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder addParametricCallback(double t, Follower follower, Runnable runnable) {
+    public PathBuilder addParametricCallback(double t, Runnable runnable) {
         this.callbacks.add(new FiniteRunAction(new ParametricCallback(paths.size() - 1, t, follower, runnable)));
         return this;
     }
@@ -316,12 +317,11 @@ public class PathBuilder {
      * This adds a pose callback on the last Path added to the PathBuilder.
      * This callback is set to run after the follower crosses the closest point on the path relative to the specified point.
      * @param targetPoint This is the target point relative to which the callback is set.
-     * @param follower This is the follower running your paths.
      * @param runnable This sets the code for the callback to run. Use lambda statements for this.
      * @param initialTValueGuess This should be a decent guess for the t-value of the point on the path closest to the target point. It doesn't need to be very precise, but it'll guide the search and allow for a more accurate computation.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder addPoseCallback(Pose targetPoint, Follower follower, Runnable runnable, double initialTValueGuess) {
+    public PathBuilder addPoseCallback(Pose targetPoint, Runnable runnable, double initialTValueGuess) {
         this.callbacks.add(new FiniteRunAction(new PoseCallback(follower, paths.size() - 1, targetPoint, runnable, initialTValueGuess, this.paths.get(paths.size() - 1).getCurve())));
         return this;
     }
@@ -333,6 +333,17 @@ public class PathBuilder {
      */
     public PathBuilder addCallback(PathCallback callback) {
         this.callbacks.add(new FiniteRunAction(callback));
+        return this;
+    }
+
+    /**
+     * This adds a callback to the PathChain.
+     * @param callback The callback to be added to the PathChain.
+     * @param i The maximum number of times to run the action
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addCallback(PathCallback callback, int i) {
+        this.callbacks.add(new FiniteRunAction(callback, i));
         return this;
     }
 

@@ -39,7 +39,6 @@ public class Follower {
     public VectorCalculator vectorCalculator;
     public Drivetrain drivetrain;
     private final PoseHistory poseHistory;
-
     private Pose currentPose = new Pose();
     private PathPoint closestPose = new PathPoint();
     private PathPoint previousClosestPose = new PathPoint();
@@ -405,9 +404,8 @@ public class Follower {
         if (isBusy) {
             previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
-            if (followingPathChain) updateCallbacks();
-
             updateErrorAndVectors();
+            if (followingPathChain) updateCallbacks();
             drivetrain.getAndRunDrivePowers(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseTracker.getPose().getHeading());
         }
 
@@ -477,7 +475,7 @@ public class Follower {
     /** This checks if any PathCallbacks should be run right now, and runs them if applicable. */
     public void updateCallbacks() {
         for (PathCallback callback : currentPathChain.getCallbacks()) {
-            if (!callback.isCompleted() && callback.isReady()) {
+            if (callback.isReady() && callback.getPathIndex() == chainIndex) {
                 callback.run();
             }
         }
@@ -552,16 +550,16 @@ public class Follower {
      * This returns a new PathBuilder object for easily building PathChains.
      * @return returns a new PathBuilder object.
      */
-    public static PathBuilder pathBuilder(PathConstraints constraints) {
-        return new PathBuilder(constraints);
+    public PathBuilder pathBuilder(PathConstraints constraints) {
+        return new PathBuilder(this, constraints);
     }
 
     /**
      * This returns a new PathBuilder object for easily building PathChains.
      * @return returns a new PathBuilder object.
      */
-    public static PathBuilder pathBuilder() {
-        return new PathBuilder();
+    public PathBuilder pathBuilder() {
+        return new PathBuilder(this);
     }
 
     /**
