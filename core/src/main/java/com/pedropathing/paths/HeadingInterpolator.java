@@ -118,19 +118,48 @@ public interface HeadingInterpolator {
     static HeadingInterpolator linear(double startHeadingRad, double endHeadingRad) {
         return linear(startHeadingRad, endHeadingRad, 1);
     }
+
+    /**
+     * The robot will transition from the start heading to the end heading.
+     */
+    static HeadingInterpolator reversedLinear(double startHeadingRad, double endHeadingRad) {
+        return reversedLinear(startHeadingRad, endHeadingRad, 1);
+    }
     
     /**
      * The robot will transition from the start heading to the end heading by endT.
      */
     static HeadingInterpolator linear(double startHeadingRad, double endHeadingRad, double endT) {
+        startHeadingRad = MathFunctions.normalizeAngle(startHeadingRad);
+        endHeadingRad = MathFunctions.normalizeAngle(endHeadingRad);
+        double finalStartHeadingRad = startHeadingRad;
+        double finalEndHeadingRad = endHeadingRad;
+
         return closestPoint -> {
             double clampedEndT = MathFunctions.clamp(endT, 0.0001, 1);
             double t = Math.min(closestPoint.tValue / clampedEndT, 1.0);
-            double deltaHeading = MathFunctions.normalizeAngle(endHeadingRad - startHeadingRad);
-            return startHeadingRad + deltaHeading * t;
+            double deltaHeading = MathFunctions.getTurnDirection(finalStartHeadingRad, finalEndHeadingRad) * MathFunctions.getSmallestAngleDifference(finalEndHeadingRad, finalStartHeadingRad);
+            return MathFunctions.normalizeAngle(finalStartHeadingRad + deltaHeading * t);
         };
     }
-    
+
+    /**
+     * The robot will transition from the start heading to the end heading by endT.
+     */
+    static HeadingInterpolator reversedLinear(double startHeadingRad, double endHeadingRad, double endT) {
+        startHeadingRad = MathFunctions.normalizeAngle(startHeadingRad);
+        endHeadingRad = MathFunctions.normalizeAngle(endHeadingRad);
+        double finalStartHeadingRad = startHeadingRad;
+        double finalEndHeadingRad = endHeadingRad;
+
+        return closestPoint -> {
+            double clampedEndT = MathFunctions.clamp(endT, 0.0001, 1);
+            double t = Math.min(closestPoint.tValue / clampedEndT, 1.0);
+            double deltaHeading = -MathFunctions.getTurnDirection(finalStartHeadingRad, finalEndHeadingRad) * Math.max(MathFunctions.normalizeAngle(finalEndHeadingRad - finalStartHeadingRad), MathFunctions.normalizeAngle(finalStartHeadingRad - finalEndHeadingRad));
+            return MathFunctions.normalizeAngle(finalStartHeadingRad + deltaHeading * t);
+        };
+    }
+
     /**
      * The robot will always be facing the given point while following the path.
      */
