@@ -230,6 +230,7 @@ public class FollowerConstants {
 
     public FollowerConstants secondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) {
         this.secondaryTranslationalPIDFCoefficients = secondaryTranslationalPIDFCoefficients;
+        useSecondaryTranslationalPIDF = true;
         return this;
     }
 
@@ -245,6 +246,7 @@ public class FollowerConstants {
 
     public FollowerConstants secondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) {
         this.secondaryHeadingPIDFCoefficients = secondaryHeadingPIDFCoefficients;
+        useSecondaryHeadingPIDF = true;
         return this;
     }
 
@@ -255,6 +257,7 @@ public class FollowerConstants {
 
     public FollowerConstants secondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) {
         this.secondaryDrivePIDFCoefficients = secondaryDrivePIDFCoefficients;
+        useSecondaryDrivePIDF = true;
         return this;
     }
 
