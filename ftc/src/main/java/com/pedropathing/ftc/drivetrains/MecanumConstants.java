@@ -7,13 +7,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class MecanumConstants {
     /** The Forward Velocity of the Robot - Different for each robot
      *  Default Value: 81.34056 */
-    public  double xMovement = 81.34056;
+    public  double xVelocity = 81.34056;
 
     /** The Lateral Velocity of the Robot - Different for each robot
      *  Default Value: 65.43028 */
-    public  double yMovement = 65.43028;
+    public  double yVelocity = 65.43028;
 
-    private  double[] convertToPolar = Pose.cartesianToPolar(xMovement, -yMovement);
+    private  double[] convertToPolar = Pose.cartesianToPolar(xVelocity, -yVelocity);
 
     /** The actual drive vector for the front left wheel, if the robot is facing a heading of 0 radians with the wheel centered at (0,0)
      *  Default Value: new Vector(convertToPolar[0], convertToPolar[1])
@@ -36,13 +36,13 @@ public class MecanumConstants {
         defaults();
     }
 
-    public MecanumConstants xMovement(double xMovement) {
-        this.xMovement = xMovement;
+    public MecanumConstants xVelocity(double xVelocity) {
+        this.xVelocity = xVelocity;
         return this;
     }
 
-    public MecanumConstants yMovement(double yMovement) {
-        this.yMovement = yMovement;
+    public MecanumConstants yVelocity(double yVelocity) {
+        this.yVelocity = yVelocity;
         return this;
     }
 
@@ -101,20 +101,20 @@ public class MecanumConstants {
         return this;
     }
 
-    public double getXMovement() {
-        return xMovement;
+    public double getXVelocity() {
+        return xVelocity;
     }
 
-    public void setXMovement(double xMovement) {
-        this.xMovement = xMovement;
+    public void setXMovement(double xVelocity) {
+        this.xVelocity = xVelocity;
     }
 
-    public double getYMovement() {
-        return yMovement;
+    public double getYVelocity() {
+        return yVelocity;
     }
 
-    public void setYMovement(double yMovement) {
-        this.yMovement = yMovement;
+    public void setYVelocity(double yVelocity) {
+        this.yVelocity = yVelocity;
     }
 
     public Vector getFrontLeftVector() {
@@ -218,9 +218,9 @@ public class MecanumConstants {
      * It is called in the constructor of the MecanumConstants class.
      */
     public void defaults() {
-        xMovement = 81.34056;
-        yMovement = 65.43028;
-        convertToPolar = Pose.cartesianToPolar(xMovement, -yMovement);
+        xVelocity = 81.34056;
+        yVelocity = 65.43028;
+        convertToPolar = Pose.cartesianToPolar(xVelocity, -yVelocity);
         frontLeftVector = new Vector(convertToPolar[0], convertToPolar[1]).normalize();
         maxPower = 1;
         leftFrontMotorName = "leftFront";

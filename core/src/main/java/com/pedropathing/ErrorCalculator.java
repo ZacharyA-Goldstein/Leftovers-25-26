@@ -26,7 +26,7 @@ public class ErrorCalculator {
     private boolean followingPathChain;
     private double[] driveErrors;
     private int chainIndex;
-    private double rawDriveError, previousRawDriveError, driveError, headingError, xMovement;
+    private double rawDriveError, previousRawDriveError, driveError, headingError, xVelocity, yVelocity;
     private Vector velocityVector = new Vector();
     
     public ErrorCalculator(FollowerConstants constants) {
@@ -40,7 +40,7 @@ public class ErrorCalculator {
 
     }
 
-    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Pose closestPose, Vector velocity, int chainIndex, double xMovement) {
+    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Pose closestPose, Vector velocity, int chainIndex, double xMovement, double yMovement) {
         this.currentPose = currentPose;
         this.velocityVector = velocity;
         this.currentPath = currentPath;
@@ -48,7 +48,8 @@ public class ErrorCalculator {
         this.currentPathChain = currentPathChain;
         this.followingPathChain = followingPathChain;
         this.chainIndex = chainIndex;
-        this.xMovement = xMovement;
+        this.xVelocity = xMovement;
+        this.yVelocity = yMovement;
     }
 
     /**
@@ -164,11 +165,13 @@ public class ErrorCalculator {
 
                 distanceToGoal = remainingLength + currentPath.getDistanceRemaining();
 
+                Vector tangent = currentPath.getClosestPointTangentVector().normalize();
+                Vector forwardTheoreticalHeadingVector = new Vector(1.0, closestPose.getHeading());
+
                 double stoppingDistance = Kinematics.getStoppingDistance(
-                    xMovement, constants.forwardZeroPowerAcceleration
+                    yVelocity + (xVelocity - yVelocity) * forwardTheoreticalHeadingVector.dot(tangent), constants.forwardZeroPowerAcceleration
                 );
-                if (distanceToGoal >= Math.abs(stoppingDistance
-                    * currentPathChain.getDecelerationStart())) {
+                if (distanceToGoal >= stoppingDistance * currentPathChain.getDecelerationStart()) {
                     return -1;
                 }
             } else {

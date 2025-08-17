@@ -227,16 +227,16 @@ public class Mecanum extends Drivetrain {
         runPowers(getDrivePowers(correctivePower, headingPower, pathingPower, robotHeading));
     }
 
-    public double xMovement() {
+    public double xVelocity() {
         return constants.xMovement;
     }
 
-    public double yMovement() {
-        return constants.yMovement;
+    public double yVelocity() {
+        return constants.yVelocity;
     }
 
-    public void setXMovement(double xMovement) { constants.setXMovement(xMovement); }
-    public void setYMovement(double yMovement) { constants.setYMovement(yMovement); }
+    public void setXVelocity(double xMovement) { constants.setXMovement(xMovement); }
+    public void setYVelocity(double yMovement) { constants.setYMovement(yMovement); }
 
     public String debugString() {
         return "Mecanum{" +
