@@ -87,6 +87,31 @@ public class PathBuilder {
     }
 
     /**
+     * This adds multiple Paths to the PathBuilder
+     * @param paths Vararg of Paths being added
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addPaths(Path... paths){
+        for (Path path: paths) {
+            path.setConstraints(constraints);
+            this.paths.add(path);
+        }
+        return this;
+    }
+
+    /**
+     * This adds multiple curves wrapped in the default Path defined by the curve to the PathBuilder
+     * @param curves Vararg of Curves being added
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addPaths(Curve... curves){
+        for (Curve curve: curves) {
+            this.paths.add(new Path(curve, constraints));
+        }
+        return this;
+    }
+
+    /**
      * This sets a linear heading interpolation on the last Path added to the PathBuilder.
      *
      * @param startHeading The start of the linear heading interpolation.
