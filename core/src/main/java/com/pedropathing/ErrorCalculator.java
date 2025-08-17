@@ -158,7 +158,7 @@ public class ErrorCalculator {
                 double remainingLength = 0;
 
                 if (chainIndex < currentPathChain.size()) {
-                    for (int i = chainIndex + 1; i<currentPathChain.size(); i++) {
+                    for (int i = chainIndex + 1; i < currentPathChain.size(); i++) {
                         remainingLength += currentPathChain.getPath(i).length();
                     }
                 }

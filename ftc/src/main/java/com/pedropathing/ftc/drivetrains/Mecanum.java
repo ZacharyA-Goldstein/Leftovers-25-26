@@ -235,7 +235,7 @@ public class Mecanum extends Drivetrain {
         return constants.yVelocity;
     }
 
-    public void setXVelocity(double xMovement) { constants.setXMovement(xMovement); }
+    public void setXVelocity(double xMovement) { constants.setXVelocity(xMovement); }
     public void setYVelocity(double yMovement) { constants.setYVelocity(yMovement); }
 
     public String debugString() {

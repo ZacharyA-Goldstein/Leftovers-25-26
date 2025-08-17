@@ -40,17 +40,6 @@ public class FilteredPIDFCoefficients {
         T = t;
     }
 
-    /**
-     * This returns the coefficient for the feedforward factor.
-     *
-     * @param input this is inputted into the feedforward equation, if applicable. If there's no
-     *              equation, then any input can be used.
-     * @return This returns the coefficient for the feedforward factor.
-     */
-    public double getCoefficient(double input) {
-        return F * input;
-    }
-
     @Override
     public String toString() {
         return "P: " + P + ", I: " + I + ", D: " + D + ", T: " + T + ", F: " + F;

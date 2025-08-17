@@ -40,7 +40,7 @@ public class FilteredPIDFController {
      * @return this returns the value of the filtered PIDF from the current error.
      */
     public double runPIDF() {
-        return error * P() + filteredDerivative * D() + errorIntegral * I() + F();
+        return error * P() + filteredDerivative * D() + errorIntegral * I() + F() * feedForwardInput;
     }
 
     /**
@@ -231,7 +231,7 @@ public class FilteredPIDFController {
      * @return this returns the F constant.
      */
     public double F() {
-        return coefficients.getCoefficient(feedForwardInput);
+        return coefficients.F;
     }
 
     /**
