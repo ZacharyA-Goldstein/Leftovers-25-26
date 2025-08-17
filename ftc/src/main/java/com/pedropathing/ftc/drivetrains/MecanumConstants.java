@@ -105,7 +105,7 @@ public class MecanumConstants {
         return xVelocity;
     }
 
-    public void setXMovement(double xVelocity) {
+    public void setXVelocity(double xVelocity) {
         this.xVelocity = xVelocity;
     }
 
