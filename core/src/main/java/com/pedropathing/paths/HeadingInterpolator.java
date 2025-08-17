@@ -55,7 +55,7 @@ public interface HeadingInterpolator {
          * @param finalTValue final t-value where the heading interpolation is used inclusive
          * @param interpolator the heading interpolator to use on that interval
          */
-        PiecewiseNode(double initialTValue, double finalTValue, HeadingInterpolator interpolator) {
+        public PiecewiseNode(double initialTValue, double finalTValue, HeadingInterpolator interpolator) {
             this.initialTValue = initialTValue;
             this.finalTValue = finalTValue;
             this.interpolator = interpolator;
@@ -152,8 +152,8 @@ public interface HeadingInterpolator {
     static HeadingInterpolator piecewise(PiecewiseNode... nodes) {
         return closestPoint -> {
             for (PiecewiseNode node : nodes) {
-                if (closestPoint.tValue >= node.initialTValue && closestPoint.tValue <= node.finalTValue) {
-                    return node.interpolator.interpolate(closestPoint);
+                if (closestPoint.getTValue() >= node.getInitialTValue() && closestPoint.getTValue() <= node.getFinalTValue()) {
+                    return node.getInterpolator().interpolate(closestPoint);
                 }
             }
 
