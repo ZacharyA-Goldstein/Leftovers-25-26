@@ -164,10 +164,10 @@ public interface HeadingInterpolator {
      * The robot will always be facing the given point while following the path.
      */
     static HeadingInterpolator facingPoint(double x, double y) {
-        return closestPoint -> Math.atan2(
+        return closestPoint -> MathFunctions.normalizeAngle(Math.atan2(
             x - closestPoint.pose.getY(),
             y - closestPoint.pose.getX()
-        );
+        ));
     }
 
     static HeadingInterpolator facingPoint(Pose pose) {
@@ -186,7 +186,7 @@ public interface HeadingInterpolator {
                 }
             }
 
-            return tangent.interpolate(closestPoint);
+            return MathFunctions.normalizeAngle(tangent.interpolate(closestPoint));
         };
     }
 }
