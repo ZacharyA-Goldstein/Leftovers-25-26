@@ -12,7 +12,7 @@ public class FilteredPIDFCoefficients {
     public double P;
     public double I;
     public double D;
-    public FeedForwardConstant F;
+    public double F;
     public double T;
 
     /**
@@ -28,37 +28,11 @@ public class FilteredPIDFCoefficients {
         P = p;
         I = i;
         D = d;
-        F = input -> f;
-        T = t;
-    }
-
-    /**
-     * This creates a new CustomFilteredPIDFCoefficients with constant PID coefficients and a variable
-     * feedforward equation using a FeedForwardConstant.
-     *
-     * @param p the coefficient for the proportional factor.
-     * @param i the coefficient for the integral factor.
-     * @param d the coefficient for the derivative factor.
-     * @param t the time constant for the filter
-     * @param f the equation for the feedforward factor.
-     */
-    public FilteredPIDFCoefficients(double p, double i, double d, double t, FeedForwardConstant f) {
-        P = p;
-        I = i;
-        D = d;
         F = f;
         T = t;
     }
 
     public void setCoefficients(double p, double i, double d, double t, double f) {
-        P = p;
-        I = i;
-        D = d;
-        F = input -> f;
-        T = t;
-    }
-
-    public void setCoefficients(double p, double i, double d, double t, FeedForwardConstant f) {
         P = p;
         I = i;
         D = d;
@@ -74,7 +48,7 @@ public class FilteredPIDFCoefficients {
      * @return This returns the coefficient for the feedforward factor.
      */
     public double getCoefficient(double input) {
-        return F.getConstant(input);
+        return F * input;
     }
 
     @Override
