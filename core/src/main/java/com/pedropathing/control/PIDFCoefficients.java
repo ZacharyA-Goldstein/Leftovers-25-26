@@ -16,7 +16,7 @@ public class PIDFCoefficients {
     public double P;
     public double I;
     public double D;
-    public FeedForwardConstant F;
+    public double F;
 
     /**
      * This creates a new PIDFCoefficients with constant coefficients.
@@ -27,21 +27,6 @@ public class PIDFCoefficients {
      * @param f the coefficient for the feedforward factor.
      */
     public PIDFCoefficients(double p, double i, double d, double f) {
-        P = p;
-        I = i;
-        D = d;
-        F = input -> f;
-    }
-
-    /**
-     * This creates a new PIDFCoefficients with constant coefficients.
-     *
-     * @param p the coefficient for the proportional factor.
-     * @param i the coefficient for the integral factor.
-     * @param d the coefficient for the derivative factor.
-     * @param f the coefficient for the feedforward factor.
-     */
-    public PIDFCoefficients(double p, double i, double d, FeedForwardConstant f) {
         P = p;
         I = i;
         D = d;
@@ -56,17 +41,10 @@ public class PIDFCoefficients {
      * @return This returns the coefficient for the feedforward factor.
      */
     public double getCoefficient(double input) {
-        return F.getConstant(input);
+        return F * input;
     }
 
     public void setCoefficients(double p, double i, double d, double f) {
-        P = p;
-        I = i;
-        D = d;
-        F = input -> f;
-    }
-
-    public void setCoefficients(double p, double i, double d, FeedForwardConstant f) {
         P = p;
         I = i;
         D = d;

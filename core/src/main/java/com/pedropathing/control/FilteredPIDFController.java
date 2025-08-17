@@ -221,7 +221,7 @@ public class FilteredPIDFController {
      *
      * @param set this sets the F constant.
      */
-    public void setF(FeedForwardConstant set) {
+    public void setF(double set) {
         coefficients.F = set;
     }
 

@@ -200,15 +200,6 @@ public class PIDFController {
      * @param set this sets the F constant.
      */
     public void setF(double set) {
-        coefficients.F = input -> set;
-    }
-
-    /**
-     * This sets the feedforward (F) constant of the PIDF only.
-     *
-     * @param set this sets the F constant.
-     */
-    public void setF(FeedForwardConstant set) {
         coefficients.F = set;
     }
 
