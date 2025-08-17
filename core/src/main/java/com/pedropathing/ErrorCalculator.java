@@ -100,7 +100,7 @@ public class ErrorCalculator {
         double forwardVelocityGoal = Kinematics.getVelocityToStopWithDeceleration(
             forwardDistanceToGoal,
             constants.forwardZeroPowerAcceleration
-                * ( currentPath.getDecelerationStrength() * 4)
+                * (currentPath.getDecelerationStrength() * 4)
         );
         double forwardVelocityZeroPowerDecay = forwardVelocity -
             Kinematics.getFinalVelocityAtDistance(
@@ -168,7 +168,7 @@ public class ErrorCalculator {
                     xMovement, constants.forwardZeroPowerAcceleration
                 );
                 if (distanceToGoal >= Math.abs(stoppingDistance
-                    * currentPathChain.getDecelerationStart() * 3)) {
+                    * currentPathChain.getDecelerationStart())) {
                     return -1;
                 }
             } else {

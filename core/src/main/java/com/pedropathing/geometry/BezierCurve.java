@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
  * This is the BezierCurve class. This class handles the creation of Bezier curves, which are used
@@ -573,110 +572,44 @@ public class BezierCurve implements Curve {
     }
 
     /**
-     * Computes the control points for a cubic Bézier spline that passes through the specified points.
-     * This method uses a cubic spline interpolation algorithm to compute the control points.
-     *
-     * @param throughPoints the points that the Bézier spline should pass through.
-     * @return a list of control points for the Bézier spline.
+     * Generates a BezierCurve that passes through the given points
+     * @param startPoint the initial point the curve passes through
+     * @param midpoint a point in the middle for the curve to pass through
+     * @param endPoint the final point the curve passes through
+     * @return the BezierCurve passing through the points
      */
-    public static List<Pose> computeControlPointsThrough(List<Pose> throughPoints) {
-        int n = throughPoints.size() - 1;
-        if (n < 1) throw new IllegalArgumentException("Need at least two points");
-
-        List<Pose> c1 = new ArrayList<>();
-        List<Pose> c2 = new ArrayList<>();
-
-        if (n == 1) {
-            // Straight line case
-            Pose p0 = throughPoints.get(0);
-            Pose p3 = throughPoints.get(1);
-            Pose ctrl1 = new Pose(
-                    p0.getX() + (p3.getX() - p0.getX()) / 3.0,
-                    p0.getY() + (p3.getY() - p0.getY()) / 3.0
-            );
-            Pose ctrl2 = new Pose(
-                    p0.getX() + 2 * (p3.getX() - p0.getX()) / 3.0,
-                    p0.getY() + 2 * (p3.getY() - p0.getY()) / 3.0
-            );
-            return Arrays.asList(p0, ctrl1, ctrl2, p3);
-        }
-
-        double[] a = new double[n];
-        double[] b = new double[n];
-        double[] c = new double[n];
-        double[] rhsX = new double[n];
-        double[] rhsY = new double[n];
-
-        a[0] = 0;
-        b[0] = 2;
-        c[0] = 1;
-        rhsX[0] = throughPoints.get(0).getX() + 2 * throughPoints.get(1).getX();
-        rhsY[0] = throughPoints.get(0).getY() + 2 * throughPoints.get(1).getY();
-
-        for (int i = 1; i < n - 1; i++) {
-            a[i] = 1;
-            b[i] = 4;
-            c[i] = 1;
-            rhsX[i] = 4 * throughPoints.get(i).getX() + 2 * throughPoints.get(i + 1).getX();
-            rhsY[i] = 4 * throughPoints.get(i).getY() + 2 * throughPoints.get(i + 1).getY();
-        }
-
-        a[n - 1] = 2;
-        b[n - 1] = 7;
-        c[n - 1] = 0;
-        rhsX[n - 1] = 8 * throughPoints.get(n - 1).getX() + throughPoints.get(n).getX();
-        rhsY[n - 1] = 8 * throughPoints.get(n - 1).getY() + throughPoints.get(n).getY();
-
-        // Forward elimination
-        for (int i = 1; i < n; i++) {
-            double m = a[i] / b[i - 1];
-            b[i] -= m * c[i - 1];
-            rhsX[i] -= m * rhsX[i - 1];
-            rhsY[i] -= m * rhsY[i - 1];
-        }
-
-        double[] xC1 = new double[n];
-        double[] yC1 = new double[n];
-        xC1[n - 1] = rhsX[n - 1] / b[n - 1];
-        yC1[n - 1] = rhsY[n - 1] / b[n - 1];
-
-        // Back substitution
-        for (int i = n - 2; i >= 0; i--) {
-            xC1[i] = (rhsX[i] - c[i] * xC1[i + 1]) / b[i];
-            yC1[i] = (rhsY[i] - c[i] * yC1[i + 1]) / b[i];
-        }
-
-        for (int i = 0; i < n; i++) {
-            Pose ctrl1 = new Pose(xC1[i], yC1[i]);
-            Pose ctrl2;
-            if (i < n - 1) {
-                ctrl2 = new Pose(
-                        2 * throughPoints.get(i + 1).getX() - xC1[i + 1],
-                        2 * throughPoints.get(i + 1).getY() - yC1[i + 1]
-                );
-            } else {
-                ctrl2 = new Pose(
-                        (throughPoints.get(n).getX() + xC1[n - 1]) / 2,
-                        (throughPoints.get(n).getY() + yC1[n - 1]) / 2
-                );
-            }
-            c1.add(ctrl1);
-            c2.add(ctrl2);
-        }
-
-        // This returns the full control point sequence for a multi-segment Bézier spline
-        List<Pose> controlPoints = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            controlPoints.add(throughPoints.get(i));
-            controlPoints.add(c1.get(i));
-            controlPoints.add(c2.get(i));
-        }
-        controlPoints.add(throughPoints.get(n));
-
-        return controlPoints;
+    public static BezierCurve through(Pose startPoint, Pose midpoint, Pose endPoint) {
+        double cx = 2 * midpoint.getX() - (startPoint.getX() + endPoint.getX()) / 2.0;
+        double cy = 2 * midpoint.getY() - (startPoint.getY() + endPoint.getY()) / 2.0;
+        Pose controlPoint = new Pose(cx, cy);
+        return new BezierCurve(startPoint, controlPoint, endPoint);
     }
 
-    public static BezierCurve through(Pose... throughPoints) {
-        return new BezierCurve(computeControlPointsThrough(Arrays.asList(throughPoints)));
+    /**
+     * Generates a BezierCurve that passes through the given points
+     * @param startPoint the first point the curve passes through
+     * @param midPoint1 the second point the curve passes through
+     * @param midPoint2 the third point the curve passes through
+     * @param endPoint the fourth point the curve passes through
+     * @return the BezierCurve passing through the points
+     */
+    public static BezierCurve through(Pose startPoint, Pose midPoint1, Pose midPoint2, Pose endPoint) {
+        double distance1 = Math.pow(midPoint1.distanceFrom(startPoint), 0.5);
+        double distance2 = Math.pow(midPoint2.distanceFrom(midPoint1), 0.5);
+        double distance3 = Math.pow(endPoint.distanceFrom(midPoint2), 0.5);
+        double sqDistance1 = distance1 * distance1;
+        double sqDistance2 = distance2 * distance2;
+        double sqDistance3 = distance3 * distance3;
+        double t1 = (2 * distance1 * distance1) + (3 * distance1 * distance2) + (distance2 * distance2);
+        double t2 = 3 * distance1 * (distance1 + distance2);
+        double t3 = (2 * distance3 * distance3) + (3 * distance3 * distance2) + (distance2 * distance2);
+        double t4 = 3 * distance3 * (distance3 + distance2);
+
+        Pose controlPoint1 = new Pose((sqDistance1 * midPoint2.getX() - sqDistance2 * startPoint.getX() + t1 * midPoint1.getX()) / t2,
+                (sqDistance1 * midPoint2.getY() - sqDistance2 * startPoint.getY() + t1 * midPoint1.getY()) / t2);
+        Pose controlPoint2 = new Pose((sqDistance3 * midPoint1.getX() - sqDistance2 * endPoint.getX() + t3 * midPoint2.getX()) / t4,
+                (sqDistance3 * midPoint1.getY() - sqDistance2 * endPoint.getY() + t3 * midPoint2.getY()) / t4);
+
+        return new BezierCurve(startPoint, controlPoint1, controlPoint2, endPoint);
     }
 }
