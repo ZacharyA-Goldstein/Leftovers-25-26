@@ -8,7 +8,11 @@ package com.pedropathing.control;
  * @version 1.0, 7/15/2024
  */
 
-public class FilteredPIDFCoefficients extends PIDFCoefficients {
+public class FilteredPIDFCoefficients {
+    public double P;
+    public double I;
+    public double D;
+    public FeedForwardConstant F;
     public double T;
 
     /**
@@ -21,7 +25,10 @@ public class FilteredPIDFCoefficients extends PIDFCoefficients {
      * @param f the coefficient for the feedforward factor.
      */
     public FilteredPIDFCoefficients(double p, double i, double d, double t, double f) {
-        super(p, i, d, f);
+        P = p;
+        I = i;
+        D = d;
+        F = input -> f;
         T = t;
     }
 
@@ -36,17 +43,26 @@ public class FilteredPIDFCoefficients extends PIDFCoefficients {
      * @param f the equation for the feedforward factor.
      */
     public FilteredPIDFCoefficients(double p, double i, double d, double t, FeedForwardConstant f) {
-        super(p, i, d, f);
+        P = p;
+        I = i;
+        D = d;
+        F = f;
         T = t;
     }
 
     public void setCoefficients(double p, double i, double d, double t, double f) {
-        super.setCoefficients(p, i, d, f);
+        P = p;
+        I = i;
+        D = d;
+        F = input -> f;
         T = t;
     }
 
     public void setCoefficients(double p, double i, double d, double t, FeedForwardConstant f) {
-        super.setCoefficients(p, i, d, f);
+        P = p;
+        I = i;
+        D = d;
+        F = f;
         T = t;
     }
 
