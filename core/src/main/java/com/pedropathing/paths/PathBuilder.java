@@ -1,13 +1,8 @@
 package com.pedropathing.paths;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Curve;
-import com.pedropathing.geometry.CustomCurve;
-import com.pedropathing.geometry.FuturePose;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Vector;
 import com.pedropathing.paths.callbacks.ParametricCallback;
 import com.pedropathing.paths.callbacks.PathCallback;
 import com.pedropathing.paths.callbacks.PoseCallback;
@@ -15,7 +10,6 @@ import com.pedropathing.paths.callbacks.TemporalCallback;
 import com.pedropathing.util.FiniteRunAction;
 
 import java.util.ArrayList;
-import java.util.function.BooleanSupplier;
 
 /**
  * This is the PathBuilder class. This class makes it easier to create PathChains, so you don't have

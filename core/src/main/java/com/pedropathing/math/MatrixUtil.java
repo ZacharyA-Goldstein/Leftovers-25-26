@@ -3,7 +3,7 @@ package com.pedropathing.math;
 /**
  * This class houses static methods to create some common matrices, such as the identity matrix, zero matrix... etc.
  *
- * @author icaras84
+ * @author William Phomphakdee - 7462 Not to Scale Alumni
  * @version 1.0.0, 06/24/2025
  */
 public class MatrixUtil {

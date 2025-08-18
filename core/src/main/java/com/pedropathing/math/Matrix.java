@@ -9,7 +9,7 @@ import java.util.Locale;
  * The Matrix class is used to represent matrix objects. Has basic operations such as adding, subtracting, and multiplying (w/ scalars and another matrix),
  * but also includes an implementation of gaussian elimination with partial pivoting and row operations
  *
- * @author icaras84
+ * @author William Phomphakdee - 7462 Not to Scale Alumni
  * @version 1.0.0, 06/24/2025
  */
 public class Matrix {
