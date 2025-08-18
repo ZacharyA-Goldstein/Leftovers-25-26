@@ -302,13 +302,13 @@ public class PathChain {
             lengthSum += pathChain.get(i).length();
 
             if (lengthSum > length) {
-                return new PathT(i, currentT);
+                return new PathT(i, pathChain.get(i).getTFromPathCompletion(currentT));
             }
 
             currentT = t - lengthSum / length;
         }
 
-        return new PathT(pathChain.size()-1, currentT);
+        return new PathT(pathChain.size()-1, pathChain.get(pathChain.size() - 1).getTFromPathCompletion(currentT));
     }
 
     /**

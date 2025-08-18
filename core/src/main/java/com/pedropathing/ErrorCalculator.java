@@ -124,7 +124,7 @@ public class ErrorCalculator {
             Kinematics.getFinalVelocityAtDistance(
                 lateralVelocity,
                 constants.lateralZeroPowerAcceleration,
-               lateralDistanceToGoal
+                lateralDistanceToGoal
             );
 
         Vector forwardVelocityError = new Vector(forwardVelocityGoal - forwardVelocityZeroPowerDecay - forwardVelocity, forwardHeadingVector.getTheta());

@@ -206,7 +206,7 @@ public class PathBuilder {
      * This sets the heading interpolation to custom on the last Path added to the PathBuilder.
      * @param function A function that describes the target heading as a function of t, the parametric variable. Use a lambda expression here.
      */
-    public PathBuilder setCustomHeadingInterpolation(HeadingInterpolator function) {
+    public PathBuilder setHeadingInterpolation(HeadingInterpolator function) {
         this.paths.get(paths.size() - 1).setHeadingInterpolation(function);
         return this;
     }
@@ -215,7 +215,7 @@ public class PathBuilder {
      * This sets the global heading interpolation to custom.
      * @param function A function that describes the target heading as a function of t, the parametric variable. Use a lambda expression here.
      */
-    public PathBuilder setGlobalCustomHeadingInterpolation(HeadingInterpolator function) {
+    public PathBuilder setGlobalHeadingInterpolation(HeadingInterpolator function) {
         this.headingInterpolator = function;
         return this;
     }
