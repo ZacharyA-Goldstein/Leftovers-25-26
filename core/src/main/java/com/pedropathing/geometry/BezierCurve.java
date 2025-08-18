@@ -1,6 +1,7 @@
 package com.pedropathing.geometry;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Matrix;
+import com.pedropathing.math.MatrixUtil;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathConstraints;
 import static com.pedropathing.math.AbstractBijectiveMap.NumericBijectiveMap;
@@ -611,5 +612,42 @@ public class BezierCurve implements Curve {
                 (sqDistance3 * midPoint1.getY() - sqDistance2 * endPoint.getY() + t3 * midPoint2.getY()) / t4);
 
         return new BezierCurve(startPoint, controlPoint1, controlPoint2, endPoint);
+    }
+
+    /**
+     * Generates a BezierCurve that passes through the given points
+     * @param points vararg of points; requirements more than two points
+     * @return the BezierCurve passing through the points
+     * @author William Phomphakdee - 7462 Not to Scale Alumni
+     */
+    public static BezierCurve through(Pose... points){
+        double[] tValues = new double[points.length];
+        tValues[points.length - 1] = 1;
+        double increment = 1d / (points.length - 1);
+        for (int i = 1; i < tValues.length - 1; i++) {
+            tValues[i] = tValues[i - 1] + increment;
+        }
+
+        TVector tVectorGen = new TVector(points.length);
+        Matrix tMatrix = new Matrix(points.length, points.length);
+        for (int i = 0; i < tMatrix.getRows(); i++) {
+            tMatrix.setRow(i, tVectorGen.getRowVector(tValues[i], 0).getRow(0));
+        }
+
+        Matrix bezier = CharacteristicMatrixSupplier.getBezierCharacteristicMatrix(points.length - 1);
+
+        Matrix targetPointMatrix = new Matrix(points.length, 2);
+        for (int i = 0; i < points.length; i++) {
+            targetPointMatrix.setRow(i, points[i].getX(), points[i].getY());
+        }
+
+        Matrix outputControlPoints = Matrix.rref(tMatrix.multiply(bezier), MatrixUtil.eye(points.length))[1].multiply(targetPointMatrix);
+        Pose[] output = new Pose[points.length];
+
+        for (int i = 0; i < outputControlPoints.getRows(); i++) {
+            output[i] = new Pose(outputControlPoints.get(i, 0), outputControlPoints.get(i, 1));
+        }
+
+        return new BezierCurve(output);
     }
 }

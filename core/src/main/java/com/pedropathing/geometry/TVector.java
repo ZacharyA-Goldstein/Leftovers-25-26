@@ -9,7 +9,7 @@ import java.util.Arrays;
  * The TVector class represents the row vector matrix comprised of a polynomial for the matrix representation of a spline. This is NOT the Vector class.
  * <br>Eq: [1, t, t^2, t^3...] * P * C; where P is the characteristic matrix of the spline/curve while C is the control parameters
  *
- * @author icaras84
+ * @author William Phomphakdee - 7462 Not to Scale Alumni
  * @version 0.0.1, 07/11/2025
  */
 public class TVector {

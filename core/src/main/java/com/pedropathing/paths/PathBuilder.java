@@ -1,13 +1,8 @@
 package com.pedropathing.paths;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Curve;
-import com.pedropathing.geometry.CustomCurve;
-import com.pedropathing.geometry.FuturePose;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Vector;
 import com.pedropathing.paths.callbacks.ParametricCallback;
 import com.pedropathing.paths.callbacks.PathCallback;
 import com.pedropathing.paths.callbacks.PoseCallback;
@@ -15,7 +10,6 @@ import com.pedropathing.paths.callbacks.TemporalCallback;
 import com.pedropathing.util.FiniteRunAction;
 
 import java.util.ArrayList;
-import java.util.function.BooleanSupplier;
 
 /**
  * This is the PathBuilder class. This class makes it easier to create PathChains, so you don't have
@@ -84,6 +78,31 @@ public class PathBuilder {
      */
     public PathBuilder addPath(Curve curve) {
         return addPath(new Path(curve, constraints));
+    }
+
+    /**
+     * This adds multiple Paths to the PathBuilder
+     * @param paths Vararg of Paths being added
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addPaths(Path... paths){
+        for (Path path: paths) {
+            path.setConstraints(constraints);
+            this.paths.add(path);
+        }
+        return this;
+    }
+
+    /**
+     * This adds multiple curves wrapped in the default Path defined by the curve to the PathBuilder
+     * @param curves Vararg of Curves being added
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addPaths(Curve... curves){
+        for (Curve curve: curves) {
+            this.paths.add(new Path(curve, constraints));
+        }
+        return this;
     }
 
     /**
