@@ -77,7 +77,7 @@ public class ErrorCalculator {
             return 0;
         }
 
-        headingError = MathFunctions.getTurnDirection(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal()) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal());
+        headingError = MathFunctions.getTurnDirection(currentPose.getHeading(), closestPointHeadingGoal()) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal());
         return headingError;
     }
 
@@ -218,6 +218,18 @@ public class ErrorCalculator {
 
     public void setConstants(FollowerConstants constants) {
         this.constants = constants;
+    }
+
+    private double closestPointHeadingGoal() {
+        if (currentPath == null) {
+            return 0;
+        }
+
+        if (followingPathChain) {
+            return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, currentPath.getClosestPointTValue()));
+        }
+
+        return currentPath.getClosestPointHeadingGoal();
     }
 
     public String debugString() {

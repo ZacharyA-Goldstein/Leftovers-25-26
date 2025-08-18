@@ -457,7 +457,7 @@ public class Follower {
                 < currentPath.getPathEndTranslationalConstraint()
             )
             && (
-                MathFunctions.getSmallestAngleDifference(poseTracker.getPose().getHeading(), currentPath.getClosestPointHeadingGoal())
+                MathFunctions.getSmallestAngleDifference(poseTracker.getPose().getHeading(), getClosestPointHeadingGoal())
                 < currentPath.getPathEndHeadingConstraint()
             )
         )) {
@@ -466,7 +466,8 @@ public class Follower {
 
         if (holdPositionAtEnd) {
             holdPositionAtEnd = false;
-            holdPoint(new BezierPoint(currentPath.getLastControlPoint()), currentPath.getHeadingGoal(1));
+            if (followingPathChain) holdPoint(new BezierPoint(currentPath.getLastControlPoint()), currentPathChain.getHeadingGoal(new PathChain.PathT(currentPathChain.size(), 1)));
+            else holdPoint(new BezierPoint(currentPath.getLastControlPoint()), currentPath.getHeadingGoal(1));
         } else {
             breakFollowing();
         }
@@ -505,6 +506,7 @@ public class Follower {
      * This returns the closest pose to the robot on the Path the Follower is currently following.
      * This closest pose is calculated through a binary search method with some specified number of
      * steps to search. By default, 10 steps are used, which should be more than enough.
+     * The target heading associated with the pose is returned here as well.
      * @return returns the closest pose.
      */
     public PathPoint getClosestPose() {
@@ -896,7 +898,7 @@ public class Follower {
      * @return returns the closest point's heading goal
      */
     public double getClosestPointHeadingGoal() {
-        return currentPath.getClosestPointHeadingGoal();
+        return getHeadingGoal(closestPose);
     }
 
     /**

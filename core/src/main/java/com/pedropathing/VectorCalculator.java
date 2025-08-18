@@ -203,12 +203,12 @@ public class VectorCalculator {
     public Vector getHeadingVector() {
         if (!useHeading) return new Vector();
         if (Math.abs(headingError) < headingPIDFSwitch && useSecondaryHeadingPID) {
-            secondaryHeadingPIDF.updateFeedForwardInput(MathFunctions.getTurnDirection(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal()));
+            secondaryHeadingPIDF.updateFeedForwardInput(MathFunctions.getTurnDirection(currentPose.getHeading(), closestPointHeadingGoal()));
             secondaryHeadingPIDF.updateError(headingError);
             headingVector = new Vector(MathFunctions.clamp(secondaryHeadingPIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), currentPose.getHeading());
             return headingVector.copy();
         }
-        headingPIDF.updateFeedForwardInput(MathFunctions.getTurnDirection(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal()));
+        headingPIDF.updateFeedForwardInput(MathFunctions.getTurnDirection(currentPose.getHeading(), closestPointHeadingGoal()));
         headingPIDF.updateError(headingError);
         headingVector = new Vector(MathFunctions.clamp(headingPIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), currentPose.getHeading());
         return headingVector.copy();
@@ -437,6 +437,18 @@ public class VectorCalculator {
 
     public void setConstants(FollowerConstants constants) {
         this.constants = constants;
+    }
+
+    private double closestPointHeadingGoal() {
+        if (currentPath == null) {
+            return 0;
+        }
+
+        if (followingPathChain) {
+            return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, currentPath.getClosestPointTValue()));
+        }
+
+        return currentPath.getClosestPointHeadingGoal();
     }
 
     public String debugString() {

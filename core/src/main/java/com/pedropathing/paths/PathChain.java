@@ -374,4 +374,23 @@ public class PathChain {
     public PathPoint getPoseInformation(PathT pathTValue) {
         return new PathPoint(pathTValue.t(), pathTValue.getPose(this), pathTValue.getTangentVector(this));
     }
+
+    /**
+     * This returns the last Path in the PathChain.
+     * @return the last Path in the PathChain
+     */
+    public Path lastPath() {
+        return pathChain.get(pathChain.size() - 1);
+    }
+
+    /**
+     * This returns the first Path in the PathChain.
+     * @return the first Path in the PathChain
+     */
+    public Path firstPath() {
+        if (pathChain.isEmpty()) {
+            return null;
+        }
+        return pathChain.get(0);
+    }
 }
