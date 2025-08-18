@@ -281,6 +281,7 @@ public class Vector {
      * @return a new vector that is the projection of this vector onto the other vector
      */
     public Vector projectOnto(Vector other) {
+        if (other.getMagnitude() == 0) return new Vector();
         double scale = this.dot(other) / other.getMagnitude();
         return other.times(scale / other.getMagnitude());
     }

@@ -26,7 +26,8 @@ public class ErrorCalculator {
     private boolean followingPathChain;
     private double[] driveErrors;
     private int chainIndex;
-    private double rawDriveError, previousRawDriveError, driveError, headingError, xMovement;
+    private double rawDriveError, previousRawDriveError, headingError, xVelocity, yVelocity;
+    private Double driveError;
     private Vector velocityVector = new Vector();
     
     public ErrorCalculator(FollowerConstants constants) {
@@ -40,7 +41,7 @@ public class ErrorCalculator {
 
     }
 
-    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Pose closestPose, Vector velocity, int chainIndex, double xMovement) {
+    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Pose closestPose, Vector velocity, int chainIndex, double xMovement, double yMovement) {
         this.currentPose = currentPose;
         this.velocityVector = velocity;
         this.currentPath = currentPath;
@@ -48,7 +49,9 @@ public class ErrorCalculator {
         this.currentPathChain = currentPathChain;
         this.followingPathChain = followingPathChain;
         this.chainIndex = chainIndex;
-        this.xMovement = xMovement;
+        this.xVelocity = xMovement;
+        this.yVelocity = yMovement;
+        driveError = null;
     }
 
     /**
@@ -84,7 +87,7 @@ public class ErrorCalculator {
      *
      * @return returns the projected velocity.
      */
-    public double getDriveVelocityError(double distanceToGoal) {
+    private double getDriveVelocityError(double distanceToGoal) {
         if (currentPath == null) {
             return 0;
         }
@@ -94,7 +97,6 @@ public class ErrorCalculator {
         Vector velocity = velocityVector.projectOnto(tangent);
 
         Vector forwardHeadingVector = new Vector(1.0, currentPose.getHeading());
-
         double forwardVelocity = forwardHeadingVector.dot(velocity);
         double forwardDistanceToGoal = forwardHeadingVector.dot(distanceToGoalVector);
         double forwardVelocityGoal = Kinematics.getVelocityToStopWithDeceleration(
@@ -106,7 +108,7 @@ public class ErrorCalculator {
             Kinematics.getFinalVelocityAtDistance(
                 forwardVelocity,
                 constants.forwardZeroPowerAcceleration,
-                forwardVelocityGoal
+                forwardDistanceToGoal
             );
 
         Vector lateralHeadingVector = new Vector(1.0, currentPose.getHeading() - Math.PI / 2);
@@ -122,7 +124,7 @@ public class ErrorCalculator {
             Kinematics.getFinalVelocityAtDistance(
                 lateralVelocity,
                 constants.lateralZeroPowerAcceleration,
-                lateralVelocityGoal
+               lateralDistanceToGoal
             );
 
         Vector forwardVelocityError = new Vector(forwardVelocityGoal - forwardVelocityZeroPowerDecay - forwardVelocity, forwardHeadingVector.getTheta());
@@ -146,6 +148,8 @@ public class ErrorCalculator {
     }
 
     public double getDriveError() {
+        if (driveError != null) return driveError;
+
         double distanceToGoal;
 
         if (currentPath == null) {
@@ -153,23 +157,32 @@ public class ErrorCalculator {
         }
 
         if (!currentPath.isAtParametricEnd()) {
-            if (followingPathChain && currentPathChain.getDecelerationType() == PathChain.DecelerationType.GLOBAL) {
-                double remainingLength = 0;
+            if (followingPathChain) {
+                PathChain.DecelerationType type = currentPathChain.getDecelerationType();
+                if (type == PathChain.DecelerationType.GLOBAL) {
+                    double remainingLength = 0;
 
-                if (chainIndex < currentPathChain.size()) {
-                    for (int i = chainIndex + 1; i<currentPathChain.size(); i++) {
-                        remainingLength += currentPathChain.getPath(i).length();
+                    if (chainIndex < currentPathChain.size()) {
+                        for (int i = chainIndex + 1; i < currentPathChain.size(); i++) {
+                            remainingLength += currentPathChain.getPath(i).length();
+                        }
                     }
-                }
 
-                distanceToGoal = remainingLength + currentPath.getDistanceRemaining();
+                    distanceToGoal = remainingLength + currentPath.getDistanceRemaining();
 
-                double stoppingDistance = Kinematics.getStoppingDistance(
-                    xMovement, constants.forwardZeroPowerAcceleration
-                );
-                if (distanceToGoal >= Math.abs(stoppingDistance
-                    * currentPathChain.getDecelerationStart())) {
+                    Vector tangent = currentPath.getClosestPointTangentVector().normalize();
+                    Vector forwardTheoreticalHeadingVector = new Vector(1.0, closestPose.getHeading());
+
+                    double stoppingDistance = Kinematics.getStoppingDistance(
+                            yVelocity + (xVelocity - yVelocity) * forwardTheoreticalHeadingVector.dot(tangent), constants.forwardZeroPowerAcceleration
+                    );
+                    if (distanceToGoal >= stoppingDistance * currentPathChain.getDecelerationStart()) {
+                        return -1;
+                    }
+                } else if ((type == PathChain.DecelerationType.LAST_PATH && chainIndex < currentPathChain.size() - 1) || type == PathChain.DecelerationType.NONE) {
                     return -1;
+                } else {
+                    distanceToGoal = currentPath.getDistanceRemaining();
                 }
             } else {
                 distanceToGoal = currentPath.getDistanceRemaining();
@@ -194,7 +207,7 @@ public class ErrorCalculator {
     }
 
     public void breakFollowing() {
-        driveError = 0;
+        driveError = 0.0;
         headingError = 0;
         rawDriveError = 0;
         previousRawDriveError = 0;

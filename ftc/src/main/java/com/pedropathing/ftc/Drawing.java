@@ -60,6 +60,10 @@ public class Drawing {
      * @param style the parameters used to draw the robot with
      */
     public static void drawRobot(Pose pose, Style style) {
+        if (pose == null || Double.isNaN(pose.getX()) || Double.isNaN(pose.getY()) || Double.isNaN(pose.getHeading())) {
+            return;
+        }
+
         panelsField.setStyle(style);
         panelsField.moveCursor(pose.getX(), pose.getY());
         panelsField.circle(ROBOT_RADIUS);

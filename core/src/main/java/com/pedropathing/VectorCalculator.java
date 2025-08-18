@@ -44,6 +44,7 @@ public class VectorCalculator {
 
     private boolean useDrive = true, useHeading = true, useTranslational = true, useCentripetal = true, teleopDrive = false, followingPathChain = false;
     private double maxPowerScaling = 1.0, mass = 10.65;
+    private boolean scaleDriveFeedforward;
 
     private int chainIndex;
     private double centripetalScaling;
@@ -175,15 +176,15 @@ public class VectorCalculator {
         if (driveError == -1) return new Vector(maxPowerScaling, currentPath.getClosestPointTangentVector().getTheta());
 
         Vector tangent = currentPath.getClosestPointTangentVector().normalize();
-        Vector driveVelocity = velocity.projectOnto(tangent);
+
         if (Math.abs(driveError) < drivePIDFSwitch && useSecondaryDrivePID) {
-            secondaryDrivePIDF.updateFeedForwardInput(driveVelocity.getMagnitude() * Math.signum(driveError));
+            secondaryDrivePIDF.updateFeedForwardInput(Math.signum(driveError));
             secondaryDrivePIDF.updateError(driveError);
             driveVector = new Vector(MathFunctions.clamp(secondaryDrivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), tangent.getTheta());
             return driveVector.copy();
         }
 
-        secondaryDrivePIDF.updateFeedForwardInput((driveVelocity.getMagnitude() * driveVelocity.getMagnitude() + driveError) * Math.signum(driveError));
+        drivePIDF.updateFeedForwardInput(Math.signum(driveError));
         drivePIDF.updateError(driveError);
         driveVector = new Vector(MathFunctions.clamp(drivePIDF.runPIDF(), -maxPowerScaling, maxPowerScaling), tangent.getTheta());
         return driveVector.copy();

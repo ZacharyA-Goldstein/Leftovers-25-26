@@ -86,7 +86,7 @@ public final class Kinematics {
             double deceleration,
             double targetVelocity
     ) {
-        return (targetVelocity * targetVelocity - velocity * velocity) / (2 * deceleration);
+        return Math.abs((targetVelocity * targetVelocity - velocity * velocity) / (2 * deceleration));
     }
 
     /**

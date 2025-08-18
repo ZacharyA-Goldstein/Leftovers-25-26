@@ -354,12 +354,12 @@ public class Follower {
 
     /** Calls an update to the ErrorCalculator, which updates the robot's current error. */
     public void updateErrors() {
-        errorCalculator.update(currentPose, currentPath, currentPathChain, followingPathChain, closestPose.getPose(), poseTracker.getVelocity(), chainIndex, drivetrain.xMovement());
+        errorCalculator.update(currentPose, currentPath, currentPathChain, followingPathChain, closestPose.getPose(), poseTracker.getVelocity(), chainIndex, drivetrain.xVelocity(), drivetrain.yVelocity());
     }
 
     /** Calls an update to the VectorCalculator, which updates the robot's current vectors to correct. */
     public void updateVectors() {
-        vectorCalculator.update(useDrive, useHeading, useTranslational, useCentripetal, manualDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, getDriveError(), getTranslationalError(), getHeadingError());
+        vectorCalculator.update(useDrive, useHeading, useTranslational, useCentripetal, manualDrive, chainIndex, drivetrain.getMaxPowerScaling(), followingPathChain, centripetalScaling, currentPose, closestPose.getPose(), poseTracker.getVelocity(), currentPath, currentPathChain, useDrive && !holdingPosition ? getDriveError() : -1, getTranslationalError(), getHeadingError());
     }
 
     public void updateErrorAndVectors() {updateErrors(); updateVectors();}
@@ -807,15 +807,15 @@ public class Follower {
 
     /**
      * This sets the x movement of the drivetrain.
-     * @param xMovement the x movement to set
+     * @param vel the x movement to set
      */
-    public void setXMovement(double xMovement) { drivetrain.setXMovement(xMovement); }
+    public void setXVelocity(double vel) { drivetrain.setXVelocity(vel); }
 
     /**
-     * This sets the y movement of the drivetrain.
-     * @param yMovement the y movement to set
+     * This sets the y velocity of the drivetrain.
+     * @param vel the y velocity to set
      */
-    public void setYMovement(double yMovement) { drivetrain.setYMovement(yMovement); }
+    public void setYVelocity(double vel) { drivetrain.setYVelocity(vel); }
 
     /**
      * This sets the Drive PIDF coefficients for the Follower.

@@ -201,6 +201,20 @@ public class FollowerConstants {
     public double lateralZeroPowerAcceleration = -78.15554;
 
     /**
+     * This is used to scale the secondary drive feedforward. If this is set to true, the secondary drive feedforward
+     * will be scaled by the targetVelocity.
+     * Default Value: false
+     */
+    public boolean scaleSecondaryDriveFeedforward = false;
+
+    /**
+     * This is used to scale the drive feedforward. If this is set to true, the drive feedforward
+     * will be scaled by the targetVelocity.
+     * Default Value: false
+     */
+    public boolean scaleDriveFeedforward = false;
+
+    /**
      * This constructor is empty but on creation it will set the default values for the constants.
      * You can use .translationalPIDFCoefficients(new PIDFCoefficients(0,0,0,0)) and other methods to set the values.
      */
@@ -210,11 +224,6 @@ public class FollowerConstants {
 
     public FollowerConstants translationalPIDFCoefficients(PIDFCoefficients translationalPIDFCoefficients) {
         this.translationalPIDFCoefficients = translationalPIDFCoefficients;
-        return this;
-    }
-
-    public FollowerConstants translationalIntegral(PIDFCoefficients translationalIntegral) {
-        this.translationalIntegral = translationalIntegral;
         return this;
     }
 
@@ -230,11 +239,7 @@ public class FollowerConstants {
 
     public FollowerConstants secondaryTranslationalPIDFCoefficients(PIDFCoefficients secondaryTranslationalPIDFCoefficients) {
         this.secondaryTranslationalPIDFCoefficients = secondaryTranslationalPIDFCoefficients;
-        return this;
-    }
-
-    public FollowerConstants secondaryTranslationalIntegral(PIDFCoefficients secondaryTranslationalIntegral) {
-        this.secondaryTranslationalIntegral = secondaryTranslationalIntegral;
+        useSecondaryTranslationalPIDF = true;
         return this;
     }
 
@@ -245,6 +250,7 @@ public class FollowerConstants {
 
     public FollowerConstants secondaryHeadingPIDFCoefficients(PIDFCoefficients secondaryHeadingPIDFCoefficients) {
         this.secondaryHeadingPIDFCoefficients = secondaryHeadingPIDFCoefficients;
+        useSecondaryHeadingPIDF = true;
         return this;
     }
 
@@ -253,8 +259,19 @@ public class FollowerConstants {
         return this;
     }
 
+    public FollowerConstants scaleSecondaryDriveFeedforward(boolean scaleSecondaryDriveFeedforward) {
+        this.scaleSecondaryDriveFeedforward = scaleSecondaryDriveFeedforward;
+        return this;
+    }
+
+    public FollowerConstants scaleDriveFeedforward(boolean scaleDriveFeedforward) {
+        this.scaleDriveFeedforward = scaleDriveFeedforward;
+        return this;
+    }
+
     public FollowerConstants secondaryDrivePIDFCoefficients(FilteredPIDFCoefficients secondaryDrivePIDFCoefficients) {
         this.secondaryDrivePIDFCoefficients = secondaryDrivePIDFCoefficients;
+        useSecondaryDrivePIDF = true;
         return this;
     }
 
@@ -369,6 +386,11 @@ public class FollowerConstants {
 
     public void setSecondaryTranslationalIntegral(PIDFCoefficients secondaryTranslationalIntegral) {
         this.secondaryTranslationalIntegral = secondaryTranslationalIntegral;
+    }
+
+    public FollowerConstants translationalIntegral(double translationalIntegral) {
+        this.translationalIntegral = new PIDFCoefficients(0, translationalIntegral, 0, 0);
+        return this;
     }
 
     public double getHeadingPIDFSwitch() {
@@ -509,6 +531,18 @@ public class FollowerConstants {
         this.lateralZeroPowerAcceleration = lateralZeroPowerAcceleration;
     }
 
+    public void setScaleDriveFeedforward(boolean scaleDriveFeedforward) {
+        this.scaleDriveFeedforward = scaleDriveFeedforward;
+    }
+
+    public void setScaleSecondaryDriveFeedforward(boolean scaleSecondaryDriveFeedforward) {
+        this.scaleSecondaryDriveFeedforward = scaleSecondaryDriveFeedforward;
+    }
+
+    public boolean isScaleDriveFeedforward() {
+        return scaleDriveFeedforward;
+    }
+
     public void defaults() {
         translationalPIDFCoefficients.setCoefficients(0.1, 0, 0, 0);
         translationalIntegral.setCoefficients(0, 0, 0, 0.015);
@@ -537,6 +571,9 @@ public class FollowerConstants {
         translationalPIDFSwitch = 3;
         turnHeadingErrorThreshold = 0.01;
         centripetalScaling = 0.0005;
+
+        scaleDriveFeedforward = false;
+        scaleSecondaryDriveFeedforward = false;
 
         automaticHoldEnd = true;
         mass = 10.65;
