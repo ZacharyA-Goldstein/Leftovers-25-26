@@ -14,7 +14,7 @@ import java.util.HashMap;
  * Cardinal Spline
  *
  *
- * @author icaras84
+ * @author William Phomphakdee - 7462 Not to Scale Alumni
  * @version 0.0.2, 07/11/2025
  */
 public class CharacteristicMatrixSupplier {
