@@ -1,15 +1,20 @@
 [versions]
 ftc = "10.3.0"
+desugar = "2.0.4"
+panels-core = "0.0.21"
+panels-field = "0.0.10"
 
 [libraries]
 ftc-robot-core = { group = "org.firstinspires.ftc", name = "RobotCore", version.ref = "ftc" }
 ftc-hardware = { group = "org.firstinspires.ftc", name = "Hardware", version.ref = "ftc" }
-panels = { group = "com.bylazar", name = "fullpanels", version = "0.0.39" }
-
+panels-core = { group = "com.bylazar", name = "panels", version.ref = "panels-core" }
+panels-field = { group = "com.bylazar", name = "field", version.ref = "panels-field" }
+desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 annotations = { group = "org.jetbrains", name = "annotations", version = "23.0.0" }
 
 [bundles]
 ftc = ["ftc-robot-core", "ftc-hardware"]
+panels = ["panels-core", "panels-field"]
 
 [plugins]
 android-library = { id = "com.android.library", version = "8.7.3" }
