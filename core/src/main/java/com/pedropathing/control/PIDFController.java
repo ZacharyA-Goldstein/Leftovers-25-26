@@ -42,7 +42,7 @@ public class PIDFController {
      * @return this returns the value of the PIDF from the current error.
      */
     public double runPIDF() {
-        return error * P() + errorDerivative * D() + errorIntegral * I() + F();
+        return error * P() + errorDerivative * D() + errorIntegral * I() + feedForwardInput * F();
     }
 
     /**
@@ -209,7 +209,7 @@ public class PIDFController {
      * @return this returns the F constant.
      */
     public double F() {
-        return coefficients.getCoefficient(feedForwardInput);
+        return coefficients.F;
     }
 
     /**

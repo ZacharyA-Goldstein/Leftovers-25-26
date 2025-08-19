@@ -31,6 +31,8 @@ public class PathChain {
     private DecelerationType decelerationType = DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
     public HeadingInterpolator headingInterpolator = null;
+    private Double closestPointHeadingGoal;
+    private Double finalHeadingGoal;
 
     /**
      * This creates a new PathChain from some specified Paths.
@@ -316,6 +318,19 @@ public class PathChain {
     }
 
     /**
+     * This returns the heading goal of the path.
+     * @param pathTValue this is the path and t-value
+     * @return the heading goal of the path
+     */
+    public double getClosestPointHeadingGoal(PathT pathTValue) {
+        if (closestPointHeadingGoal == null) {
+            closestPointHeadingGoal = getHeadingGoal(pathTValue);
+        }
+
+        return closestPointHeadingGoal;
+    }
+
+    /**
      * This returns the tangent vector of the point in the path.
      * @param pathTValue this is the path and t-value
      * @return the tangent vector of the point in the path
@@ -368,5 +383,18 @@ public class PathChain {
             return null;
         }
         return pathChain.get(0);
+    }
+
+    public Double getFinalHeadingGoal() {
+        if (finalHeadingGoal == null) {
+            if (headingInterpolator == null) finalHeadingGoal = lastPath().getHeadingGoal(1);
+            else finalHeadingGoal = headingInterpolator.interpolate(new PathPoint(1, lastPath().endPose(), lastPath().getEndTangent()));
+        }
+
+        return finalHeadingGoal;
+    }
+
+    public void update() {
+        closestPointHeadingGoal = null;
     }
 }

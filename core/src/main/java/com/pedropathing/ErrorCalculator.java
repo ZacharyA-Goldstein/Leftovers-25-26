@@ -29,6 +29,7 @@ public class ErrorCalculator {
     private double rawDriveError, previousRawDriveError, headingError, xVelocity, yVelocity;
     private Double driveError;
     private Vector velocityVector = new Vector();
+    private double headingGoal;
     
     public ErrorCalculator(FollowerConstants constants) {
         this.constants = constants;
@@ -41,7 +42,7 @@ public class ErrorCalculator {
 
     }
 
-    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Pose closestPose, Vector velocity, int chainIndex, double xMovement, double yMovement) {
+    public void update(Pose currentPose, Path currentPath, PathChain currentPathChain, boolean followingPathChain, Pose closestPose, Vector velocity, int chainIndex, double xMovement, double yMovement, double headingGoal) {
         this.currentPose = currentPose;
         this.velocityVector = velocity;
         this.currentPath = currentPath;
@@ -51,6 +52,7 @@ public class ErrorCalculator {
         this.chainIndex = chainIndex;
         this.xVelocity = xMovement;
         this.yVelocity = yMovement;
+        this.headingGoal = headingGoal;
         driveError = null;
     }
 
@@ -77,7 +79,7 @@ public class ErrorCalculator {
             return 0;
         }
 
-        headingError = MathFunctions.getTurnDirection(currentPose.getHeading(), closestPointHeadingGoal()) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), currentPath.getClosestPointHeadingGoal());
+        headingError = MathFunctions.getTurnDirection(currentPose.getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), headingGoal);
         return headingError;
     }
 
@@ -171,7 +173,7 @@ public class ErrorCalculator {
                     distanceToGoal = remainingLength + currentPath.getDistanceRemaining();
 
                     Vector tangent = currentPath.getClosestPointTangentVector().normalize();
-                    Vector forwardTheoreticalHeadingVector = new Vector(1.0, closestPointHeadingGoal());
+                    Vector forwardTheoreticalHeadingVector = new Vector(1.0, headingGoal);
 
                     double stoppingDistance = Kinematics.getStoppingDistance(
                             yVelocity + (xVelocity - yVelocity) * forwardTheoreticalHeadingVector.dot(tangent), constants.forwardZeroPowerAcceleration
@@ -218,18 +220,6 @@ public class ErrorCalculator {
 
     public void setConstants(FollowerConstants constants) {
         this.constants = constants;
-    }
-
-    private double closestPointHeadingGoal() {
-        if (currentPath == null) {
-            return 0;
-        }
-
-        if (followingPathChain) {
-            return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, currentPath.getClosestPointTValue()));
-        }
-
-        return currentPath.getClosestPointHeadingGoal();
     }
 
     public String debugString() {
