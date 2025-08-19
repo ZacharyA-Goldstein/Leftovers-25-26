@@ -15,6 +15,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
     }
 
     publishing {
@@ -27,7 +28,6 @@ android {
     sourceSets {
         getByName("main") {
             java.srcDirs("src/main/kotlin")
-
         }
     }
 
@@ -70,8 +70,9 @@ tasks.register<Jar>("sourcesJar") {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar)
     compileOnly(libs.bundles.ftc)
-    compileOnly(libs.panels)
+    compileOnly(libs.bundles.panels)
     api(project(":core"))
 }
 
