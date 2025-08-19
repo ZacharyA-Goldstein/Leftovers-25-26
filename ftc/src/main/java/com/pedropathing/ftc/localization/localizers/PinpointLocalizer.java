@@ -58,11 +58,11 @@ public class PinpointLocalizer implements Localizer {
         odo = map.get(GoBildaPinpointDriver.class,constants.hardwareMapName);
         setOffsets(constants.forwardPodY, constants.strafePodX, constants.distanceUnit);
 
-        if(!constants.yawScalar.isEmpty()) {
+        if(constants.yawScalar.isPresent()) {
             odo.setYawScalar(constants.yawScalar.getAsDouble());
         }
 
-        if(!constants.customEncoderResolution.isEmpty()) {
+        if(constants.customEncoderResolution.isPresent()) {
             odo.setEncoderResolution(constants.customEncoderResolution.getAsDouble(), DistanceUnit.INCH);
         } else {
             odo.setEncoderResolution(constants.encoderResolution);

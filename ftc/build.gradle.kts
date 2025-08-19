@@ -10,12 +10,11 @@ plugins {
 
 android {
     namespace = "com.pedropathing.ftc"
-    compileSdk = 34
+    compileSdk = 30
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-        isCoreLibraryDesugaringEnabled = true
     }
 
     publishing {
@@ -70,7 +69,6 @@ tasks.register<Jar>("sourcesJar") {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar)
     compileOnly(libs.bundles.ftc)
     compileOnly(libs.bundles.panels)
     api(project(":core"))

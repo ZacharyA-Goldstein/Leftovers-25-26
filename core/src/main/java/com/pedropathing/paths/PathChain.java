@@ -202,69 +202,64 @@ public class PathChain {
      * Represents a specific point within a {@link PathChain}, defined by a path index and a t-value (parametric position).
      * Provides utility methods to access the corresponding path, pose, point, tangent vector, and heading goal.
      *
-     * @param pathIndex The index of the path in the chain.
-     * @param t         The t-value (parametric position) within the path.
-     *
      * @author Havish Sripada - 12808 RevAmped Robotics
      */
-        public record PathT(int pathIndex, double t) {
-        /**
-         * This creates a new Path and T-Value pair from a path index and a t value.
-         *
-         * @param pathIndex this specifies the index of the path in the chain
-         * @param t         this is the t-value of the point in the path
-         */
-            public PathT {}
+    public static class PathT {
+        private final int pathIndex;
+        private final double t;
 
-            /**
-             * This returns the path in the chain.
-             *
-             * @return the path in the chain
-             */
-            public Path getPath(PathChain pathChain) {
-                return pathChain.getPath(pathIndex);
-            }
-
-            /**
-             * This returns the pose of the point in the path.
-             *
-             * @param pathChain this is the path chain
-             * @return the pose of the point in the path
-             */
-            public Pose getPose(PathChain pathChain) {
-                return pathChain.getPath(pathIndex).getPose(t);
-            }
-
-            /**
-             * This returns the point in the path.
-             *
-             * @param pathChain this is the path chain
-             * @return the point in the path
-             */
-            public Pose getPoint(PathChain pathChain) {
-                return pathChain.getPath(pathIndex).getPoint(t);
-            }
-
-            /**
-             * This returns the tangent vector of the point in the path.
-             *
-             * @param pathChain this is the path chain
-             * @return the tangent vector of the point in the path
-             */
-            public Vector getTangentVector(PathChain pathChain) {
-                return pathChain.getPath(pathIndex).getTangentVector(t);
-            }
-
-            /**
-             * This returns the heading goal of the path.
-             *
-             * @param pathChain this is the path chain
-             * @return the heading goal of the path
-             */
-            public double getHeadingGoal(PathChain pathChain) {
-                return pathChain.getPath(pathIndex).getHeadingGoal(t);
-            }
+        public PathT(int pathIndex, double t) {
+            this.pathIndex = pathIndex;
+            this.t = t;
         }
+
+        public int pathIndex() {
+            return pathIndex;
+        }
+
+        public double t() {
+            return t;
+        }
+
+        public Path getPath(PathChain pathChain) {
+            return pathChain.getPath(pathIndex);
+        }
+
+        public Pose getPose(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getPose(t);
+        }
+
+        public Pose getPoint(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getPoint(t);
+        }
+
+        public Vector getTangentVector(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getTangentVector(t);
+        }
+
+        public double getHeadingGoal(PathChain pathChain) {
+            return pathChain.getPath(pathIndex).getHeadingGoal(t);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof PathT)) return false;
+            PathT other = (PathT) o;
+            return pathIndex == other.pathIndex && Double.compare(other.t, t) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return java.util.Objects.hash(pathIndex, t);
+        }
+
+        @Override
+        public String toString() {
+            return "PathT[pathIndex=" + pathIndex + ", t=" + t + "]";
+        }
+    }
+
 
     /**
      * This gets the path that corresponds to the given completion amount of the chain

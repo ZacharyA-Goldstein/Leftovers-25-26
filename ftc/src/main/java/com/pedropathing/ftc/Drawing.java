@@ -1,11 +1,11 @@
 package com.pedropathing.ftc;
 
-import com.bylazar.field.FieldManager;
-import com.bylazar.field.PanelsField;
-import com.bylazar.field.Style;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
+import com.pedropathing.panels.field.FieldManager;
+import com.pedropathing.panels.field.PanelsField;
+import com.pedropathing.panels.field.Style;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.PoseHistory;
@@ -95,6 +95,14 @@ public class Drawing {
      */
     public static void drawPath(Path path, Style style) {
         double[][] points = path.getPanelsDrawingPoints();
+
+        for (int i = 0; i < points[0].length; i++) {
+            for (int j = 0; j < points.length; j++) {
+                if (Double.isNaN(points[i][j])) {
+                    points[i][j] = 0;
+                }
+            }
+        }
 
         panelsField.setStyle(style);
         panelsField.moveCursor(points[0][0], points[0][1]);

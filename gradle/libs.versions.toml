@@ -1,15 +1,13 @@
 [versions]
 ftc = "10.3.0"
-desugar = "2.0.4"
-panels-core = "0.0.21"
-panels-field = "0.0.10"
+panels-core = "0.0.23"
+panels-field = "0.0.13"
 
 [libraries]
 ftc-robot-core = { group = "org.firstinspires.ftc", name = "RobotCore", version.ref = "ftc" }
 ftc-hardware = { group = "org.firstinspires.ftc", name = "Hardware", version.ref = "ftc" }
-panels-core = { group = "com.bylazar", name = "panels", version.ref = "panels-core" }
-panels-field = { group = "com.bylazar", name = "field", version.ref = "panels-field" }
-desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
+panels-core = { group = "com.pedropathing.panels", name = "core", version.ref = "panels-core" }
+panels-field = { group = "com.pedropathing.panels", name = "field", version.ref = "panels-field" }
 annotations = { group = "org.jetbrains", name = "annotations", version = "23.0.0" }
 
 [bundles]
