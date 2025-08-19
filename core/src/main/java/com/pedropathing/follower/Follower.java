@@ -48,7 +48,7 @@ public class Follower {
     private int BEZIER_CURVE_SEARCH_LIMIT;
     private int chainIndex;
     private boolean followingPathChain, holdingPosition, isBusy, isTurning, reachedParametricPathEnd, holdPositionAtEnd, manualDrive;
-    private boolean automaticHoldEnd;
+    private boolean automaticHoldEnd, useHoldScaling = true;
     private double globalMaxPower = 1, centripetalScaling;
     private double holdPointTranslationalScaling;
     private double holdPointHeadingScaling;
@@ -175,16 +175,28 @@ public class Follower {
      *
      * @param point   the Point to stay at.
      * @param heading the heading to face.
+     * @param useHoldScaling true if you want to correct and turn slowly, false otherwise
      */
-    public void holdPoint(BezierPoint point, double heading) {
+    public void holdPoint(BezierPoint point, double heading, boolean useHoldScaling) {
         breakFollowing();
         holdingPosition = true;
+        this.useHoldScaling = useHoldScaling;
         isBusy = false;
         followingPathChain = false;
         setPath(new Path(point));
         currentPath.setConstantHeadingInterpolation(heading);
         previousClosestPose = closestPose;
         closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
+    }
+
+    /**
+     * This holds a Point.
+     *
+     * @param point   the Point to stay at.
+     * @param heading the heading to face.
+     */
+    public void holdPoint(BezierPoint point, double heading) {
+        holdPoint(point, heading, true);
     }
 
     /**
@@ -393,7 +405,7 @@ public class Follower {
             previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
             updateErrorAndVectors();
-            drivetrain.getAndRunDrivePowers(getTranslationalCorrection().times(holdPointTranslationalScaling), getHeadingVector().times(holdPointHeadingScaling), new Vector(), poseTracker.getPose().getHeading());
+            drivetrain.getAndRunDrivePowers(useHoldScaling? getTranslationalCorrection().times(holdPointTranslationalScaling) : getTranslationalCorrection(), useHoldScaling? getHeadingVector().times(holdPointHeadingScaling) : getHeadingVector(), new Vector(), poseTracker.getPose().getHeading());
 
             if(getHeadingError() < turnHeadingErrorThreshold && isTurning) {
                 isTurning = false;

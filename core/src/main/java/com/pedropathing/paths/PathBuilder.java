@@ -32,7 +32,6 @@ public class PathBuilder {
     private ArrayList<Path> paths = new ArrayList<>();
     private PathChain.DecelerationType decelerationType = PathChain.DecelerationType.LAST_PATH;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
-    private double decelerationStart;
     private PathConstraints constraints;
     private HeadingInterpolator headingInterpolator;
     private Follower follower;
@@ -47,7 +46,6 @@ public class PathBuilder {
      */
     public PathBuilder(Follower follower, PathConstraints constraints) {
         this.follower = follower;
-        this.decelerationStart = constraints.getDecelerationStart();
         this.constraints = constraints;
     }
 
@@ -127,8 +125,8 @@ public class PathBuilder {
         poses.addAll(Arrays.asList(points));
 
         // auto calculate new end point to generate a valid tangent
-        Pose diff = poses.getLast().minus(poses.get(poses.size() - 2));
-        poses.add(poses.getLast().plus(diff));
+        Pose diff = poses.get(poses.size() - 1).minus(poses.get(poses.size() - 2));
+        poses.add(poses.get(poses.size() - 1).plus(diff));
 
         double sixth = 1d / (tension * 6d);
 
@@ -157,8 +155,8 @@ public class PathBuilder {
         Pose startPoint;
 
         if (!this.paths.isEmpty()){
-            prevPoint = this.paths.getLast().getFirstControlPoint();
-            startPoint = this.paths.getLast().getLastControlPoint();
+            prevPoint = this.paths.get(paths.size() - 1).getFirstControlPoint();
+            startPoint = this.paths.get(paths.size() - 1).getLastControlPoint();
         } else {
             // fallback if the last path doesn't exist
             startPoint = this.follower.getPoseTracker().getPreviousPose().copy();
@@ -328,7 +326,7 @@ public class PathBuilder {
      * @return This returns itself with the updated data.
      */
     public PathBuilder setDecelerationStrength(double set) {
-        this.paths.get(paths.size() - 1).setDecelerationStrength(set);
+        constraints.setDecelerationStrength(set);
         return this;
     }
 
@@ -505,7 +503,8 @@ public class PathBuilder {
         PathChain returnChain = new PathChain(paths);
         returnChain.setCallbacks(callbacks);
         returnChain.setDecelerationType(decelerationType);
-        returnChain.setDecelerationStart(decelerationStart);
+        setDecelerationStartForAll(constraints.getDecelerationStart());
+        setDecelerationStrengthForAll(constraints.getDecelerationStrength());
         returnChain.setHeadingInterpolator(headingInterpolator);
 
         return returnChain;
@@ -527,7 +526,7 @@ public class PathBuilder {
      */
     public PathBuilder setGlobalDeceleration(double decelerationStartMultiplier) {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
-        this.decelerationStart = decelerationStartMultiplier;
+        constraints.setDecelerationStart(decelerationStartMultiplier);
         return this;
     }
 
@@ -575,5 +574,13 @@ public class PathBuilder {
         this.constraints = constraints;
         paths.get(paths.size() - 1).setConstraints(constraints);
         return this;
+    }
+
+    private void setDecelerationStrengthForAll(double strength) {
+        for (Path path : paths) path.setDecelerationStrength(strength);
+    }
+
+    private void setDecelerationStartForAll(double start) {
+        for (Path path : paths) path.setDecelerationStartMultiplier(start);
     }
 }

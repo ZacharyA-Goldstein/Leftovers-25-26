@@ -20,7 +20,6 @@ import java.util.Arrays;
  * @version 1.0, 3/11/2024
  */
 public class PathChain {
-    private PathConstraints constraints;
     private ArrayList<Path> pathChain = new ArrayList<>();
     private double length = 0;
 
@@ -30,7 +29,6 @@ public class PathChain {
         LAST_PATH
     }
     private DecelerationType decelerationType = DecelerationType.LAST_PATH;
-    private double decelerationStart;
     private ArrayList<PathCallback> callbacks = new ArrayList<>();
     public HeadingInterpolator headingInterpolator = null;
 
@@ -56,9 +54,6 @@ public class PathChain {
      * @param constraints the PathConstraints for the PathChain.
      */
     public PathChain(PathConstraints constraints, Path... paths) {
-        this.constraints = constraints;
-        decelerationStart = constraints.getDecelerationStart();
-
         for (Path path : paths) {
             path.setConstraints(constraints);
             pathChain.add(path);
@@ -88,9 +83,6 @@ public class PathChain {
      * @param constraints the PathConstraints for the PathChain.
      */
     public PathChain(PathConstraints constraints, ArrayList<Path> paths) {
-        this.constraints = constraints;
-        decelerationStart = constraints.getDecelerationStart();
-
         for (Path path : paths) {
             path.setConstraints(constraints);
         }
@@ -179,22 +171,6 @@ public class PathChain {
     }
 
     /**
-     * This sets the deceleration start multiplier of the PathChain.
-     * @param decelerationStart the deceleration start multiplier to set
-     */
-    public void setDecelerationStart(double decelerationStart) {
-        this.decelerationStart = decelerationStart;
-    }
-
-    /**
-     * This returns the deceleration start multiplier of the PathChain.
-     * @return the deceleration start multiplier of the PathChain
-     */
-    public double getDecelerationStart() {
-        return decelerationStart;
-    }
-
-    /**
      * This returns the end pose of the PathChain.
      * @return the end pose of the PathChain
      */
@@ -217,7 +193,6 @@ public class PathChain {
      * @param constraints the constraints to set
      */
     public void setConstraintsForAll(PathConstraints constraints) {
-        this.constraints = constraints;
         for (Path path : pathChain) {
             path.setConstraints(constraints);
         }

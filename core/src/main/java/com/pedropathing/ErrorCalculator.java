@@ -176,7 +176,7 @@ public class ErrorCalculator {
                     double stoppingDistance = Kinematics.getStoppingDistance(
                             yVelocity + (xVelocity - yVelocity) * forwardTheoreticalHeadingVector.dot(tangent), constants.forwardZeroPowerAcceleration
                     );
-                    if (distanceToGoal >= stoppingDistance * currentPathChain.getDecelerationStart()) {
+                    if (distanceToGoal >= stoppingDistance * currentPath.getDecelerationStartMultiplier()) {
                         return -1;
                     }
                 } else if ((type == PathChain.DecelerationType.LAST_PATH && chainIndex < currentPathChain.size() - 1) || type == PathChain.DecelerationType.NONE) {

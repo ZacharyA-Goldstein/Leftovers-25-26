@@ -30,58 +30,6 @@ public class Path {
     private Pose closestPose;
 
     /**
-     * A multiplier for the zero power acceleration to change the speed at which the robot decelerates at the end of paths.
-     * <p>
-     * Increasing this value will cause the robot to decelerate faster, which may increase the risk of overshoots or localization slippage.
-     * Decreasing this value will slow down the deceleration at the end of the path, making the robot slower but reducing the risk of end-of-path overshoots or localization slippage.
-     * <p>
-     * This can be set individually for each Path, but this is the default value.
-     */;
-
-    private double decelerationStrength;
-
-    /**
-     * When the robot is at the end of its current Path or PathChain and the velocity goes
-     * below this value, then end the Path. This is in inches/second.
-     * This can be custom set for each Path.
-     */
-    private double pathEndVelocityConstraint;
-
-    /**
-     * When the robot is at the end of its current Path or PathChain and the translational error
-     * goes below this value, then end the Path. This is in inches.
-     * This can be custom set for each Path.
-     */
-    private double pathEndTranslationalConstraint;
-
-    /**
-     * When the robot is at the end of its current Path or PathChain and the heading error goes
-     * below this value, then end the Path. This is in radians.
-     * This can be custom set for each Path.
-     */
-    private double pathEndHeadingConstraint;
-
-    /**
-     * When the t-value of the closest point to the robot on the Path is greater than this value,
-     * then the Path is considered at its end.
-     * This can be custom set for each Path.
-     */
-    private double pathEndTValueConstraint;
-
-    /**
-     * When the Path is considered at its end parametrically, then the Follower has this many
-     * milliseconds to further correct by default.
-     * This can be custom set for each Path.
-     */
-    private double pathEndTimeoutConstraint;
-
-    /**
-     * The maximum number of iterations to use when searching for the closest point on the Bezier curve.
-     * This is used as a limit for Newton search algorithms to prevent excessive computation.
-     */
-    private int BEZIER_CURVE_SEARCH_LIMIT;
-
-    /**
      * Creates a new Path from a BezierCurve. The default heading interpolation is tangential.
      *
      * @param curve the BezierCurve.
@@ -197,7 +145,7 @@ public class Path {
      * @return the closest point t-value
      */
     public PathPoint getClosestPoint(Pose pose) {
-        return getClosestPoint(pose, BEZIER_CURVE_SEARCH_LIMIT);
+        return getClosestPoint(pose, constraints.getBEZIER_CURVE_SEARCH_LIMIT());
     }
 
     /**
@@ -231,7 +179,7 @@ public class Path {
      * @return the closest point
      */
     public PathPoint updateClosestPose(Pose currentPose) {
-        return updateClosestPose(currentPose, BEZIER_CURVE_SEARCH_LIMIT);
+        return updateClosestPose(currentPose, constraints.getBEZIER_CURVE_SEARCH_LIMIT());
     }
 
     /**
@@ -469,7 +417,7 @@ public class Path {
      * @return returns if at start.
      */
     public boolean isAtParametricStart() {
-        return closestPointTValue <= 1 - pathEndTValueConstraint;
+        return closestPointTValue <= 1 - constraints.getTValueConstraint();
     }
 
     /**
@@ -524,8 +472,19 @@ public class Path {
      * @param set This sets the multiplier.
      */
     public void setDecelerationStrength(double set) {
-        decelerationStrength = set;
+        constraints.setDecelerationStrength(set);
     }
+
+    /**
+     * This sets the multiplier on where the robot starts decelerating along the path.
+     * A higher number will decelerate earlier and a later number will decelerate later.
+     *
+     * @param set This sets the multiplier.
+     */
+    public void setDecelerationStartMultiplier(double set) {
+        constraints.setDecelerationStart(set);
+    }
+
 
     /**
      * This sets the velocity stop criteria. When velocity is below this amount, then this is met.
@@ -533,7 +492,7 @@ public class Path {
      * @param set This sets the velocity end constraint.
      */
     public void setPathEndVelocityConstraint(double set) {
-        pathEndVelocityConstraint = set;
+        constraints.setVelocityConstraint(set);
     }
 
     /**
@@ -543,7 +502,7 @@ public class Path {
      * @param set This sets the translational end constraint.
      */
     public void setPathEndTranslationalConstraint(double set) {
-        pathEndTranslationalConstraint = set;
+        constraints.setTranslationalConstraint(set);
     }
 
     /**
@@ -553,7 +512,7 @@ public class Path {
      * @param set This sets the heading end constraint.
      */
     public void setPathEndHeadingConstraint(double set) {
-        pathEndHeadingConstraint = set;
+        constraints.setHeadingConstraint(set);
     }
 
     /**
@@ -563,7 +522,7 @@ public class Path {
      * @param set This sets the t-value end constraint.
      */
     public void setPathEndTValueConstraint(double set) {
-        pathEndTValueConstraint = set;
+       constraints.setTValueConstraint(set);
     }
 
     /**
@@ -573,7 +532,7 @@ public class Path {
      * @param set This sets the Path end timeout.
      */
     public void setPathEndTimeoutConstraint(double set) {
-        pathEndTimeoutConstraint = set;
+        constraints.setTimeoutConstraint(set);
     }
 
     /**
@@ -582,7 +541,16 @@ public class Path {
      * @return This returns the deceleration multiplier.
      */
     public double getDecelerationStrength() {
-        return decelerationStrength;
+        return constraints.getDecelerationStrength();
+    }
+
+    /**
+     * This gets the deceleration start multiplier.
+     *
+     * @return This returns the deceleration start multiplier.
+     */
+    public double getDecelerationStartMultiplier() {
+        return constraints.getDecelerationStart();
     }
 
     /**
@@ -591,7 +559,7 @@ public class Path {
      * @return This returns the velocity stop criteria.
      */
     public double getPathEndVelocityConstraint() {
-        return pathEndVelocityConstraint;
+        return constraints.getVelocityConstraint();
     }
 
     /**
@@ -600,7 +568,7 @@ public class Path {
      * @return This returns the translational stop criteria.
      */
     public double getPathEndTranslationalConstraint() {
-        return pathEndTranslationalConstraint;
+        return constraints.getTranslationalConstraint();
     }
 
     /**
@@ -609,7 +577,7 @@ public class Path {
      * @return This returns the heading stop criteria.
      */
     public double getPathEndHeadingConstraint() {
-        return pathEndHeadingConstraint;
+        return constraints.getHeadingConstraint();
     }
 
     /**
@@ -618,7 +586,7 @@ public class Path {
      * @return This returns the parametric end criteria.
      */
     public double getPathEndTValueConstraint() {
-        return pathEndTValueConstraint;
+        return constraints.getTValueConstraint();
     }
 
     /**
@@ -627,7 +595,7 @@ public class Path {
      * @return This returns the Path end correction time.
      */
     public double getPathEndTimeoutConstraint() {
-        return pathEndTimeoutConstraint;
+        return constraints.getTimeoutConstraint();
     }
 
     /**
@@ -684,13 +652,6 @@ public class Path {
      * @param constraints the PathConstraints to set.
      */
     public void setConstraints(PathConstraints constraints) {
-        decelerationStrength = constraints.getDecelerationStrength();
-        pathEndVelocityConstraint = constraints.getVelocityConstraint();
-        pathEndTranslationalConstraint = constraints.getTranslationalConstraint();
-        pathEndHeadingConstraint = constraints.getHeadingConstraint();
-        pathEndTValueConstraint = constraints.getTValueConstraint();
-        pathEndTimeoutConstraint = constraints.getTimeoutConstraint();
-        BEZIER_CURVE_SEARCH_LIMIT = constraints.getBEZIER_CURVE_SEARCH_LIMIT();
         this.constraints = constraints;
 
         if (curve != null) curve.setPathConstraints(constraints);

@@ -80,6 +80,7 @@ public class FollowerBuilder {
 
     public FollowerBuilder pathConstraints(PathConstraints pathConstraints) {
         this.constraints = pathConstraints;
+        PathConstraints.setDefaultConstraints(pathConstraints);
         return this;
     }
 

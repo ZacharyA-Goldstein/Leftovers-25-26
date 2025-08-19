@@ -7,7 +7,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 0.1
      */
-    private final double velocityConstraint;
+    private double velocityConstraint;
 
     /**
      * When the robot is at the end of its current Path or PathChain and the translational error
@@ -15,7 +15,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 0.1
      */
-    private final double translationalConstraint;
+    private double translationalConstraint;
 
     /**
      * When the robot is at the end of its current Path or PathChain and the heading error goes
@@ -23,7 +23,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 0.007
      */
-    private final double headingConstraint;
+    private double headingConstraint;
 
     /**
      * When the t-value of the closest point to the robot on the Path is greater than this value,
@@ -31,7 +31,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 0.995
      */
-    private final double tValueConstraint;
+    private double tValueConstraint;
 
     /**
      * When the Path is considered at its end parametrically, then the Follower has this many
@@ -39,7 +39,7 @@ public final class PathConstraints {
      * This can be custom set for each Path.
      * Default Value: 100
      */
-    private final double timeoutConstraint;
+    private double timeoutConstraint;
 
     /**
      * A multiplier for the zero power acceleration to change the speed the robot decelerates at
@@ -49,19 +49,19 @@ public final class PathConstraints {
      * Decreasing this will cause the deceleration at the end of the Path to be slower, making the
      * robot slower but reducing risk of end-of-path overshoots or localization slippage.
      * This can be set individually for each Path, but this is the default.
-     * Default Value: 4
+     * Default Value: 1
      */
-    private final double decelerationStrength;
+    private double decelerationStrength;
 
     /**
      * Multiplier for when the path should start its deceleration
      */
-    private final double decelerationStart;
+    private double decelerationStart;
 
     /**
      * The number of steps in searching for the closest point
      */
-    private final int BEZIER_CURVE_SEARCH_LIMIT;
+    private int BEZIER_CURVE_SEARCH_LIMIT;
 
     public PathConstraints(double tValueConstraint, double velocityConstraint, double translationalConstraint, double headingConstraint, double timeoutConstraint, double decelerationStrength, int BEZIER_CURVE_SEARCH_LIMIT, double decelerationStart) {
         this.tValueConstraint = tValueConstraint;
@@ -114,5 +114,41 @@ public final class PathConstraints {
 
     public int getBEZIER_CURVE_SEARCH_LIMIT() {
         return BEZIER_CURVE_SEARCH_LIMIT;
+    }
+
+    public static void setDefaultConstraints(PathConstraints defaultConstraints) {
+        PathConstraints.defaultConstraints = defaultConstraints;
+    }
+
+    public void setBEZIER_CURVE_SEARCH_LIMIT(int BEZIER_CURVE_SEARCH_LIMIT) {
+        this.BEZIER_CURVE_SEARCH_LIMIT = BEZIER_CURVE_SEARCH_LIMIT;
+    }
+
+    public void setDecelerationStart(double decelerationStart) {
+        this.decelerationStart = decelerationStart;
+    }
+
+    public void setDecelerationStrength(double decelerationStrength) {
+        this.decelerationStrength = decelerationStrength;
+    }
+
+    public void setHeadingConstraint(double headingConstraint) {
+        this.headingConstraint = headingConstraint;
+    }
+
+    public void setTimeoutConstraint(double timeoutConstraint) {
+        this.timeoutConstraint = timeoutConstraint;
+    }
+
+    public void setTranslationalConstraint(double translationalConstraint) {
+        this.translationalConstraint = translationalConstraint;
+    }
+
+    public void setTValueConstraint(double tValueConstraint) {
+        this.tValueConstraint = tValueConstraint;
+    }
+
+    public void setVelocityConstraint(double velocityConstraint) {
+        this.velocityConstraint = velocityConstraint;
     }
 }
