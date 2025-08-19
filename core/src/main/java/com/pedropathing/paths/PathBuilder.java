@@ -1,8 +1,10 @@
 package com.pedropathing.paths;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Curve;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Matrix;
 import com.pedropathing.paths.callbacks.ParametricCallback;
 import com.pedropathing.paths.callbacks.PathCallback;
 import com.pedropathing.paths.callbacks.PoseCallback;
@@ -10,6 +12,9 @@ import com.pedropathing.paths.callbacks.TemporalCallback;
 import com.pedropathing.util.FiniteRunAction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * This is the PathBuilder class. This class makes it easier to create PathChains, so you don't have
@@ -103,6 +108,83 @@ public class PathBuilder {
             this.paths.add(new Path(curve, constraints));
         }
         return this;
+    }
+
+    /**
+     * Automagically generate bézier curves through each given point and add to path
+     * @param tension controls tangents' generation magnitude
+     * @param prevPoint the point prior to the start point
+     * @param startPoint start point of the curve chain
+     * @param points other points
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder curveThrough(double tension, Pose prevPoint, Pose startPoint, Pose... points){
+        ArrayList<Pose> poses = new ArrayList<>();
+
+        poses.add(prevPoint);
+        poses.add(startPoint);
+
+        poses.addAll(Arrays.asList(points));
+
+        // auto calculate new end point to generate a valid tangent
+        Pose diff = poses.getLast().minus(poses.get(poses.size() - 2));
+        poses.add(poses.getLast().plus(diff));
+
+        double sixth = 1d / (tension * 6d);
+
+        List<ArrayList<Pose>> controlPoints = new ArrayList<>();
+        for (int i = 1; i < poses.size() - 2; i++) {
+            controlPoints.add(catmullToBezier(sixth, poses.get(i - 1), poses.get(i), poses.get(i + 1), poses.get(i + 2)));
+        }
+
+        BezierCurve[] curves = new BezierCurve[controlPoints.size()];
+        for (int i = 0; i < curves.length; i++) {
+            curves[i] = new BezierCurve(controlPoints.get(i), this.constraints);
+        }
+
+        return addPaths(curves);
+    }
+
+    /**
+     * Automagically generate bézier curves through each given point and add to path.
+     * This method starts the first curve from the last path's end point.
+     * @param tension controls tangents' generation magnitude
+     * @param points points to curve through
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder curveThrough(double tension, Pose... points){
+        Pose prevPoint;
+        Pose startPoint;
+
+        if (!this.paths.isEmpty()){
+            prevPoint = this.paths.getLast().getFirstControlPoint();
+            startPoint = this.paths.getLast().getLastControlPoint();
+        } else {
+            // fallback if the last path doesn't exist
+            startPoint = this.follower.getPoseTracker().getPreviousPose().copy();
+            // the first element of points must exist
+            prevPoint = startPoint.minus(points[0].minus(startPoint));
+        }
+
+        return curveThrough(tension, prevPoint, startPoint, points);
+    }
+
+    /**
+     * Converts catmull rom spline points into cubic bezier control points
+     * @param sixth tension / 6
+     * @param p0 previous pose
+     * @param p1 current pose
+     * @param p2 next pose
+     * @param p3 next pose of the next pose
+     * @return list of cubic bezier control points
+     */
+    private ArrayList<Pose> catmullToBezier(double sixth, Pose p0, Pose p1, Pose p2, Pose p3){
+        ArrayList<Pose> output = new ArrayList<>();
+        output.add(p1);
+        output.add(p1.plus(p2.minus(p0).times(sixth)));
+        output.add(p2.minus(p3.minus(p1).times(sixth)));
+        output.add(p2);
+        return output;
     }
 
     /**
