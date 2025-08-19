@@ -327,12 +327,13 @@ public class PathChain {
     public double getHeadingGoal(PathT pathTValue) {
         if (headingInterpolator != null) {
             double sumLength = 0;
-            for (int i = 0; i < pathTValue.pathIndex; i++) {
+
+            for (int i = 0; i < pathTValue.pathIndex(); i++) {
                 sumLength += pathChain.get(i).length();
             }
 
             double pathInitialTValue = sumLength / length;
-            double chainT = pathInitialTValue + pathTValue.t * pathChain.get(pathTValue.pathIndex).length() / length;
+            double chainT = pathInitialTValue + pathChain.get(pathTValue.pathIndex()).getDistanceTraveled(pathTValue.t()) / length;
             return headingInterpolator.interpolate(new PathPoint(chainT, pathTValue.getPoint(this), pathTValue.getTangentVector(this)));
         }
 

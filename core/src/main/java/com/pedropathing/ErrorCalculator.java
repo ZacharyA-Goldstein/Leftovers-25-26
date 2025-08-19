@@ -171,7 +171,7 @@ public class ErrorCalculator {
                     distanceToGoal = remainingLength + currentPath.getDistanceRemaining();
 
                     Vector tangent = currentPath.getClosestPointTangentVector().normalize();
-                    Vector forwardTheoreticalHeadingVector = new Vector(1.0, closestPose.getHeading());
+                    Vector forwardTheoreticalHeadingVector = new Vector(1.0, closestPointHeadingGoal());
 
                     double stoppingDistance = Kinematics.getStoppingDistance(
                             yVelocity + (xVelocity - yVelocity) * forwardTheoreticalHeadingVector.dot(tangent), constants.forwardZeroPowerAcceleration

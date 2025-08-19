@@ -278,6 +278,7 @@ public class Follower {
         if (resetFollowing != null) {
             resetFollowing.run();
             resetFollowing = null;
+            holdingPosition = false;
             isBusy = true;
             previousClosestPose = closestPose;
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
@@ -466,7 +467,7 @@ public class Follower {
 
         if (holdPositionAtEnd) {
             holdPositionAtEnd = false;
-            if (followingPathChain) holdPoint(new BezierPoint(currentPath.getLastControlPoint()), currentPathChain.getHeadingGoal(new PathChain.PathT(currentPathChain.size(), 1)));
+            if (followingPathChain) holdPoint(new BezierPoint(currentPath.getLastControlPoint()), currentPathChain.getHeadingGoal(new PathChain.PathT(currentPathChain.size() - 1, 1)));
             else holdPoint(new BezierPoint(currentPath.getLastControlPoint()), currentPath.getHeadingGoal(1));
         } else {
             breakFollowing();
