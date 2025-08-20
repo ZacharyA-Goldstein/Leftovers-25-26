@@ -579,6 +579,6 @@ public class PathBuilder {
     }
 
     private void setBrakingStartForAll(double start) {
-        for (Path path : paths) path.setBrakingStartMultiplier(start);
+        for (Path path : paths) path.setBrakingStart(start);
     }
 }

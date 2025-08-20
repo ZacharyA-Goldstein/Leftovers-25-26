@@ -480,7 +480,7 @@ public class Path {
      *
      * @param set This sets the multiplier.
      */
-    public void setBrakingStartMultiplier(double set) {
+    public void setBrakingStart(double set) {
         constraints.setBrakingStart(set);
     }
 
