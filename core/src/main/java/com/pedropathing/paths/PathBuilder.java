@@ -4,7 +4,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Curve;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Matrix;
 import com.pedropathing.paths.callbacks.ParametricCallback;
 import com.pedropathing.paths.callbacks.PathCallback;
 import com.pedropathing.paths.callbacks.PoseCallback;
@@ -14,7 +13,6 @@ import com.pedropathing.util.FiniteRunAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * This is the PathBuilder class. This class makes it easier to create PathChains, so you don't have
@@ -325,8 +323,8 @@ public class PathBuilder {
      * @param set This sets the multiplier for the goal for the deceleration of the robot.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setDecelerationStrength(double set) {
-        constraints.setDecelerationStrength(set);
+    public PathBuilder setBrakingStrength(double set) {
+        constraints.setBrakingStrength(set);
         return this;
     }
 
@@ -503,8 +501,8 @@ public class PathBuilder {
         PathChain returnChain = new PathChain(paths);
         returnChain.setCallbacks(callbacks);
         returnChain.setDecelerationType(decelerationType);
-        setDecelerationStartForAll(constraints.getDecelerationStart());
-        setDecelerationStrengthForAll(constraints.getDecelerationStrength());
+        setBrakingStartForAll(constraints.getBrakingStart());
+        setBrakingStrengthForAll(constraints.getBrakingStrength());
         returnChain.setHeadingInterpolator(headingInterpolator);
 
         return returnChain;
@@ -521,12 +519,12 @@ public class PathBuilder {
 
     /**
      * Makes this decelerate based on the entire chain and not only the last path (recommended if the last path is short)
-     * @param decelerationStartMultiplier sets the DecelerationStartMultiplier to the PathConstraints. A lower DecelerationStartMultiplier will make the PathChain begin decelerating later, and vice-versa.
+     * @param brakingStartMultiplier sets the BrakingStartMultiplier to the PathConstraints. A lower BrakingStartMultiplier will make the PathChain begin decelerating later, and vice-versa.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setGlobalDeceleration(double decelerationStartMultiplier) {
+    public PathBuilder setGlobalDeceleration(double brakingStartMultiplier) {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
-        constraints.setDecelerationStart(decelerationStartMultiplier);
+        constraints.setBrakingStart(brakingStartMultiplier);
         return this;
     }
 
@@ -576,11 +574,11 @@ public class PathBuilder {
         return this;
     }
 
-    private void setDecelerationStrengthForAll(double strength) {
-        for (Path path : paths) path.setDecelerationStrength(strength);
+    private void setBrakingStrengthForAll(double strength) {
+        for (Path path : paths) path.setBrakingStrength(strength);
     }
 
-    private void setDecelerationStartForAll(double start) {
-        for (Path path : paths) path.setDecelerationStartMultiplier(start);
+    private void setBrakingStartForAll(double start) {
+        for (Path path : paths) path.setBrakingStartMultiplier(start);
     }
 }

@@ -1,6 +1,5 @@
 package com.pedropathing.paths;
 
-import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Curve;
 import com.pedropathing.geometry.Pose;
@@ -471,8 +470,8 @@ public class Path {
      *
      * @param set This sets the multiplier.
      */
-    public void setDecelerationStrength(double set) {
-        constraints.setDecelerationStrength(set);
+    public void setBrakingStrength(double set) {
+        constraints.setBrakingStrength(set);
     }
 
     /**
@@ -481,8 +480,8 @@ public class Path {
      *
      * @param set This sets the multiplier.
      */
-    public void setDecelerationStartMultiplier(double set) {
-        constraints.setDecelerationStart(set);
+    public void setBrakingStartMultiplier(double set) {
+        constraints.setBrakingStart(set);
     }
 
 
@@ -540,8 +539,8 @@ public class Path {
      *
      * @return This returns the deceleration multiplier.
      */
-    public double getDecelerationStrength() {
-        return constraints.getDecelerationStrength();
+    public double getBrakingStrength() {
+        return constraints.getBrakingStrength();
     }
 
     /**
@@ -549,8 +548,8 @@ public class Path {
      *
      * @return This returns the deceleration start multiplier.
      */
-    public double getDecelerationStartMultiplier() {
-        return constraints.getDecelerationStart();
+    public double getBrakingStartMultiplier() {
+        return constraints.getBrakingStart();
     }
 
     /**
