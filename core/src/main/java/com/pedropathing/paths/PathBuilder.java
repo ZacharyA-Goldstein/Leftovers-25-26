@@ -188,7 +188,7 @@ public class PathBuilder {
      *
      * @param startHeading The start of the linear heading interpolation.
      * @param endHeading The end of the linear heading interpolation.
-     *         This will be reached at the end of the Path if no end time is specified.
+     *         This will be reached at the end of the Path if no end t-value is specified.
      * @return This returns itself with the updated data.
      */
     public PathBuilder setLinearHeadingInterpolation(double startHeading, double endHeading) {
@@ -201,7 +201,7 @@ public class PathBuilder {
      *
      * @param startHeading The start of the linear heading interpolation.
      * @param endHeading The end of the linear heading interpolation.
-     *         This will be reached at the end of the Path if no end time is specified.
+     *         This will be reached at the end of the Path if no end t-value is specified.
      * @return This returns itself with the updated data.
      */
     public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading) {
@@ -214,8 +214,8 @@ public class PathBuilder {
      *
      * @param startHeading The start of the linear heading interpolation.
      * @param endHeading The end of the linear heading interpolation.
-     *         This will be reached at the end of the Path if no end time is specified.
-     * @param endTime The end time on the Path that the linear heading interpolation will end.
+     *         This will be reached at the end of the Path if no end t-value is specified.
+     * @param endTime The end t-value on the Path that the linear heading interpolation will end.
      *         This value goes from [0, 1] since Bezier curves are parametric functions.
      * @return This returns itself with the updated data.
      */
@@ -229,13 +229,53 @@ public class PathBuilder {
      *
      * @param startHeading The start of the linear heading interpolation.
      * @param endHeading The end of the linear heading interpolation.
-     *         This will be reached at the end of the Path if no end time is specified.
-     * @param endTime The end time on the Path that the linear heading interpolation will end.
+     *         This will be reached at the end of the Path if no end t-value is specified.
+     * @param endTime The end t-value on the Path that the linear heading interpolation will end.
      *         This value goes from [0, 1] since Bezier curves are parametric functions.
      * @return This returns itself with the updated data.
      */
     public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading, double endTime) {
         headingInterpolator = HeadingInterpolator.linear(startHeading, endHeading, endTime);
+        return this;
+    }
+
+    /**
+     * This sets a linear heading interpolation on the last Path added to the PathBuilder.
+     *
+     * @param startHeading The start of the linear heading interpolation.
+     * @param endHeading The end of the linear heading interpolation.
+     *         This will be reached at the end of the Path if no end t-value is specified.
+     * @param startTime The start t-value on the Path that the linear heading interpolation will start.
+     * @param endTime The end t-value on the Path that the linear heading interpolation will end.
+     *         This value goes from [0, 1] since Bezier curves are parametric functions.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setLinearHeadingInterpolation(double startHeading, double endHeading, double endTime, double startTime) {
+        HeadingInterpolator interpolator = HeadingInterpolator.piecewise(
+                new HeadingInterpolator.PiecewiseNode(0, startTime, HeadingInterpolator.constant(startHeading)),
+                HeadingInterpolator.PiecewiseNode.linear(startTime, endTime, startHeading, endHeading)
+        );
+
+        this.paths.get(paths.size() - 1).setHeadingInterpolation(interpolator);
+        return this;
+    }
+
+    /**
+     * This sets a global heading interpolation on the last Path added to the PathBuilder.
+     *
+     * @param startHeading The start of the linear heading interpolation.
+     * @param endHeading The end of the linear heading interpolation.
+     *         This will be reached at the end of the Path if no end t-value is specified.
+     * @param startTime The start t-value on the Path that the linear heading interpolation will start.
+     * @param endTime The end t-value on the Path that the linear heading interpolation will end.
+     *         This value goes from [0, 1] since Bezier curves are parametric functions.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading, double endTime, double startTime) {
+        headingInterpolator = HeadingInterpolator.piecewise(
+                new HeadingInterpolator.PiecewiseNode(0, startTime, HeadingInterpolator.constant(startHeading)),
+                HeadingInterpolator.PiecewiseNode.linear(startTime, endTime, startHeading, endHeading)
+        );
         return this;
     }
 
@@ -364,7 +404,7 @@ public class PathBuilder {
     /**
      * This sets the path end t-value (parametric time) constraint on the last Path added to the PathBuilder.
      *
-     * @param set This sets the path end t-value (parametric time) constraint.
+     * @param set This sets the path end t-value (parametric timee) constraint.
      * @return This returns itself with the updated data.
      */
     public PathBuilder setPathEndTValueConstraint(double set) {
