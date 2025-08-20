@@ -282,7 +282,7 @@ public class Vector {
      */
     public Vector projectOnto(Vector other) {
         if (other.getMagnitude() == 0) return new Vector();
-        double scale = this.dot(other) / other.getMagnitude();
-        return other.times(scale / other.getMagnitude());
+        double scale = this.dot(other) / other.dot(other);
+        return other.times(scale);
     }
 }

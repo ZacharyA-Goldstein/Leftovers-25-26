@@ -87,6 +87,7 @@ public class PathChain {
     public PathChain(PathConstraints constraints, ArrayList<Path> paths) {
         for (Path path : paths) {
             path.setConstraints(constraints);
+            length += path.length();
         }
 
         pathChain = paths;
