@@ -463,6 +463,18 @@ public class PathBuilder {
      * @return This returns itself with the updated data.
      */
     public PathBuilder addCallback(CallbackCondition condition, Runnable action) {
+        return addCallback(condition, action, 1);
+    }
+
+    /**
+     * This adds a callback to the PathBuilder that will run when a condition is met.
+     * This is useful for callbacks that need to run when a certain condition is met, such as a sensor reading.
+     *
+     * @param condition The condition that must be met for the callback to run.
+     * @param action The action to run when the condition is met.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addCallback(CallbackCondition condition, Runnable action, int i) {
         this.callbacks.add(new FiniteRunAction(new PathCallback() {
             @Override
             public boolean run() {
@@ -479,7 +491,7 @@ public class PathBuilder {
             public int getPathIndex() {
                 return paths.size() - 1; // Assuming the callback is for the last path
             }
-        }));
+        }, i));
         return this;
     }
 

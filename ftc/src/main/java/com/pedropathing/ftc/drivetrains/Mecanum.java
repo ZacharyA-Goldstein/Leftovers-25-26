@@ -7,6 +7,7 @@ import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import java.util.Arrays;
@@ -28,8 +29,10 @@ public class Mecanum extends Drivetrain {
     private final DcMotorEx rightFront;
     private final DcMotorEx rightRear;
     private final List<DcMotorEx> motors;
+    private final VoltageSensor voltageSensor;
     private double motorCachingThreshold;
     private boolean useBrakeModeInTeleOp;
+    private double staticFrictionCoefficient;
 
     /**
      * This creates a new Mecanum, which takes in various movement vectors and outputs
@@ -45,6 +48,8 @@ public class Mecanum extends Drivetrain {
         this.maxPowerScaling = mecanumConstants.maxPower;
         this.motorCachingThreshold = mecanumConstants.motorCachingThreshold;
         this.useBrakeModeInTeleOp = mecanumConstants.useBrakeModeInTeleOp;
+
+        voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         leftFront = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftFrontMotorName);
         leftRear = hardwareMap.get(DcMotorEx.class, mecanumConstants.leftRearMotorName);
@@ -78,6 +83,9 @@ public class Mecanum extends Drivetrain {
         this.maxPowerScaling = constants.maxPower;
         this.motorCachingThreshold = constants.motorCachingThreshold;
         this.useBrakeModeInTeleOp = constants.useBrakeModeInTeleOp;
+        this.voltageCompensation = constants.useVoltageCompensation;
+        this.nominalVoltage = constants.nominalVoltage;
+        this.staticFrictionCoefficient = constants.staticFrictionCoefficient;
     }
 
     /**
@@ -163,7 +171,15 @@ public class Mecanum extends Drivetrain {
         wheelPowers[2] = (mecanumVectorsCopy[3].getXComponent() * truePathingVectors[1].getYComponent() - truePathingVectors[1].getXComponent() * mecanumVectorsCopy[3].getYComponent()) / (mecanumVectorsCopy[3].getXComponent() * mecanumVectorsCopy[2].getYComponent() - mecanumVectorsCopy[2].getXComponent() * mecanumVectorsCopy[3].getYComponent());
         wheelPowers[3] = (mecanumVectorsCopy[2].getXComponent() * truePathingVectors[1].getYComponent() - truePathingVectors[1].getXComponent() * mecanumVectorsCopy[2].getYComponent()) / (mecanumVectorsCopy[2].getXComponent() * mecanumVectorsCopy[3].getYComponent() - mecanumVectorsCopy[3].getXComponent() * mecanumVectorsCopy[2].getYComponent());
 
+        if (voltageCompensation) {
+            double voltageNormalized = getVoltageNormalized();
+            for (int i = 0; i < wheelPowers.length; i++) {
+                wheelPowers[i] *= voltageNormalized;
+            }
+        }
+
         double wheelPowerMax = Math.max(Math.max(Math.abs(wheelPowers[0]), Math.abs(wheelPowers[1])), Math.max(Math.abs(wheelPowers[2]), Math.abs(wheelPowers[3])));
+
         if (wheelPowerMax > maxPowerScaling) {
             wheelPowers[0] = (wheelPowers[0] / wheelPowerMax) * maxPowerScaling;
             wheelPowers[1] = (wheelPowers[1] / wheelPowerMax) * maxPowerScaling;
@@ -237,6 +253,20 @@ public class Mecanum extends Drivetrain {
 
     public void setXVelocity(double xMovement) { constants.setXVelocity(xMovement); }
     public void setYVelocity(double yMovement) { constants.setYVelocity(yMovement); }
+
+    public double getStaticFrictionCoefficient() {
+        return staticFrictionCoefficient;
+    }
+
+    @Override
+    public double getVoltage() {
+        return voltageSensor.getVoltage();
+    }
+
+    private double getVoltageNormalized() {
+        double voltage = getVoltage();
+        return (nominalVoltage - (nominalVoltage * staticFrictionCoefficient)) / (voltage - ((nominalVoltage * nominalVoltage / voltage) * staticFrictionCoefficient));
+    }
 
     public String debugString() {
         return "Mecanum{" +
