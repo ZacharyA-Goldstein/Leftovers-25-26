@@ -80,7 +80,6 @@ public class Mecanum extends Drivetrain {
         leftRear.setDirection(constants.leftRearMotorDirection);
         rightFront.setDirection(constants.rightFrontMotorDirection);
         rightRear.setDirection(constants.rightRearMotorDirection);
-        this.maxPowerScaling = constants.maxPower;
         this.motorCachingThreshold = constants.motorCachingThreshold;
         this.useBrakeModeInTeleOp = constants.useBrakeModeInTeleOp;
         this.voltageCompensation = constants.useVoltageCompensation;
