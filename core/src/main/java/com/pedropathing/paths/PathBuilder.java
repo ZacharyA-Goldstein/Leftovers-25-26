@@ -108,13 +108,17 @@ public class PathBuilder {
 
     /**
      * Automagically generate bézier curves through each given point and add to path
-     * @param tension controls tangents' generation magnitude
      * @param prevPoint the point prior to the start point
      * @param startPoint start point of the curve chain
+     * @param tension controls tangents' generation magnitude
      * @param points other points
      * @return This returns itself with the updated data.
      */
-    public PathBuilder curveThrough(double tension, Pose prevPoint, Pose startPoint, Pose... points){
+    public PathBuilder curveThrough(Pose prevPoint, Pose startPoint, double tension, Pose... points){
+        //guard against points being zero length (which means the curve doesn't have an end point)
+        if (points.length == 0){
+            return this;
+        }
         ArrayList<Pose> poses = new ArrayList<>();
 
         poses.add(prevPoint);
@@ -126,11 +130,11 @@ public class PathBuilder {
         Pose diff = poses.get(poses.size() - 1).minus(poses.get(poses.size() - 2));
         poses.add(poses.get(poses.size() - 1).plus(diff));
 
-        double sixth = 1d / (tension * 6d);
+        double scaledTension = tension / 3d;
 
         List<ArrayList<Pose>> controlPoints = new ArrayList<>();
         for (int i = 1; i < poses.size() - 2; i++) {
-            controlPoints.add(catmullToBezier(sixth, poses.get(i - 1), poses.get(i), poses.get(i + 1), poses.get(i + 2)));
+            controlPoints.add(catmullToBezier(scaledTension, poses.get(i - 1), poses.get(i), poses.get(i + 1), poses.get(i + 2)));
         }
 
         BezierCurve[] curves = new BezierCurve[controlPoints.size()];
@@ -162,24 +166,25 @@ public class PathBuilder {
             prevPoint = startPoint.minus(points[0].minus(startPoint));
         }
 
-        return curveThrough(tension, prevPoint, startPoint, points);
+        return curveThrough(prevPoint, startPoint, tension, points);
     }
 
     /**
      * Converts catmull rom spline points into cubic bezier control points
-     * @param sixth tension / 6
+     * @param scaledTension tension / 3
      * @param p0 previous pose
      * @param p1 current pose
      * @param p2 next pose
      * @param p3 next pose of the next pose
      * @return list of cubic bezier control points
      */
-    private ArrayList<Pose> catmullToBezier(double sixth, Pose p0, Pose p1, Pose p2, Pose p3){
+    private ArrayList<Pose> catmullToBezier(double scaledTension, Pose p0, Pose p1, Pose p2, Pose p3){
         ArrayList<Pose> output = new ArrayList<>();
         output.add(p1);
-        output.add(p1.plus(p2.minus(p0).times(sixth)));
-        output.add(p2.minus(p3.minus(p1).times(sixth)));
+        output.add(p1.plus((p2.minus(p0)).times(scaledTension)));
+        output.add(p2.minus((p3.minus(p1)).times(scaledTension)));
         output.add(p2);
+
         return output;
     }
 
