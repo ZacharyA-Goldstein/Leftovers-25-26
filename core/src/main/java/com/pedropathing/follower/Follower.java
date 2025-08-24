@@ -903,6 +903,7 @@ public class Follower {
      */
     private double getHeadingGoal(PathPoint point) {
         if (currentPathChain != null) {
+            if (currentPath == null) return 0;
             return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, point.tValue));
         }
 
@@ -915,6 +916,7 @@ public class Follower {
      */
     public double getClosestPointHeadingGoal() {
         if (currentPathChain != null) {
+            if (currentPath == null) return 0;
             return currentPathChain.getClosestPointHeadingGoal(new PathChain.PathT(chainIndex, closestPose.tValue));
         }
 

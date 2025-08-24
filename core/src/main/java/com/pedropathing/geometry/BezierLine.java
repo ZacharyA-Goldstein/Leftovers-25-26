@@ -4,6 +4,7 @@ import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -48,7 +49,7 @@ public class BezierLine extends BezierCurve {
             this.endPoint = endPose.getPose();
             initialize();
         } else {
-            futureControlPoints = new ArrayList<>(List.of(startPose, endPose));
+            futureControlPoints = new ArrayList<>(Arrays.asList(startPose, endPose));
         }
     }
 
