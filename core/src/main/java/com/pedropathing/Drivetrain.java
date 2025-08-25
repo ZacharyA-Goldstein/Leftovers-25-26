@@ -29,8 +29,7 @@ public abstract class Drivetrain {
 
     /**
      * This takes in vectors for corrective power, heading power, and pathing power and outputs
-     * an Array of four doubles, one for each wheel's motor power.
-     *
+     * an Array.
      * IMPORTANT NOTE: all vector inputs are clamped between 0 and 1 inclusive in magnitude.
      *
      * @param correctivePower this Vector includes the centrifugal force scaling Vector as well as a
@@ -45,7 +44,7 @@ public abstract class Drivetrain {
      *                     much power to allocate to each wheel.
      * @return this returns an Array of doubles with a length of 4, which contains the wheel powers.
      */
-    public abstract double[] getDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading);
+    public abstract double[] calculateDrive(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading);
 
     /**
      * This sets the maximum power scaling for the drivetrain. This is used to limit the maximum
@@ -56,7 +55,7 @@ public abstract class Drivetrain {
      *                        power scaling factor.
      */
     public void setMaxPowerScaling(double maxPowerScaling) {
-        this.maxPowerScaling = MathFunctions.clamp(maxPowerScaling, 0, 1);;
+        this.maxPowerScaling = MathFunctions.clamp(maxPowerScaling, 0, 1);
     }
 
     /**
@@ -86,10 +85,10 @@ public abstract class Drivetrain {
      *
      * @param drivePowers this is an Array of doubles with a length of 4, which contains the wheel powers.
      */
-    public abstract void runPowers(double[] drivePowers);
+    public abstract void runDrive(double[] drivePowers);
 
     /**
-     * This gets the drive powers and runs them immediately. This is used to set the power of the motors directly.
+     * This gets the drive powers and runs them immediately.
      *
      * @param correctivePower this Vector includes the centrifugal force scaling Vector as well as a
      *                        translational power Vector to correct onto the Bezier curve the Follower
@@ -102,17 +101,19 @@ public abstract class Drivetrain {
      * @param robotHeading this is the current heading of the robot, which is used to calculate how
      *                     much power to allocate to each wheel.
      */
-    public abstract void getAndRunDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading);
+    public void runDrive(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading) {
+        runDrive(calculateDrive(correctivePower, headingPower, pathingPower, robotHeading));
+    }
 
     /**
-     * This starts the teleop drive mode. This is used to set the drivetrain into teleop mode, where
+     * This starts the TeleOp drive mode. This is used to set the drivetrain into TeleOp mode, where
      * it can be controlled by the driver.
      */
     public abstract void startTeleopDrive();
 
     /**
-     * This starts the teleop drive mode with a specified brake mode. This is used to set the drivetrain
-     * into teleop mode, where it can be controlled by the driver, and allows for setting the brake mode.
+     * This starts the TeleOp drive mode with a specified brake mode. This is used to set the drivetrain
+     * into TeleOp mode, where it can be controlled by the driver, and allows for setting the brake mode.
      *
      * @param brakeMode this is a boolean that specifies whether the drivetrain should use brake mode or not.
      */
@@ -148,7 +149,7 @@ public abstract class Drivetrain {
      */
     public void useVoltageCompensation(boolean use) {
         this.voltageCompensation = use;
-    };
+    }
 
     /**
      * This gets whether the drivetrain is using voltage compensation or not.

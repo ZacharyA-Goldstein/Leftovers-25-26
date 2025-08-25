@@ -374,7 +374,18 @@ public class PathBuilder {
      * @return This returns itself with the updated data.
      */
     public PathBuilder setBrakingStrength(double set) {
-        constraints.setBrakingStrength(set);
+        this.paths.get(paths.size() - 1).setBrakingStrength(set);
+        return this;
+    }
+
+    /**
+     * This sets the breaking start
+     *
+     * @param set This sets the multiplier
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setBrakingStart(double set) {
+        constraints.setBrakingStart(set);
         return this;
     }
 
@@ -384,8 +395,8 @@ public class PathBuilder {
      * @param set This sets the path end velocity constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndVelocityConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndVelocityConstraint(set);
+    public PathBuilder setVelocityConstraint(double set) {
+        this.paths.get(paths.size() - 1).setVelocityConstraint(set);
         return this;
     }
 
@@ -395,8 +406,8 @@ public class PathBuilder {
      * @param set This sets the path end translational constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndTranslationalConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndTranslationalConstraint(set);
+    public PathBuilder setTranslationalConstraint(double set) {
+        this.paths.get(paths.size() - 1).setTranslationalConstraint(set);
         return this;
     }
 
@@ -406,8 +417,8 @@ public class PathBuilder {
      * @param set This sets the path end heading constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndHeadingConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndHeadingConstraint(set);
+    public PathBuilder setHeadingConstraint(double set) {
+        this.paths.get(paths.size() - 1).setHeadingConstraint(set);
         return this;
     }
 
@@ -417,8 +428,8 @@ public class PathBuilder {
      * @param set This sets the path end t-value (parametric timee) constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndTValueConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndTValueConstraint(set);
+    public PathBuilder setTValueConstraint(double set) {
+        this.paths.get(paths.size() - 1).setTValueConstraint(set);
         return this;
     }
 
@@ -428,8 +439,8 @@ public class PathBuilder {
      * @param set This sets the path end timeout constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndTimeoutConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndTimeoutConstraint(set);
+    public PathBuilder setTimeoutConstraint(double set) {
+        this.paths.get(paths.size() - 1).setTimeoutConstraint(set);
         return this;
     }
 
@@ -564,9 +575,7 @@ public class PathBuilder {
         returnChain.setCallbacks(callbacks);
         returnChain.setDecelerationType(decelerationType);
         setBrakingStartForAll(constraints.getBrakingStart());
-        setBrakingStrengthForAll(constraints.getBrakingStrength());
         returnChain.setHeadingInterpolator(headingInterpolator);
-
         return returnChain;
     }
 
@@ -581,12 +590,12 @@ public class PathBuilder {
 
     /**
      * Makes this decelerate based on the entire chain and not only the last path (recommended if the last path is short)
-     * @param brakingStartMultiplier sets the BrakingStartMultiplier to the PathConstraints. A lower BrakingStartMultiplier will make the PathChain begin decelerating later, and vice-versa.
+     * @param brakingStart sets the BrakingStartMultiplier to the PathConstraints. A lower BrakingStartMultiplier will make the PathChain begin decelerating later, and vice-versa.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setGlobalDeceleration(double brakingStartMultiplier) {
+    public PathBuilder setGlobalDeceleration(double brakingStart) {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
-        constraints.setBrakingStart(brakingStartMultiplier);
+        constraints.setBrakingStart(brakingStart);
         return this;
     }
 
@@ -634,10 +643,6 @@ public class PathBuilder {
         this.constraints = constraints;
         paths.get(paths.size() - 1).setConstraints(constraints);
         return this;
-    }
-
-    private void setBrakingStrengthForAll(double strength) {
-        for (Path path : paths) path.setBrakingStrength(strength);
     }
 
     private void setBrakingStartForAll(double start) {
