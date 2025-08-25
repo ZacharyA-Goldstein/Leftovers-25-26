@@ -116,7 +116,12 @@ public class PathBuilder {
      */
     public PathBuilder curveThrough(Pose prevPoint, Pose startPoint, double tension, Pose... points){
         //guard against points being zero length (which means the curve doesn't have an end point)
-        if (points.length == 0){
+        if (points.length == 0) {
+            try {
+                throw new Exception("Points array must contain at least one point to curve through.");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return this;
         }
         ArrayList<Pose> poses = new ArrayList<>();
