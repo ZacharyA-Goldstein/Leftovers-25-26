@@ -6,6 +6,7 @@ import com.pedropathing.paths.PathConstraints;
 
 import java.util.ArrayList;
 
+@Deprecated
 public class FinetunedBezierLine extends BezierLine {
     private final Pose endPoint;
     private double crossingThreshold;
