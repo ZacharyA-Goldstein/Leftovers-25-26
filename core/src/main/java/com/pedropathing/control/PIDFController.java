@@ -73,9 +73,10 @@ public class PIDFController {
     public void updateError(double error) {
         previousError = this.error;
         this.error = error;
+        long nanoTime = System.nanoTime();
 
-        deltaTimeNano = System.nanoTime() - previousUpdateTimeNano;
-        previousUpdateTimeNano = System.nanoTime();
+        deltaTimeNano = nanoTime - previousUpdateTimeNano;
+        previousUpdateTimeNano = nanoTime;
 
         errorIntegral += error * (deltaTimeNano / Math.pow(10.0, 9));
         errorDerivative = (error - previousError) / (deltaTimeNano / Math.pow(10.0, 9));
