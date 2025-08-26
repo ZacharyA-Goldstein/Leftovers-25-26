@@ -105,7 +105,7 @@ public class Mecanum extends Drivetrain {
      *                        much power to allocate to each wheel.
      * @return this returns an Array of doubles with a length of 4, which contains the wheel powers.
      */
-    public double[] getDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading) {
+    public double[] calculateDrive(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading) {
         // clamps down the magnitudes of the input vectors
         if (correctivePower.getMagnitude() > maxPowerScaling)
             correctivePower.setMagnitude(maxPowerScaling);
@@ -214,7 +214,7 @@ public class Mecanum extends Drivetrain {
         setMotorsToFloat();
     }
 
-    public void runPowers(double[] drivePowers) {
+    public void runDrive(double[] drivePowers) {
         for (int i = 0; i < motors.size(); i++) {
             if (Math.abs(motors.get(i).getPower() - drivePowers[i]) > motorCachingThreshold) {
                 motors.get(i).setPower(drivePowers[i]);
@@ -239,7 +239,7 @@ public class Mecanum extends Drivetrain {
     }
 
     public void getAndRunDrivePowers(Vector correctivePower, Vector headingPower, Vector pathingPower, double robotHeading) {
-        runPowers(getDrivePowers(correctivePower, headingPower, pathingPower, robotHeading));
+        runDrive(calculateDrive(correctivePower, headingPower, pathingPower, robotHeading));
     }
 
     public double xVelocity() {

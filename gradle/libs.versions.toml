@@ -1,18 +1,13 @@
 [versions]
 ftc = "10.3.0"
-panels-core = "0.0.23"
-panels-field = "0.0.13"
 
 [libraries]
 ftc-robot-core = { group = "org.firstinspires.ftc", name = "RobotCore", version.ref = "ftc" }
 ftc-hardware = { group = "org.firstinspires.ftc", name = "Hardware", version.ref = "ftc" }
-panels-core = { group = "com.pedropathing.panels", name = "core", version.ref = "panels-core" }
-panels-field = { group = "com.pedropathing.panels", name = "field", version.ref = "panels-field" }
 annotations = { group = "org.jetbrains", name = "annotations", version = "23.0.0" }
 
 [bundles]
 ftc = ["ftc-robot-core", "ftc-hardware"]
-panels = ["panels-core", "panels-field"]
 
 [plugins]
 android-library = { id = "com.android.library", version = "8.7.3" }

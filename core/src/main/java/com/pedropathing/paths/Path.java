@@ -490,7 +490,7 @@ public class Path {
      *
      * @param set This sets the velocity end constraint.
      */
-    public void setPathEndVelocityConstraint(double set) {
+    public void setVelocityConstraint(double set) {
         constraints.setVelocityConstraint(set);
     }
 
@@ -500,7 +500,7 @@ public class Path {
      *
      * @param set This sets the translational end constraint.
      */
-    public void setPathEndTranslationalConstraint(double set) {
+    public void setTranslationalConstraint(double set) {
         constraints.setTranslationalConstraint(set);
     }
 
@@ -510,7 +510,7 @@ public class Path {
      *
      * @param set This sets the heading end constraint.
      */
-    public void setPathEndHeadingConstraint(double set) {
+    public void setHeadingConstraint(double set) {
         constraints.setHeadingConstraint(set);
     }
 
@@ -520,7 +520,7 @@ public class Path {
      *
      * @param set This sets the t-value end constraint.
      */
-    public void setPathEndTValueConstraint(double set) {
+    public void setTValueConstraint(double set) {
        constraints.setTValueConstraint(set);
     }
 
@@ -530,7 +530,7 @@ public class Path {
      *
      * @param set This sets the Path end timeout.
      */
-    public void setPathEndTimeoutConstraint(double set) {
+    public void setTimeoutConstraint(double set) {
         constraints.setTimeoutConstraint(set);
     }
 
