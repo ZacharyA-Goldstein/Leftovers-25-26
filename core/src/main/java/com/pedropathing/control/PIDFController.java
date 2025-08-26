@@ -221,4 +221,12 @@ public class PIDFController {
     public double getError() {
         return error;
     }
+
+    /**
+     * This returns the current derivative of the error.
+     * @return the derivative
+     */
+    public double getErrorDerivative() {
+        return errorDerivative;
+    }
 }
