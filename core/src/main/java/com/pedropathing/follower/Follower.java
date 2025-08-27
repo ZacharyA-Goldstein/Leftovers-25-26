@@ -393,7 +393,7 @@ public class Follower {
             previousClosestPose = closestPose;
             closestPose = new PathPoint();
             updateErrorAndVectors();
-            drivetrain.getAndRunDrivePowers(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseTracker.getPose().getHeading());
+            drivetrain.runDrive(getCentripetalForceCorrection(), getTeleopHeadingVector(), getTeleopDriveVector(), poseTracker.getPose().getHeading());
             return;
         }
 
@@ -406,7 +406,7 @@ public class Follower {
             if (followingPathChain) currentPathChain.update();
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), 1);
             updateErrorAndVectors();
-            drivetrain.getAndRunDrivePowers(useHoldScaling? getTranslationalCorrection().times(holdPointTranslationalScaling) : getTranslationalCorrection(), useHoldScaling? getHeadingVector().times(holdPointHeadingScaling) : getHeadingVector(), new Vector(), poseTracker.getPose().getHeading());
+            drivetrain.runDrive(useHoldScaling? getTranslationalCorrection().times(holdPointTranslationalScaling) : getTranslationalCorrection(), useHoldScaling? getHeadingVector().times(holdPointHeadingScaling) : getHeadingVector(), new Vector(), poseTracker.getPose().getHeading());
 
             if(getHeadingError() < turnHeadingErrorThreshold && isTurning) {
                 isTurning = false;
@@ -421,7 +421,7 @@ public class Follower {
             closestPose = currentPath.updateClosestPose(poseTracker.getPose(), BEZIER_CURVE_SEARCH_LIMIT);
             updateErrorAndVectors();
             if (followingPathChain) updateCallbacks();
-            drivetrain.getAndRunDrivePowers(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseTracker.getPose().getHeading());
+            drivetrain.runDrive(getCorrectiveVector(), getHeadingVector(), getDriveVector(), poseTracker.getPose().getHeading());
         }
 
         if (poseTracker.getVelocity().getMagnitude() < 1.0 && currentPath.getClosestPointTValue() > 0.8

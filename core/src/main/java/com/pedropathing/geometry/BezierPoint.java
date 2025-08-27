@@ -41,6 +41,13 @@ public class BezierPoint extends BezierCurve {
         super.initializePanelsDrawingPoints();
     }
 
+    /**
+     * This creates a new BezierPoint with a specified FuturePose.
+     * This is just a point but it extends the BezierCurve class so things work.
+     * If the FuturePose is not initialized, it will store the FuturePose for later initialization.
+     *
+     * @param pose the specified FuturePose.
+     */
     public BezierPoint(FuturePose pose) {
         super();
         length = 0.0;
@@ -51,6 +58,15 @@ public class BezierPoint extends BezierCurve {
             futureControlPoints = new ArrayList<>();
             futureControlPoints.add(pose);
         }
+    }
+
+    /**
+     * This creates a new BezierPoint with specified cartesian coordinates.
+     * @param x the x-coordinate of the BezierPoint
+     * @param y the y-coordinate of the BezierPoint
+     */
+    public BezierPoint(double x, double y) {
+        this(new Pose(x, y));
     }
 
     /**

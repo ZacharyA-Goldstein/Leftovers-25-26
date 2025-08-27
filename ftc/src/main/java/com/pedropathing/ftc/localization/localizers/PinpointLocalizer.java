@@ -240,4 +240,14 @@ public class PinpointLocalizer implements Localizer {
     public boolean isNAN() {
         return Double.isNaN(getPose().getX()) || Double.isNaN(getPose().getY()) || Double.isNaN(getPose().getHeading());
     }
+
+    /**
+     * This returns the GoBildaPinpointDriver object used by this localizer, in case you want to
+     * access any of its methods directly.
+     *
+     * @return returns the GoBildaPinpointDriver object used by this localizer
+     */
+    public GoBildaPinpointDriver getPinpoint() {
+        return odo;
+    }
 }

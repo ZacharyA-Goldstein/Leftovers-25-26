@@ -10,18 +10,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class CustomCurve implements Curve {
-    private ArrayList<Pose> controlPoints;
-    private PathConstraints pathConstraints;
+    protected ArrayList<Pose> controlPoints;
+    protected PathConstraints pathConstraints;
     private List<FuturePose> futureControlPoints;
     private boolean initialized = false;
     private double length = 0;
-
-    private final int DASHBOARD_DRAWING_APPROXIMATION_STEPS = 100;
-
-    private final int APPROXIMATION_STEPS = 1000;
-
     private double[][] panelsDrawingPoints;
-
     protected AbstractBijectiveMap.NumericBijectiveMap completionMap = new AbstractBijectiveMap.NumericBijectiveMap();
 
     public CustomCurve(List<Pose> controlPoints, PathConstraints pathConstraints) {
@@ -57,7 +51,7 @@ public abstract class CustomCurve implements Curve {
 
         if (lazyInitialize) {
             this.controlPoints = new ArrayList<>();
-            this.futureControlPoints = new ArrayList<>(List.of(controlPoints));
+            this.futureControlPoints = new ArrayList<>(Arrays.asList(controlPoints));
         } else {
             this.controlPoints = initializedControlPoints;
             initialize();
@@ -79,7 +73,12 @@ public abstract class CustomCurve implements Curve {
         return pathConstraints;
     }
 
-    public abstract void initialization();
+    /**
+     * This is to be overridden by subclasses for specific initialization logic.
+     */
+    public void initialization() {
+        // To be overridden by subclasses for specific initialization logic
+    };
 
     @Override
     public void initialize() {
@@ -94,15 +93,17 @@ public abstract class CustomCurve implements Curve {
         initialized = true;
         length = approximateLength();
         initialization();
+        initializePanelsDrawingPoints();
     }
 
     /**
      * This creates the Array that holds the Points to draw on Panels.
      */
     public void initializePanelsDrawingPoints() {
-        this.panelsDrawingPoints = new double[2][this.DASHBOARD_DRAWING_APPROXIMATION_STEPS + 1];
-        for (int i = 0; i <= this.DASHBOARD_DRAWING_APPROXIMATION_STEPS; i++) {
-            Pose currentPoint = this.getPose(i/(double) (this.DASHBOARD_DRAWING_APPROXIMATION_STEPS));
+        int DASHBOARD_DRAWING_APPROXIMATION_STEPS = 100;
+        this.panelsDrawingPoints = new double[2][DASHBOARD_DRAWING_APPROXIMATION_STEPS + 1];
+        for (int i = 0; i <= DASHBOARD_DRAWING_APPROXIMATION_STEPS; i++) {
+            Pose currentPoint = this.getPose(i/(double) (DASHBOARD_DRAWING_APPROXIMATION_STEPS));
             this.panelsDrawingPoints[0][i] = currentPoint.getX();
             this.panelsDrawingPoints[1][i] = currentPoint.getY();
         }
@@ -123,8 +124,9 @@ public abstract class CustomCurve implements Curve {
         Pose previousPoint = getPose(0);
         Pose currentPoint;
         double approxLength = 0;
+        int APPROXIMATION_STEPS = 1000;
         for (int i = 1; i <= APPROXIMATION_STEPS; i++) {
-            double t = i/(double)APPROXIMATION_STEPS;
+            double t = i/(double) APPROXIMATION_STEPS;
             currentPoint = getPose(t);
             approxLength += previousPoint.distanceFrom(currentPoint);
             previousPoint = currentPoint;

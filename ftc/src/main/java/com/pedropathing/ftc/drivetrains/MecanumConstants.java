@@ -31,6 +31,9 @@ public class MecanumConstants {
     public  DcMotorSimple.Direction rightRearMotorDirection = DcMotorSimple.Direction.FORWARD;
     public  double motorCachingThreshold = 0.01;
     public  boolean useBrakeModeInTeleOp = false;
+    public  boolean useVoltageCompensation = false;
+    public  double nominalVoltage = 12.0;
+    public  double staticFrictionCoefficient = 0.1;
 
     public MecanumConstants() {
         defaults();
@@ -98,6 +101,21 @@ public class MecanumConstants {
 
     public MecanumConstants useBrakeModeInTeleOp(boolean useBrakeModeInTeleOp) {
         this.useBrakeModeInTeleOp = useBrakeModeInTeleOp;
+        return this;
+    }
+
+    public MecanumConstants useVoltageCompensation(boolean useVoltageCompensation) {
+        this.useVoltageCompensation = useVoltageCompensation;
+        return this;
+    }
+
+    public MecanumConstants nominalVoltage(double nominalVoltage) {
+        this.nominalVoltage = nominalVoltage;
+        return this;
+    }
+
+    public MecanumConstants staticFrictionCoefficient(double staticFrictionCoefficient) {
+        this.staticFrictionCoefficient = staticFrictionCoefficient;
         return this;
     }
 
@@ -233,5 +251,8 @@ public class MecanumConstants {
         rightRearMotorDirection = DcMotorSimple.Direction.FORWARD;
         motorCachingThreshold = 0.01;
         useBrakeModeInTeleOp = false;
+        useVoltageCompensation = false;
+        nominalVoltage = 12.0;
+        staticFrictionCoefficient = 0.1;
     }
 }

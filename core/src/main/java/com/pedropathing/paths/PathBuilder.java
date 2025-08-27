@@ -4,7 +4,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Curve;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Matrix;
 import com.pedropathing.paths.callbacks.ParametricCallback;
 import com.pedropathing.paths.callbacks.PathCallback;
 import com.pedropathing.paths.callbacks.PoseCallback;
@@ -14,7 +13,6 @@ import com.pedropathing.util.FiniteRunAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * This is the PathBuilder class. This class makes it easier to create PathChains, so you don't have
@@ -110,13 +108,22 @@ public class PathBuilder {
 
     /**
      * Automagically generate bézier curves through each given point and add to path
-     * @param tension controls tangents' generation magnitude
      * @param prevPoint the point prior to the start point
      * @param startPoint start point of the curve chain
+     * @param tension controls tangents' generation magnitude
      * @param points other points
      * @return This returns itself with the updated data.
      */
-    public PathBuilder curveThrough(double tension, Pose prevPoint, Pose startPoint, Pose... points){
+    public PathBuilder curveThrough(Pose prevPoint, Pose startPoint, double tension, Pose... points){
+        //guard against points being zero length (which means the curve doesn't have an end point)
+        if (points.length == 0) {
+            try {
+                throw new Exception("Points array must contain at least one point to curve through.");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return this;
+        }
         ArrayList<Pose> poses = new ArrayList<>();
 
         poses.add(prevPoint);
@@ -128,11 +135,11 @@ public class PathBuilder {
         Pose diff = poses.get(poses.size() - 1).minus(poses.get(poses.size() - 2));
         poses.add(poses.get(poses.size() - 1).plus(diff));
 
-        double sixth = 1d / (tension * 6d);
+        double scaledTension = tension / 3d;
 
         List<ArrayList<Pose>> controlPoints = new ArrayList<>();
         for (int i = 1; i < poses.size() - 2; i++) {
-            controlPoints.add(catmullToBezier(sixth, poses.get(i - 1), poses.get(i), poses.get(i + 1), poses.get(i + 2)));
+            controlPoints.add(catmullToBezier(scaledTension, poses.get(i - 1), poses.get(i), poses.get(i + 1), poses.get(i + 2)));
         }
 
         BezierCurve[] curves = new BezierCurve[controlPoints.size()];
@@ -164,24 +171,25 @@ public class PathBuilder {
             prevPoint = startPoint.minus(points[0].minus(startPoint));
         }
 
-        return curveThrough(tension, prevPoint, startPoint, points);
+        return curveThrough(prevPoint, startPoint, tension, points);
     }
 
     /**
      * Converts catmull rom spline points into cubic bezier control points
-     * @param sixth tension / 6
+     * @param scaledTension tension / 3
      * @param p0 previous pose
      * @param p1 current pose
      * @param p2 next pose
      * @param p3 next pose of the next pose
      * @return list of cubic bezier control points
      */
-    private ArrayList<Pose> catmullToBezier(double sixth, Pose p0, Pose p1, Pose p2, Pose p3){
+    private ArrayList<Pose> catmullToBezier(double scaledTension, Pose p0, Pose p1, Pose p2, Pose p3){
         ArrayList<Pose> output = new ArrayList<>();
         output.add(p1);
-        output.add(p1.plus(p2.minus(p0).times(sixth)));
-        output.add(p2.minus(p3.minus(p1).times(sixth)));
+        output.add(p1.plus((p2.minus(p0)).times(scaledTension)));
+        output.add(p2.minus((p3.minus(p1)).times(scaledTension)));
         output.add(p2);
+
         return output;
     }
 
@@ -190,7 +198,7 @@ public class PathBuilder {
      *
      * @param startHeading The start of the linear heading interpolation.
      * @param endHeading The end of the linear heading interpolation.
-     *         This will be reached at the end of the Path if no end time is specified.
+     *         This will be reached at the end of the Path if no end t-value is specified.
      * @return This returns itself with the updated data.
      */
     public PathBuilder setLinearHeadingInterpolation(double startHeading, double endHeading) {
@@ -203,7 +211,7 @@ public class PathBuilder {
      *
      * @param startHeading The start of the linear heading interpolation.
      * @param endHeading The end of the linear heading interpolation.
-     *         This will be reached at the end of the Path if no end time is specified.
+     *         This will be reached at the end of the Path if no end t-value is specified.
      * @return This returns itself with the updated data.
      */
     public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading) {
@@ -216,8 +224,8 @@ public class PathBuilder {
      *
      * @param startHeading The start of the linear heading interpolation.
      * @param endHeading The end of the linear heading interpolation.
-     *         This will be reached at the end of the Path if no end time is specified.
-     * @param endTime The end time on the Path that the linear heading interpolation will end.
+     *         This will be reached at the end of the Path if no end t-value is specified.
+     * @param endTime The end t-value on the Path that the linear heading interpolation will end.
      *         This value goes from [0, 1] since Bezier curves are parametric functions.
      * @return This returns itself with the updated data.
      */
@@ -231,13 +239,53 @@ public class PathBuilder {
      *
      * @param startHeading The start of the linear heading interpolation.
      * @param endHeading The end of the linear heading interpolation.
-     *         This will be reached at the end of the Path if no end time is specified.
-     * @param endTime The end time on the Path that the linear heading interpolation will end.
+     *         This will be reached at the end of the Path if no end t-value is specified.
+     * @param endTime The end t-value on the Path that the linear heading interpolation will end.
      *         This value goes from [0, 1] since Bezier curves are parametric functions.
      * @return This returns itself with the updated data.
      */
     public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading, double endTime) {
         headingInterpolator = HeadingInterpolator.linear(startHeading, endHeading, endTime);
+        return this;
+    }
+
+    /**
+     * This sets a linear heading interpolation on the last Path added to the PathBuilder.
+     *
+     * @param startHeading The start of the linear heading interpolation.
+     * @param endHeading The end of the linear heading interpolation.
+     *         This will be reached at the end of the Path if no end t-value is specified.
+     * @param startTime The start t-value on the Path that the linear heading interpolation will start.
+     * @param endTime The end t-value on the Path that the linear heading interpolation will end.
+     *         This value goes from [0, 1] since Bezier curves are parametric functions.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setLinearHeadingInterpolation(double startHeading, double endHeading, double endTime, double startTime) {
+        HeadingInterpolator interpolator = HeadingInterpolator.piecewise(
+                new HeadingInterpolator.PiecewiseNode(0, startTime, HeadingInterpolator.constant(startHeading)),
+                HeadingInterpolator.PiecewiseNode.linear(startTime, endTime, startHeading, endHeading)
+        );
+
+        this.paths.get(paths.size() - 1).setHeadingInterpolation(interpolator);
+        return this;
+    }
+
+    /**
+     * This sets a global heading interpolation on the last Path added to the PathBuilder.
+     *
+     * @param startHeading The start of the linear heading interpolation.
+     * @param endHeading The end of the linear heading interpolation.
+     *         This will be reached at the end of the Path if no end t-value is specified.
+     * @param startTime The start t-value on the Path that the linear heading interpolation will start.
+     * @param endTime The end t-value on the Path that the linear heading interpolation will end.
+     *         This value goes from [0, 1] since Bezier curves are parametric functions.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setGlobalLinearHeadingInterpolation(double startHeading, double endHeading, double endTime, double startTime) {
+        headingInterpolator = HeadingInterpolator.piecewise(
+                new HeadingInterpolator.PiecewiseNode(0, startTime, HeadingInterpolator.constant(startHeading)),
+                HeadingInterpolator.PiecewiseNode.linear(startTime, endTime, startHeading, endHeading)
+        );
         return this;
     }
 
@@ -325,8 +373,19 @@ public class PathBuilder {
      * @param set This sets the multiplier for the goal for the deceleration of the robot.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setDecelerationStrength(double set) {
-        constraints.setDecelerationStrength(set);
+    public PathBuilder setBrakingStrength(double set) {
+        this.paths.get(paths.size() - 1).setBrakingStrength(set);
+        return this;
+    }
+
+    /**
+     * This sets the breaking start
+     *
+     * @param set This sets the multiplier
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder setBrakingStart(double set) {
+        constraints.setBrakingStart(set);
         return this;
     }
 
@@ -336,8 +395,8 @@ public class PathBuilder {
      * @param set This sets the path end velocity constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndVelocityConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndVelocityConstraint(set);
+    public PathBuilder setVelocityConstraint(double set) {
+        this.paths.get(paths.size() - 1).setVelocityConstraint(set);
         return this;
     }
 
@@ -347,8 +406,8 @@ public class PathBuilder {
      * @param set This sets the path end translational constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndTranslationalConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndTranslationalConstraint(set);
+    public PathBuilder setTranslationalConstraint(double set) {
+        this.paths.get(paths.size() - 1).setTranslationalConstraint(set);
         return this;
     }
 
@@ -358,19 +417,19 @@ public class PathBuilder {
      * @param set This sets the path end heading constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndHeadingConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndHeadingConstraint(set);
+    public PathBuilder setHeadingConstraint(double set) {
+        this.paths.get(paths.size() - 1).setHeadingConstraint(set);
         return this;
     }
 
     /**
      * This sets the path end t-value (parametric time) constraint on the last Path added to the PathBuilder.
      *
-     * @param set This sets the path end t-value (parametric time) constraint.
+     * @param set This sets the path end t-value (parametric timee) constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndTValueConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndTValueConstraint(set);
+    public PathBuilder setTValueConstraint(double set) {
+        this.paths.get(paths.size() - 1).setTValueConstraint(set);
         return this;
     }
 
@@ -380,8 +439,8 @@ public class PathBuilder {
      * @param set This sets the path end timeout constraint.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setPathEndTimeoutConstraint(double set) {
-        this.paths.get(paths.size() - 1).setPathEndTimeoutConstraint(set);
+    public PathBuilder setTimeoutConstraint(double set) {
+        this.paths.get(paths.size() - 1).setTimeoutConstraint(set);
         return this;
     }
 
@@ -463,6 +522,18 @@ public class PathBuilder {
      * @return This returns itself with the updated data.
      */
     public PathBuilder addCallback(CallbackCondition condition, Runnable action) {
+        return addCallback(condition, action, 1);
+    }
+
+    /**
+     * This adds a callback to the PathBuilder that will run when a condition is met.
+     * This is useful for callbacks that need to run when a certain condition is met, such as a sensor reading.
+     *
+     * @param condition The condition that must be met for the callback to run.
+     * @param action The action to run when the condition is met.
+     * @return This returns itself with the updated data.
+     */
+    public PathBuilder addCallback(CallbackCondition condition, Runnable action, int i) {
         this.callbacks.add(new FiniteRunAction(new PathCallback() {
             @Override
             public boolean run() {
@@ -479,7 +550,7 @@ public class PathBuilder {
             public int getPathIndex() {
                 return paths.size() - 1; // Assuming the callback is for the last path
             }
-        }));
+        }, i));
         return this;
     }
 
@@ -503,10 +574,8 @@ public class PathBuilder {
         PathChain returnChain = new PathChain(paths);
         returnChain.setCallbacks(callbacks);
         returnChain.setDecelerationType(decelerationType);
-        setDecelerationStartForAll(constraints.getDecelerationStart());
-        setDecelerationStrengthForAll(constraints.getDecelerationStrength());
+        setBrakingStartForAll(constraints.getBrakingStart());
         returnChain.setHeadingInterpolator(headingInterpolator);
-
         return returnChain;
     }
 
@@ -521,12 +590,12 @@ public class PathBuilder {
 
     /**
      * Makes this decelerate based on the entire chain and not only the last path (recommended if the last path is short)
-     * @param decelerationStartMultiplier sets the DecelerationStartMultiplier to the PathConstraints. A lower DecelerationStartMultiplier will make the PathChain begin decelerating later, and vice-versa.
+     * @param brakingStart sets the BrakingStartMultiplier to the PathConstraints. A lower BrakingStartMultiplier will make the PathChain begin decelerating later, and vice-versa.
      * @return This returns itself with the updated data.
      */
-    public PathBuilder setGlobalDeceleration(double decelerationStartMultiplier) {
+    public PathBuilder setGlobalDeceleration(double brakingStart) {
         this.decelerationType = PathChain.DecelerationType.GLOBAL;
-        constraints.setDecelerationStart(decelerationStartMultiplier);
+        constraints.setBrakingStart(brakingStart);
         return this;
     }
 
@@ -576,11 +645,7 @@ public class PathBuilder {
         return this;
     }
 
-    private void setDecelerationStrengthForAll(double strength) {
-        for (Path path : paths) path.setDecelerationStrength(strength);
-    }
-
-    private void setDecelerationStartForAll(double start) {
-        for (Path path : paths) path.setDecelerationStartMultiplier(start);
+    private void setBrakingStartForAll(double start) {
+        for (Path path : paths) path.setBrakingStart(start);
     }
 }
