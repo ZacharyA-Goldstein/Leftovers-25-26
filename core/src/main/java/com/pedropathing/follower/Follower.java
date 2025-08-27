@@ -902,10 +902,8 @@ public class Follower {
      * @return returns the heading goal at the specified PathPoint
      */
     private double getHeadingGoal(PathPoint point) {
-        if (currentPathChain != null) {
-            return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, point.tValue));
-        }
-
+        if (currentPath == null) return 0;
+        if (currentPathChain != null) return currentPathChain.getHeadingGoal(new PathChain.PathT(chainIndex, point.tValue));
         return currentPath.getHeadingGoal(point);
     }
 
@@ -914,10 +912,8 @@ public class Follower {
      * @return returns the closest point's heading goal
      */
     public double getClosestPointHeadingGoal() {
-        if (currentPathChain != null) {
-            return currentPathChain.getClosestPointHeadingGoal(new PathChain.PathT(chainIndex, closestPose.tValue));
-        }
-
+        if (currentPath == null) return 0;
+        if (currentPathChain != null) return currentPathChain.getClosestPointHeadingGoal(new PathChain.PathT(chainIndex, closestPose.tValue));
         return currentPath.getHeadingGoal(closestPose);
     }
 
