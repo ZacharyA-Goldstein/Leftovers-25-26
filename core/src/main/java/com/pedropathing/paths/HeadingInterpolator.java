@@ -100,6 +100,25 @@ public interface HeadingInterpolator {
                 return MathFunctions.normalizeAngle(finalStartHeadingRad + deltaHeading * t);
             });
         }
+
+        /**
+         * The robot will transition from the start heading to the end heading from startT by endT.
+         */
+        static PiecewiseNode reversedLinear(double startT, double endT, double startHeadingRad, double endHeadingRad) {
+            startHeadingRad = MathFunctions.normalizeAngle(startHeadingRad);
+            endHeadingRad = MathFunctions.normalizeAngle(endHeadingRad);
+            double finalStartHeadingRad = startHeadingRad;
+            double finalEndHeadingRad = endHeadingRad;
+
+            return new PiecewiseNode(startT, endT, closestPoint -> {
+                double clampedStartT = MathFunctions.clamp(startT, 0.0001, 1);
+                double clampedEndT = MathFunctions.clamp(endT, 0.0001, 1);
+                double u = (closestPoint.tValue - clampedStartT) / (clampedEndT - clampedStartT);
+                double t = MathFunctions.clamp(u, 0.0,1.0);
+                double deltaHeading = -MathFunctions.getTurnDirection(finalStartHeadingRad, finalEndHeadingRad) * Math.max(MathFunctions.normalizeAngle(finalEndHeadingRad - finalStartHeadingRad), MathFunctions.normalizeAngle(finalStartHeadingRad - finalEndHeadingRad));;
+                return MathFunctions.normalizeAngle(finalStartHeadingRad + deltaHeading * t);
+            });
+        }
     }
     
     /**
