@@ -61,26 +61,26 @@ public class VectorCalculator {
 
     public VectorCalculator(FollowerConstants constants) {
         this.constants = constants;
-        drivePIDF = new FilteredPIDFController(constants.drivePIDFCoefficients);
-        secondaryDrivePIDF = new FilteredPIDFController(constants.secondaryDrivePIDFCoefficients);
-        headingPIDF = new PIDFController(constants.headingPIDFCoefficients);
-        secondaryHeadingPIDF = new PIDFController(constants.secondaryHeadingPIDFCoefficients);
-        translationalPIDF = new PIDFController(constants.translationalPIDFCoefficients);
-        secondaryTranslationalPIDF = new PIDFController(constants.secondaryTranslationalPIDFCoefficients);
-        translationalIntegral = new PIDFController(constants.translationalIntegral);
-        secondaryTranslationalIntegral = new PIDFController(constants.secondaryTranslationalIntegral);
+        drivePIDF = new FilteredPIDFController(constants.coefficientsDrivePIDF);
+        secondaryDrivePIDF = new FilteredPIDFController(constants.coefficientsSecondaryDrivePIDF);
+        headingPIDF = new PIDFController(constants.coefficientsHeadingPIDF);
+        secondaryHeadingPIDF = new PIDFController(constants.coefficientsSecondaryHeadingPIDF);
+        translationalPIDF = new PIDFController(constants.coefficientsTranslationalPIDF);
+        secondaryTranslationalPIDF = new PIDFController(constants.coefficientsSecondaryTranslationalPIDF);
+        translationalIntegral = new PIDFController(constants.integralTranslational);
+        secondaryTranslationalIntegral = new PIDFController(constants.integralSecondaryTranslational);
         updateConstants();
     }
     
     public void updateConstants() {
-        drivePIDF.setCoefficients(constants.drivePIDFCoefficients);
-        secondaryDrivePIDF.setCoefficients(constants.secondaryDrivePIDFCoefficients);
-        headingPIDF.setCoefficients(constants.headingPIDFCoefficients);
-        secondaryHeadingPIDF.setCoefficients(constants.secondaryHeadingPIDFCoefficients);
-        translationalPIDF.setCoefficients(constants.translationalPIDFCoefficients);
-        secondaryTranslationalPIDF.setCoefficients(constants.secondaryTranslationalPIDFCoefficients);
-        translationalIntegral.setCoefficients(constants.translationalIntegral);
-        secondaryTranslationalIntegral.setCoefficients(constants.secondaryTranslationalIntegral);
+        drivePIDF.setCoefficients(constants.coefficientsDrivePIDF);
+        secondaryDrivePIDF.setCoefficients(constants.coefficientsSecondaryDrivePIDF);
+        headingPIDF.setCoefficients(constants.coefficientsHeadingPIDF);
+        secondaryHeadingPIDF.setCoefficients(constants.coefficientsSecondaryHeadingPIDF);
+        translationalPIDF.setCoefficients(constants.coefficientsTranslationalPIDF);
+        secondaryTranslationalPIDF.setCoefficients(constants.coefficientsSecondaryTranslationalPIDF);
+        translationalIntegral.setCoefficients(constants.integralTranslational);
+        secondaryTranslationalIntegral.setCoefficients(constants.integralSecondaryTranslational);
         drivePIDFSwitch = constants.drivePIDFSwitch;
         headingPIDFSwitch = constants.headingPIDFSwitch;
         translationalPIDFSwitch = constants.translationalPIDFSwitch;
