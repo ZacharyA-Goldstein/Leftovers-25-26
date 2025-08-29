@@ -78,7 +78,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "com.pedropathing"
             artifactId = "ftc"
-            version = "1.1.0-SNAPSHOT"
+            version = "2.0.0"
 
             afterEvaluate {
                 from(components["release"])
