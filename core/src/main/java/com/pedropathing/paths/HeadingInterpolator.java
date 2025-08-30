@@ -85,7 +85,7 @@ public interface HeadingInterpolator {
         /**
          * The robot will transition from the start heading to the end heading from startT by endT.
          */
-        static PiecewiseNode linear(double startT, double endT, double startHeadingRad, double endHeadingRad) {
+        public static PiecewiseNode linear(double startT, double endT, double startHeadingRad, double endHeadingRad) {
             startHeadingRad = MathFunctions.normalizeAngle(startHeadingRad);
             endHeadingRad = MathFunctions.normalizeAngle(endHeadingRad);
             double finalStartHeadingRad = startHeadingRad;
@@ -104,7 +104,7 @@ public interface HeadingInterpolator {
         /**
          * The robot will transition from the start heading to the end heading from startT by endT.
          */
-        static PiecewiseNode reversedLinear(double startT, double endT, double startHeadingRad, double endHeadingRad) {
+        public static PiecewiseNode reversedLinear(double startT, double endT, double startHeadingRad, double endHeadingRad) {
             startHeadingRad = MathFunctions.normalizeAngle(startHeadingRad);
             endHeadingRad = MathFunctions.normalizeAngle(endHeadingRad);
             double finalStartHeadingRad = startHeadingRad;
