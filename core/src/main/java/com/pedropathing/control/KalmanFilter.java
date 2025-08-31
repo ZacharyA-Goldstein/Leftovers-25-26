@@ -6,7 +6,7 @@ package com.pedropathing.control;
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 7/17/2024
  */
-public class KalmanFilter {
+public class KalmanFilter implements NoiseFilter {
     private KalmanFilterParameters parameters;
     private double state;
     private double variance;

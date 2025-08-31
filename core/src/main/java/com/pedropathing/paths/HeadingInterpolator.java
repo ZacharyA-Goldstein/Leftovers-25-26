@@ -208,6 +208,9 @@ public interface HeadingInterpolator {
         ));
     }
 
+    /**
+     * The robot will always be facing the given point while following the path.
+     */
     static HeadingInterpolator facingPoint(Pose pose) {
         return facingPoint(pose.getX(), pose.getY());
     }
@@ -225,6 +228,182 @@ public interface HeadingInterpolator {
             }
 
             return MathFunctions.normalizeAngle(tangent.interpolate(closestPoint));
+        };
+    }
+
+    /**
+     * A functional interface that can be used to provide a future double value.
+     * This is useful for providing values that may not be known at the time of creating the
+     * HeadingInterpolator, such as sensor readings or dynamic targets.
+     */
+    @FunctionalInterface
+    interface FutureDouble {
+        double get();
+    }
+
+    /**
+     * Optional initialization method for implementations that need to set up state before being used.
+     * This can be called once before the first call to interpolate.
+     */
+    default void init() {
+        // Optional initialization method for implementations
+    }
+
+    /**
+     * The robot will transition from the start heading to the end heading from startT by endT.
+     * The start and/or end headings are provided as FutureDoubles, which are functions that return a double.
+     * This allows for dynamic headings that can be determined at runtime.
+     */
+    static HeadingInterpolator linearFromPoint(FutureDouble startHeadingRad, FutureDouble endHeadingRad, double endT) {
+        return new HeadingInterpolator() {
+            double start = Double.NaN;
+            double end = Double.NaN;
+            boolean initialized = false;
+
+            @Override
+            public double interpolate(PathPoint closestPoint) {
+                return linear(start, end, endT).interpolate(closestPoint);
+            }
+
+            @Override
+            public void init() {
+                if (!initialized) {
+                    start = MathFunctions.normalizeAngle(startHeadingRad.get());
+                    end = MathFunctions.normalizeAngle(endHeadingRad.get());
+                    initialized = true;
+                }
+            }
+        };
+    }
+
+    /**
+     * The robot will transition from the start heading to the end heading from startT by endT.
+     * The start and/or end headings are provided as FutureDoubles, which are functions that return a double.
+     * This allows for dynamic headings that can be determined at runtime.
+     */
+    static HeadingInterpolator linearFromPoint(FutureDouble startHeadingRad, double endHeadingRad, double endT) {
+        return new HeadingInterpolator() {
+            double start = Double.NaN;
+            final double end = endHeadingRad;
+            boolean initialized = false;
+
+            @Override
+            public double interpolate(PathPoint closestPoint) {
+                return linear(start, end, endT).interpolate(closestPoint);
+            }
+
+            @Override
+            public void init() {
+                if (!initialized) {
+                    start = MathFunctions.normalizeAngle(startHeadingRad.get());
+                    initialized = true;
+                }
+            }
+        };
+    }
+
+    /**
+     * The robot will transition from the start heading to the end heading from startT by endT using reversed linear interpolation.
+     * The start and/or end headings are provided as FutureDoubles, which are functions that return a double.
+     * This allows for dynamic headings that can be determined at runtime.
+     */
+    static HeadingInterpolator reversedLinearFromPoint(FutureDouble startHeadingRad, double endHeadingRad, double endT) {
+        return new HeadingInterpolator() {
+            double start = Double.NaN;
+            final double end = endHeadingRad;
+            boolean initialized = false;
+
+            @Override
+            public double interpolate(PathPoint closestPoint) {
+                return HeadingInterpolator.reversedLinear(start, end, endT).interpolate(closestPoint);
+            }
+
+            @Override
+            public void init() {
+                if (!initialized) {
+                    start = MathFunctions.normalizeAngle(startHeadingRad.get());
+                    initialized = true;
+                }
+            }
+        };
+    }
+
+    /**
+     * The robot will transition from the start heading to the end heading from startT by endT.
+     * The start and/or end headings are provided as FutureDoubles, which are functions that return a double.
+     * This allows for dynamic headings that can be determined at runtime.
+     */
+    static HeadingInterpolator linearFromPoint(double startHeadingRad, FutureDouble endHeadingRad, double endT) {
+        return new HeadingInterpolator() {
+            final double start = startHeadingRad;
+            double end = Double.NaN;
+            boolean initialized = false;
+
+            @Override
+            public double interpolate(PathPoint closestPoint) {
+                return linear(start, end, endT).interpolate(closestPoint);
+            }
+
+            @Override
+            public void init() {
+                if (!initialized) {
+                    end = MathFunctions.normalizeAngle(endHeadingRad.get());
+                    initialized = true;
+                }
+            }
+        };
+    }
+
+    /**
+     * The robot will transition from the start heading to the end heading from startT by endT using reversed linear interpolation.
+     * The start and/or end headings are provided as FutureDoubles, which are functions that return a double.
+     * This allows for dynamic headings that can be determined at runtime.
+     */
+    static HeadingInterpolator reversedLinearFromPoint(double startHeadingRad, FutureDouble endHeadingRad, double endT) {
+        return new HeadingInterpolator() {
+            final double start = startHeadingRad;
+            double end = Double.NaN;
+            boolean initialized = false;
+
+            @Override
+            public double interpolate(PathPoint closestPoint) {
+                return HeadingInterpolator.reversedLinear(start, end, endT).interpolate(closestPoint);
+            }
+
+            @Override
+            public void init() {
+                if (!initialized) {
+                    end = MathFunctions.normalizeAngle(endHeadingRad.get());
+                    initialized = true;
+                }
+            }
+        };
+    }
+
+    /**
+     * The robot will transition from the start heading to the end heading from startT by endT using reversed linear interpolation.
+     * The start and/or end headings are provided as FutureDoubles, which are functions that return a double.
+     * This allows for dynamic headings that can be determined at runtime.
+     */
+    static HeadingInterpolator reversedLinearFromPoint(FutureDouble startHeadingRad, FutureDouble endHeadingRad, double endT) {
+        return new HeadingInterpolator() {
+            double start = Double.NaN;
+            double end = Double.NaN;
+            boolean initialized = false;
+
+            @Override
+            public double interpolate(PathPoint closestPoint) {
+                return reversedLinear(start, end, endT).interpolate(closestPoint);
+            }
+
+            @Override
+            public void init() {
+                if (!initialized) {
+                    start = MathFunctions.normalizeAngle(startHeadingRad.get());
+                    end = MathFunctions.normalizeAngle(endHeadingRad.get());
+                    initialized = true;
+                }
+            }
         };
     }
 }
