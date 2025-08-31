@@ -223,7 +223,9 @@ public interface HeadingInterpolator {
         return closestPoint -> {
             for (PiecewiseNode node : nodes) {
                 if (closestPoint.getTValue() >= node.getInitialTValue() && closestPoint.getTValue() <= node.getFinalTValue()) {
-                    return node.getInterpolator().interpolate(closestPoint);
+                    HeadingInterpolator interpolator = node.getInterpolator();
+                    interpolator.init();
+                    return interpolator.interpolate(closestPoint);
                 }
             }
 
