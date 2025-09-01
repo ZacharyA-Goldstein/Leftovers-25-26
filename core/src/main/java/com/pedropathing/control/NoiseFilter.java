@@ -1,5 +1,10 @@
 package com.pedropathing.control;
 
+/**
+ * This is the NoiseFilter interface. This interface defines the methods that any noise filter should implement.
+ *
+ * @author Havish Sripada - 12808 RevAmped Robotics
+ */
 public interface NoiseFilter {
     /**
      * Gets the current state of the filter.

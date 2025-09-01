@@ -1,5 +1,10 @@
 package com.pedropathing.control;
 
+/**
+ * This is the LowPassFilter class. This class implements a simple low-pass filter to smooth out noisy data.
+ *
+ * @author Havish Sripada - 12808 RevAmped Robotics
+ */
 public class LowPassFilter implements NoiseFilter {
     private final double alpha;
     private double state;
