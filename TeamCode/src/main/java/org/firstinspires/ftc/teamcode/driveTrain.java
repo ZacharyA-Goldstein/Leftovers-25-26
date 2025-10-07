@@ -12,6 +12,10 @@ public class driveTrain extends OpMode {
     DcMotor frontRight;
     DcMotor backLeft;
     DcMotor backRight;
+    DcMotor shoot;
+
+
+
 
 
     public void moveDriveTrain(){
@@ -38,6 +42,17 @@ public class driveTrain extends OpMode {
 
     }
 
+    public void shootBall(){
+        if(gamepad1.a){
+            shoot.setPower(1);
+        }else{
+            shoot.setPower(0);
+        }
+
+
+    }
+
+
 
 
 
@@ -47,6 +62,7 @@ public class driveTrain extends OpMode {
         frontRight=hardwareMap.get(DcMotor.class,"frontRight");
         backLeft=hardwareMap.get(DcMotor.class,"backLeft");
         backRight=hardwareMap.get(DcMotor.class,"backRight");
+        shoot=hardwareMap.get(DcMotor.class, "shoot");
 
 
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -61,6 +77,8 @@ public class driveTrain extends OpMode {
     @Override
     public void loop(){
         moveDriveTrain();
+        shootBall();
+
 
     }
 
