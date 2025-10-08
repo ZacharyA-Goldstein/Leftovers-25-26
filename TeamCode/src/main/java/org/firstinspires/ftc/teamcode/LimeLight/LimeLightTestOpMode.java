@@ -17,7 +17,7 @@ import java.util.List;
  * This OpMode demonstrates how to use the LimeLight camera through the dumbMap class
  * to detect April Tags and display their information.
  */
-@TeleOp(name = "LimeLight Test", group = "Test")
+@TeleOp(name = "LimeLight Test", group = "Test") //test
 public class LimeLightTestOpMode extends LinearOpMode {
     private dumbMap robot;
     private int currentPipeline = 0;

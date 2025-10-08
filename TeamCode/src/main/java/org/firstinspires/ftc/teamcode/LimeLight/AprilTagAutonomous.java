@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.dumbMap;
  * This program demonstrates how to use the AprilTagDetector helper class
  * to navigate to April tags in the FTC Decode game.
  */
-@Autonomous(name = "April Tag Autonomous", group = "LimeLight")
+@Autonomous(name = "April Tag Autonomous", group = "LimeLight") //test
 public class AprilTagAutonomous extends LinearOpMode {
 
     // April tag detector

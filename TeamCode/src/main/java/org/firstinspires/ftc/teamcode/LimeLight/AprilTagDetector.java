@@ -15,7 +15,7 @@ import java.util.List;
  * This class provides a simple interface for detecting April tags and getting
  * distance/angle information for autonomous navigation.
  */
-public class AprilTagDetector {
+public class AprilTagDetector { //test
     
     // LimeLight hardware
     private Limelight3A limelight;
