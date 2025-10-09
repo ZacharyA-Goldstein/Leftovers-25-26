@@ -13,7 +13,9 @@ public class driveTrainTest extends OpMode {
     private DcMotor backLeft; //0
     private DcMotor backRight; //2
 
-    private DcMotor intake;
+    private DcMotor intake; //4
+
+
 
     // deadzone to ignore tiny stick noise
     private static final double DEADBAND = 0.05;
@@ -25,7 +27,9 @@ public class driveTrainTest extends OpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft   = hardwareMap.get(DcMotor.class, "backLeft");
         backRight  = hardwareMap.get(DcMotor.class, "backRight");
-        intake     = hardwareMap.get(DcMotor.class,"intake");
+
+        intake  =   hardwareMap.get(DcMotor.class, "inkake");
+
 
         // Typical mecanum convention: left side reversed, right side forward.
         // If your wiring is different, swap REVERSE/FORWARD on the side that is physically reversed.
@@ -44,26 +48,28 @@ public class driveTrainTest extends OpMode {
     @Override
     public void loop() {
         moveDriveTrain();
-        workIntake();
+        moveIntake();
+
 
         // Telemetry for debugging: show stick values and motor powers
         telemetry.update();
     }
 
-    private void workIntake(){
-        if (gamepad1.b){
+    private void moveIntake(){
+        if (gamepad1.left_bumper){
             intake.setPower(1);
         }else{
             intake.setPower(0);
         }
-
     }
+
+
 
     private void moveDriveTrain() {
         // Inputs:
         double rawDrive  = -gamepad1.left_stick_y;   // forward/back
-        double rawTurn   =  gamepad1.left_stick_x;   // rotate (left stick X)
-        double rawStrafe =  gamepad1.right_stick_x;  // strafe (right stick X)
+        double rawTurn   =  gamepad1.right_stick_x;   // rotate (left stick X)
+        double rawStrafe =  gamepad1.left_stick_x;  // strafe (right stick X)
 
         // Apply deadzone
         double drive  = applyDeadzone(rawDrive, DEADBAND);
