@@ -68,8 +68,8 @@ public class driveTrainTest extends OpMode {
     private void moveDriveTrain() {
         // Inputs:
         double rawDrive  = -gamepad1.left_stick_y;   // forward/back
-        double rawTurn   =  gamepad1.right_stick_x;   // rotate (left stick X)
-        double rawStrafe =  gamepad1.left_stick_x;  // strafe (right stick X)
+        double rawTurn   =  gamepad1.right_stick_x;   // rotate
+        double rawStrafe =  gamepad1.left_stick_x;  // strafe
 
         // Apply deadzone
         double drive  = applyDeadzone(rawDrive, DEADBAND);
