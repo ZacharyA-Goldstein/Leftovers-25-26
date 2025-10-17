@@ -8,11 +8,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 @TeleOp
 public class driveTrain extends OpMode {
 
-    DcMotor frontLeft;
-    DcMotor frontRight;
-    DcMotor backLeft;
-    DcMotor backRight;
-    DcMotor shoot;
+    private DcMotor frontLeft;
+    private DcMotor frontRight;
+    private DcMotor backLeft;
+    private DcMotor backRight;
+    private DcMotor shoot;
+
+
 
 
 
