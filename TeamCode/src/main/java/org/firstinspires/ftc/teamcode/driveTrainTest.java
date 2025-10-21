@@ -15,7 +15,7 @@ public class driveTrainTest extends OpMode {
     private DcMotor backRight;  // 2
 
     // --- Intake Motor ---
-    private DcMotor intake; // EH0
+
 
     // --- Constants ---
     private static final double DEADBAND = 0.05;
@@ -31,14 +31,12 @@ public class driveTrainTest extends OpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft   = hardwareMap.get(DcMotor.class, "backLeft");
         backRight  = hardwareMap.get(DcMotor.class, "backRight");
-        intake     = hardwareMap.get(DcMotor.class, "intake");
 
         // --- Motor directions ---
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         backRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        intake.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // --- Stop all motors on init ---
         stopAllMotors();
@@ -50,7 +48,7 @@ public class driveTrainTest extends OpMode {
     @Override
     public void loop() {
         moveDriveTrain();
-        intakeSpin();
+
         telemetry.update();
     }
 
@@ -63,17 +61,22 @@ public class driveTrainTest extends OpMode {
         bWasPressed = gamepad1.b;
 
         // --- Controller inputs ---
-        double rawDrive  = -gamepad1.left_stick_y;   // forward/back
+        double rawDrive  = gamepad1.left_stick_y;   // forward/back
         double rawTurn   =  gamepad1.right_stick_x;  // rotation
-        double rawStrafe =  gamepad1.left_stick_x;   // strafe
+        double rawStrafe =  -gamepad1.left_stick_x;   // strafe
 
         // --- Apply deadzones ---
         double drive  = applyDeadzone(rawDrive, DEADBAND);
         double strafe = applyDeadzone(rawStrafe, DEADBAND);
         double turn   = applyDeadzone(rawTurn, DEADBAND);
 
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         // --- Speed scaling ---
-        double DRIVE_SCALE = slowMode ? 0.4 : 1.0;  // Drive speed % in slow mode
+        double DRIVE_SCALE = slowMode ? 0.4 : 0.8;  // Drive speed % in slow mode
         double TURN_SCALE  = slowMode ? 0.4 : 0.7;  // Turn speed % in slow mode
 
         drive  *= DRIVE_SCALE;
@@ -92,6 +95,9 @@ public class driveTrainTest extends OpMode {
                 Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))
         ));
 
+
+
+
         // --- Apply powers ---
         frontLeft.setPower(frontLeftPower / max);
         frontRight.setPower(frontRightPower / max);
@@ -106,13 +112,7 @@ public class driveTrainTest extends OpMode {
     }
 
     // --- Intake Control ---
-    private void intakeSpin() {
-        if (gamepad1.a) {
-            intake.setPower(1.0);
-        } else {
-            intake.setPower(0);
-        }
-    }
+
 
     // --- Utility: Deadzone filter ---
     private double applyDeadzone(double value, double thresh) {
@@ -125,7 +125,7 @@ public class driveTrainTest extends OpMode {
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
-        intake.setPower(0);
+
     }
 
     @Override
