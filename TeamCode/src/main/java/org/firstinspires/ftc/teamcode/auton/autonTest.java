@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.auton;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -7,23 +7,30 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="autonTest", group = "Test")
+@Autonomous(name = "autonTest", group = "Test")
 public class autonTest extends LinearOpMode{
     DcMotor frontLeft;
     DcMotor frontRight;
     DcMotor backRight;
     DcMotor backLeft;
 
-    ElapsedTime timer= new ElapsedTime();
+
+    DcMotor intake;
+    DcMotor outtake;
+
+    ElapsedTime timer = new ElapsedTime();
 
 
     @Override
     public void runOpMode() throws InterruptedException{
 
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        frontRight=hardwareMap.get(DcMotor.class,"frontRight");
-        backLeft=hardwareMap.get(DcMotor.class,"backLeft");
-        backRight=hardwareMap.get(DcMotor.class,"backRight");
+        frontRight = hardwareMap.get(DcMotor.class,"frontRight");
+        backLeft = hardwareMap.get(DcMotor.class,"backLeft");
+        backRight = hardwareMap.get(DcMotor.class,"backRight");
+
+        intake = hardwareMap.get(DcMotor.class, "intWheels");
+        outtake = hardwareMap.get(DcMotor.class, "outShoot");
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
