@@ -14,7 +14,7 @@ public class driveTrainTest extends OpMode {
     private DcMotor backLeft;   // 0
     private DcMotor backRight;  // 2
 
-    // --- Intake Motor ---
+
 
 
     // --- Constants ---
