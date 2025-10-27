@@ -18,8 +18,6 @@ public class driveTrain extends OpMode {
 
 
 
-
-
     public void moveDriveTrain(){
         double vertical   = -gamepad1.left_stick_y;  // forward/back
         double horizontal =  gamepad1.left_stick_x;  // strafe

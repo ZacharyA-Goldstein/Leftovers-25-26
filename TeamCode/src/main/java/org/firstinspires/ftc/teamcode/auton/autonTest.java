@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "autonTest", group = "Test")
+@Autonomous(name = "autonTest", group = "Autonomous")
 public class autonTest extends LinearOpMode{
     DcMotor frontLeft;
     DcMotor frontRight;
@@ -29,8 +29,8 @@ public class autonTest extends LinearOpMode{
         backLeft = hardwareMap.get(DcMotor.class,"backLeft");
         backRight = hardwareMap.get(DcMotor.class,"backRight");
 
-        intake = hardwareMap.get(DcMotor.class, "intWheels");
-        outtake = hardwareMap.get(DcMotor.class, "outShoot");
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        outtake = hardwareMap.get(DcMotor.class, "outtake");
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -42,6 +42,8 @@ public class autonTest extends LinearOpMode{
         }
 
         //PUT COMMANDS HERE
+        moveForward(2.0);
+        stopAllMotors(0.5);
 
 
 
