@@ -218,14 +218,14 @@ public class AprilTagDetector { //test
         LLResult result = limelight.getLatestResult();
         if (result == null || !result.isValid()) {
             System.out.println("DEBUG - No valid result from Limelight");
-            return 120.0;
+            return 60.0;  // Default to 60" when no valid result
         }
         
         // Get the first detected fiducial (AprilTag)
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
         if (fiducials.isEmpty()) {
             System.out.println("DEBUG - No fiducials detected");
-            return 120.0;
+            return 60.0;  // Default to 60" when no fiducials detected
         }
         
         LLResultTypes.FiducialResult fiducial = fiducials.get(0);
@@ -234,45 +234,52 @@ public class AprilTagDetector { //test
         double xDegrees = fiducial.getTargetXDegrees();
         yDegrees = fiducial.getTargetYDegrees();
         
-        // Camera parameters
-        double cameraHeight = this.cameraHeight; // Height of camera from ground
-        double tagHeight = 18.0; // Height of AprilTag center from ground
-        double heightDifference = Math.abs(tagHeight - cameraHeight);
+        // Camera parameters (in inches)
+        double cameraHeight = this.cameraHeight; // Height of camera from ground (9.5")
+        double tagHeight = 30.0; // Height of AprilTag center from ground (user's setup)
+        double heightDifference = tagHeight - cameraHeight; // 20.5" difference
         
-        // Based on test data, we'll use a combination of Y angle and X angle correction
-        // The Y angle is the primary factor for distance, while X angle provides a small correction
+        // Convert angles to radians for calculation
+        double yRadians = Math.toRadians(yDegrees);
+        double xRadians = Math.toRadians(xDegrees);
         
-        // Calculate base distance using Y angle (main factor)
-        // Using a linear approximation based on test data
-        double baseDistance;
-        if (yDegrees > 5.0) {
-            // For closer distances (larger Y angles)
-            baseDistance = 100.0 - (yDegrees * 8.0);  // Adjusted for better accuracy
-        } else {
-            // For farther distances (smaller Y angles)
-            baseDistance = 130.0 - (yDegrees * 14.0);  // Adjusted for better accuracy
-        }
+        // NEW CALIBRATION based on actual test data with 30" tag height:
+        // Test 1: Y=15.1°, Actual=78.9"
+        // Test 2: Y=16.0°, Actual=81.0"
+        // Test 3: Y=15.7°, Actual=81.0"
+        // Average: Y≈15.6°, Actual≈80.3"
         
-        // Apply X angle correction (smaller effect)
-        // The more we're looking to the side, the larger the distance correction should be
-        double xCorrection = Math.abs(xDegrees) * 0.15;  // Reduced from 0.2 to 0.15 inches per degree
+        // Using trigonometry: distance = heightDifference / tan(cameraAngle + yAngle)
+        // With camera angle = 0°, this simplifies to: distance = heightDifference / tan(yAngle)
         
-        // Apply the correction (add more distance when looking to the side)
-        double correctedDistance = baseDistance + xCorrection;
+        // Basic trigonometric calculation
+        double trigDistance = heightDifference / Math.tan(yRadians);
         
-        // Apply a scaling factor based on test data
-        double finalDistance = correctedDistance * 0.85;  // Reduced from 0.75 to 0.85 for better accuracy
+        // Apply empirical correction factor based on test data
+        // For Y=15.1°: trigDistance=75.9", actual=80" → factor = 80/75.9 = 1.05
+        // This small correction accounts for measurement uncertainties and camera positioning
+        double correctionFactor = 1.05;
+        double baseDistance = trigDistance * correctionFactor;
+        
+        // Apply X angle correction for off-center viewing
+        // When viewing from the side, actual distance is longer
+        double xCorrection = 1.0 / Math.cos(xRadians);
+        
+        // Calculate final distance with corrections
+        double calibratedDistance = baseDistance * xCorrection;
+        
+        // Ensure distance is within reasonable bounds
+        calibratedDistance = Math.max(12.0, Math.min(calibratedDistance, this.maxDistance));
         
         // Debug output
         System.out.println("DEBUG - Distance Calculation:");
         System.out.println(String.format("  X Angle: %.1f°, Y Angle: %.1f°", xDegrees, yDegrees));
         System.out.println(String.format("  Base Distance: %.1f", baseDistance));
-        System.out.println(String.format("  X Correction: %.1f", xCorrection));
-        System.out.println(String.format("  Corrected Distance: %.1f", correctedDistance));
-        System.out.println(String.format("  Final Distance: %.1f", finalDistance));
+        System.out.println(String.format("  X Correction Factor: %.2f", xCorrection));
+        System.out.println(String.format("  Calibrated Distance: %.1f", calibratedDistance));
         
         // Ensure the distance is within reasonable bounds
-        return Math.max(12.0, Math.min(finalDistance, 120.0));
+        return calibratedDistance;
     }
     
     /**

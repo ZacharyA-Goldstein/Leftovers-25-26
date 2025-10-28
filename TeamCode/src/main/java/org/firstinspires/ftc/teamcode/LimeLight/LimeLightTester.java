@@ -3,6 +3,9 @@ package org.firstinspires.ftc.teamcode.LimeLight;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.acmerobotics.dashboard.config.Config;
+
 
 
 import org.firstinspires.ftc.teamcode.dumbMap;
@@ -19,6 +22,7 @@ import org.firstinspires.ftc.teamcode.dumbMap;
  * - Angle/heading calculation
  * - Telemetry output for debugging
  */
+@Config
 @TeleOp(name = "LimeLight April Tag 24 Detector", group = "LimeLight")
 public class LimeLightTester extends LinearOpMode {
 
@@ -27,9 +31,9 @@ public class LimeLightTester extends LinearOpMode {
     
     // Camera parameters for distance calculation
     // These values should be calibrated for your specific camera setup
-    private static final double CAMERA_HEIGHT = 12.0; // inches - height of camera above ground
-    private static final double CAMERA_ANGLE = 15.0;  // degrees - downward angle of camera
-    private static final double MAX_DISTANCE = 120.0; // Maximum valid distance in inches
+    private static final double CAMERA_HEIGHT = 9.5; // inches - height of camera above ground
+    private static final double CAMERA_ANGLE = 0.0;  // degrees - downward angle of camera
+    private static final double MAX_DISTANCE = 150.0; // Maximum valid distance in inches
     
     // AprilTag detector and robot instance
     private AprilTagDetector aprilTagDetector;
@@ -53,6 +57,12 @@ public class LimeLightTester extends LinearOpMode {
         // Initialize AprilTag detector with the LimeLight from dumbMap
         aprilTagDetector = new AprilTagDetector(robot.getLimeLight(), CAMERA_HEIGHT, CAMERA_ANGLE, MAX_DISTANCE);
         
+        // Explicitly switch to pipeline 0 (RedPipeline.vpr) to ensure AprilTag detection is active
+        if (robot.getLimeLight() != null) {
+            robot.getLimeLight().pipelineSwitch(0);
+            sleep(100); // Give the pipeline time to switch
+        }
+        
         // Set up telemetry
         telemetry.setMsTransmissionInterval(50); // 20Hz update rate
         
@@ -75,6 +85,19 @@ public class LimeLightTester extends LinearOpMode {
         while (opModeIsActive()) {
             // Look specifically for tag 24
             AprilTagDetector.AprilTagResult tagResult = aprilTagDetector.getTagById(TARGET_TAG_ID);
+            
+            // Debug: Show what the Limelight is actually returning
+            if (robot.getLimeLight() != null) {
+                LLResult result = robot.getLimeLight().getLatestResult();
+                
+                if (result != null) {
+                    telemetry.addData("Limelight Result Valid", result.isValid());
+                    telemetry.addData("Fiducial Count", result.getFiducialResults().size());
+                    if (!result.getFiducialResults().isEmpty()) {
+                        telemetry.addData("First Fiducial ID", result.getFiducialResults().get(0).getFiducialId());
+                    }
+                }
+            }
             
             if (tagResult.isValid) {
                 // Display tag information
