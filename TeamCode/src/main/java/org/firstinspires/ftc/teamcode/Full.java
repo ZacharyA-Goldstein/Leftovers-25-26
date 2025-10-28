@@ -18,6 +18,8 @@ public class Full extends OpMode {
     private DcMotor intake; //EH0
     private DcMotor shoot; //EH1
 
+    private DcMotor shooterTurn; //EH2
+
     // --- Constants ---
     private static final double DEADBAND = 0.05;
 
@@ -34,6 +36,7 @@ public class Full extends OpMode {
         backRight  = hardwareMap.get(DcMotor.class, "backRight");
         intake     = hardwareMap.get(DcMotor.class, "intake");
         shoot      = hardwareMap.get(DcMotor.class, "shoot");
+        shooterTurn = hardwareMap.get(DcMotor.class, "shooterTurn");
 
         // --- Motor directions ---
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -42,6 +45,7 @@ public class Full extends OpMode {
         backRight.setDirection(DcMotorSimple.Direction.FORWARD);
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         shoot.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterTurn.setDirection(DcMotorSimple.Direction.FORWARD);
 
         // --- Stop all motors on init ---
         stopAllMotors();
@@ -119,9 +123,17 @@ public class Full extends OpMode {
     // --- Shooter Control ---
     private void shooterControl() {
         if (gamepad1.right_trigger > 0.1) {
-            shoot.setPower(0.75); // Power while trigger held
+            shoot.setPower(1); // Power while trigger held
         } else {
             shoot.setPower(0);
+        }
+
+        if (gamepad1.x) {
+            shooterTurn.setPower(-0.5); // reverse
+        } else if (gamepad1.b) {
+            shooterTurn.setPower(0.5);  // forward
+        } else {
+            shooterTurn.setPower(0);
         }
 
         telemetry.addData("Shooter Power", shoot.getPower());

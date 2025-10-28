@@ -9,20 +9,21 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class driveTrainTest extends OpMode {
 
     // --- Drive Motors ---
-    private DcMotor frontLeft;  // 1
-    private DcMotor frontRight; // 3
-    private DcMotor backLeft;   // 0
-    private DcMotor backRight;  // 2
+    private DcMotor frontLeft;  // 0
+    private DcMotor frontRight; // 1
+    private DcMotor backLeft;   // 2
+    private DcMotor backRight;  // 3
 
     // --- Intake Motor ---
     private DcMotor intake; // EH0
+
 
     // --- Constants ---
     private static final double DEADBAND = 0.05;
 
     // --- Slow mode variables ---
     private boolean slowMode = false;
-    private boolean bWasPressed = false;
+    private boolean rbWasPressed = false;
 
     @Override
     public void init() {
@@ -57,10 +58,10 @@ public class driveTrainTest extends OpMode {
     // --- DriveTrain Movement ---
     private void moveDriveTrain() {
         // --- Handle slow mode toggle ---
-        if (gamepad1.b && !bWasPressed) {
+        if (gamepad1.right_bumper && !rbWasPressed) {
             slowMode = !slowMode;  // Toggle when B is pressed
         }
-        bWasPressed = gamepad1.b;
+        rbWasPressed = gamepad1.right_bumper;
 
         // --- Controller inputs ---
         double rawDrive  = -gamepad1.left_stick_y;   // forward/back
@@ -107,7 +108,7 @@ public class driveTrainTest extends OpMode {
 
     // --- Intake Control ---
     private void intakeSpin() {
-        if (gamepad1.a) {
+        if (gamepad1.left_trigger > 0.1) {
             intake.setPower(1.0);
         } else {
             intake.setPower(0);
