@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+
 //full
 @TeleOp(name = "Full", group = "TeleOp")
 public class Full extends OpMode {
@@ -19,6 +21,10 @@ public class Full extends OpMode {
     private DcMotor shoot; //EH1
 
     private DcMotor shooterTurn; //EH2
+
+    // --- Servos ---
+
+    private Servo pusher; //0
 
     // --- Constants ---
     private static final double DEADBAND = 0.05;
@@ -37,13 +43,14 @@ public class Full extends OpMode {
         intake     = hardwareMap.get(DcMotor.class, "intake");
         shoot      = hardwareMap.get(DcMotor.class, "shoot");
         shooterTurn = hardwareMap.get(DcMotor.class, "shooterTurn");
+        pusher = hardwareMap.get(Servo.class, "pusher");
 
         // --- Motor directions ---
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         backRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        intake.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
         shoot.setDirection(DcMotorSimple.Direction.FORWARD);
         shooterTurn.setDirection(DcMotorSimple.Direction.FORWARD);
 
@@ -134,6 +141,10 @@ public class Full extends OpMode {
             shooterTurn.setPower(0.5);  // forward
         } else {
             shooterTurn.setPower(0);
+        }
+
+        if (gamepad1.a) {
+            pusher.setPosition(0.0);
         }
 
         telemetry.addData("Shooter Power", shoot.getPower());
