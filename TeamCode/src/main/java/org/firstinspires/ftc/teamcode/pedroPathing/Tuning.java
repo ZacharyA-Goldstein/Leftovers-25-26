@@ -39,10 +39,10 @@ public class Tuning extends SelectableOpMode {
     public static Follower follower;
 
     @IgnoreConfigurable
-    static PoseHistory poseHistory;
+    public static PoseHistory poseHistory;
 
     @IgnoreConfigurable
-    static TelemetryManager telemetryM;
+    public static TelemetryManager telemetryM;
 
     @IgnoreConfigurable
     static ArrayList<String> changes = new ArrayList<>();
@@ -113,53 +113,60 @@ public class Tuning extends SelectableOpMode {
         follower.startTeleopDrive(true);
         follower.setTeleOpDrive(0,0,0,true);
     }
-}
-
-/**
- * This is the LocalizationTest OpMode. This is basically just a simple mecanum drive attached to a
- * PoseUpdater. The OpMode will print out the robot's pose to telemetry as well as draw the robot.
- * You should use this to check the robot's localization.
- *
- * @author Anyi Lin - 10158 Scott's Bots
- * @author Baron Henderson - 20077 The Indubitables
- * @version 1.0, 5/6/2024
- */
-class LocalizationTest extends OpMode {
-    @Override
-    public void init() {}
-
-    /** This initializes the PoseUpdater, the mecanum drive motors, and the Panels telemetry. */
-    @Override
-    public void init_loop() {
-        telemetryM.debug("This will print your robot's position to telemetry while "
-                + "allowing robot control through a basic mecanum drive on gamepad 1.");
-        telemetryM.update(telemetry);
-        follower.update();
-        drawCurrent();
-    }
-
-    @Override
-    public void start() {
-        follower.startTeleopDrive();
-        follower.update();
-    }
 
     /**
-     * This updates the robot's pose estimate, the simple mecanum drive, and updates the
-     * Panels telemetry with the robot's position as well as draws the robot's position.
+     * This is the LocalizationTest OpMode. This is a simple mecanum drive attached to a
+     * PoseUpdater. The OpMode will print out the robot's pose to telemetry as well as draw the robot.
+     * You should use this to check the robot's localization.
+     *
+     * @author Anyi Lin - 10158 Scott's Bots
+     * @author Baron Henderson - 20077 The Indubitables
+     * @version 1.1, 10/29/2025
      */
-    @Override
-    public void loop() {
-        follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
-        follower.update();
+    @TeleOp(name = "Localization Test", group = "Pedro Pathing")
+    public static class LocalizationTest extends OpMode {
+        @Override
+        public void init() {
+            // Initialize the follower if not already done
+            if (follower == null) {
+                follower = Constants.createFollower(hardwareMap);
+                follower.setStartingPose(new Pose());
+            }
+        }
 
-        telemetryM.debug("x:" + follower.getPose().getX());
-        telemetryM.debug("y:" + follower.getPose().getY());
-        telemetryM.debug("heading:" + follower.getPose().getHeading());
-        telemetryM.debug("total heading:" + follower.getTotalHeading());
-        telemetryM.update(telemetry);
+        @Override
+        public void init_loop() {
+            telemetryM.debug("This will print your robot's position to telemetry while "
+                    + "allowing robot control through a basic mecanum drive on gamepad 1.");
+            telemetryM.update(telemetry);
+            follower.update();
+            drawCurrent();
+        }
 
-        drawCurrentAndHistory();
+        @Override
+        public void start() {
+            follower.startTeleopDrive();
+            follower.update();
+        }
+
+        @Override
+        public void loop() {
+            // Standard mecanum drive controls
+            double forward = -gamepad1.left_stick_y;
+            double strafe = -gamepad1.left_stick_x;
+            double turn = -gamepad1.right_stick_x;
+            
+            follower.setTeleOpDrive(forward, strafe, turn, true);
+            follower.update();
+
+            // Display position and heading
+            telemetryM.debug("X: " + String.format("%.2f", follower.getPose().getX()) + " in");
+            telemetryM.debug("Y: " + String.format("%.2f", follower.getPose().getY()) + " in");
+            telemetryM.debug("Heading: " + String.format("%.2f", Math.toDegrees(follower.getPose().getHeading())) + "°");
+            telemetryM.update(telemetry);
+
+            drawCurrentAndHistory();
+        }
     }
 }
 

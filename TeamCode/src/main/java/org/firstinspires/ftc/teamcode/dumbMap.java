@@ -60,7 +60,7 @@ public class dumbMap {
     public int slideanglePos = -300, slidePos = 0;
     public double rstickxLast = 0, rstickyLast = 0, lTpos = 0.46;
 
-
+    public Servo servo;
 
 
     public dumbMap(OpMode opMode) {
@@ -173,7 +173,7 @@ public class dumbMap {
             this.opMode.telemetry.addData("Sensor Error", e.getMessage());
         }
         */
-        
+        //servo = this.opMode.hardwareMap.get(Servo.class, "servo" );
         this.opMode.telemetry.update();
     }
 
