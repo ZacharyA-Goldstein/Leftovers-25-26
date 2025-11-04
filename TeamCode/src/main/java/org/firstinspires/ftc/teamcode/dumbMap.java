@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-
-
-
 import com.qualcomm.hardware.bosch.BHI260IMU;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -21,34 +18,33 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import java.util.ArrayList;
 
-//h
-
+/**
+ * Main robot hardware and control class for basic teleop operations
+ */
 public class dumbMap {
-    //Define runtime
-    public ElapsedTime runtime = new ElapsedTime();
-
-    //Define opMode
-
-    public OpMode opMode;
-
-    //Define all hardware
-
+    // Servo positions
+    public static final double SERVO_TRANSFER_POSITION = 0.08;  // Updated transfer position
+    public static final double SERVO_INTAKE_POSITION = 0.22;    // Updated intake position
+    
+    // Hardware objects
+    public DcMotor leftFront, leftBack, rightFront, rightBack, outtake, spinner, intake;
+    public Servo servo;
+    public double drivePower = 0.5;
+    
+    // Sensors and other hardware
     public VoltageSensor batteryVoltageSensor;
-
     public WebcamName bonoboCam;
-    public HuskyLens huskyLens; // i2c 1
+    public HuskyLens huskyLens;
     public RevColorSensorV3 ColorSensor;
     public Limelight3A limelight;
-    public double multi;
-
-
-
     public DistanceSensor distanceSensor;
-    public BHI260IMU gyro;//Can we do it?
-
+    public BHI260IMU gyro;
+    
+    // Utility
+    public ElapsedTime runtime = new ElapsedTime();
+    public OpMode opMode;
+    public double multi;
     public boolean halfSpeedToggle = false, qtrSpeedToggle = false, drivingReverse = false;
-
-    public double drivePower;
 
     public Telemetry telemetry;
     public boolean clawOpen = false, clawRot = false, flip = false;
@@ -60,14 +56,15 @@ public class dumbMap {
     public int slideanglePos = -300, slidePos = 0;
     public double rstickxLast = 0, rstickyLast = 0, lTpos = 0.46;
 
-    public Servo servo;
-
 
     public dumbMap(OpMode opMode) {
         this.opMode = opMode;
     }
 
-    public dumbMap(LinearOpMode opMode) {this.opMode = opMode;}
+    public dumbMap(LinearOpMode opMode) {
+        this.opMode = opMode;
+    }
+
 
     /**
      * Initialize the LimeLight camera
@@ -155,12 +152,96 @@ public class dumbMap {
      * Initialize all hardware components
      */
     public void init2() {
+        try {
+            // Initialize drive motors
+            leftFront = opMode.hardwareMap.get(DcMotor.class, "leftFront");
+            rightFront = opMode.hardwareMap.get(DcMotor.class, "rightFront");
+            leftBack = opMode.hardwareMap.get(DcMotor.class, "leftBack");
+            rightBack = opMode.hardwareMap.get(DcMotor.class, "rightBack");
+
+            // Set motor directions (adjust if needed)
+            leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+            rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
+
+            // Set motor modes
+            setMotorModes(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            
+            // Initialize outtake motor
+            outtake = opMode.hardwareMap.get(DcMotor.class, "outtake");
+            outtake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            outtake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            
+            // Initialize spinner motor
+            spinner = opMode.hardwareMap.get(DcMotor.class, "spinner");
+            spinner.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            spinner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            
+            // Initialize intake motor
+            intake = opMode.hardwareMap.get(DcMotor.class, "intake");
+            intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            
+            // Initialize servo
+            servo = opMode.hardwareMap.get(Servo.class, "servo");
+            servo.setPosition(SERVO_TRANSFER_POSITION);  // Start in transfer position
+            
+            // Initialize voltage sensor
+            batteryVoltageSensor = opMode.hardwareMap.voltageSensor.iterator().next();
+            
+            opMode.telemetry.addData("Status", "Hardware initialized");
+            opMode.telemetry.addData("Battery", "%.1fV", batteryVoltageSensor.getVoltage());
+            opMode.telemetry.update();
+            
+        } catch (Exception e) {
+            opMode.telemetry.addData("Error", "Failed to initialize hardware: " + e.getMessage());
+            opMode.telemetry.update();
+        }
+    }
+    
+    /**
+     * Set all drive motors to the same run mode
+     */
+    public void setMotorModes(DcMotor.RunMode mode) {
+        leftFront.setMode(mode);
+        rightFront.setMode(mode);
+        leftBack.setMode(mode);
+        rightBack.setMode(mode);
+    }
+    
+    /**
+     * Set all drive motors to the same zero power behavior
+     */
+    public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
+        leftFront.setZeroPowerBehavior(behavior);
+        rightFront.setZeroPowerBehavior(behavior);
+        leftBack.setZeroPowerBehavior(behavior);
+        rightBack.setZeroPowerBehavior(behavior);
+    }
+    
+    /**
+     * Stop all drive motors
+     */
+    public void stopMotors() {
+        leftFront.setPower(0);
+        rightFront.setPower(0);
+        leftBack.setPower(0);
+        rightBack.setPower(0);
+    }
+    
+    /**
+     * Initialize all hardware components
+     */
+    public void init() {
         // Initialize voltage sensor
         batteryVoltageSensor = this.opMode.hardwareMap.voltageSensor.iterator().next();
         this.opMode.telemetry.addData("Battery Voltage", "%.1fV", batteryVoltageSensor.getVoltage());
         
         // Initialize LimeLight
-        initLimeLight();
+        //initLimeLight();
         
         // Initialize other sensors (uncomment and modify as needed)
         /*
