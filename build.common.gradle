@@ -1,30 +1,63 @@
 /**
  * build.common.gradle
  *
- * Try to avoid editing this file, as it may be updated from time to time as the FTC SDK
- * evolves. Rather, if it is necessary to customize the build process, do those edits in
- * the build.gradle file in TeamCode.
- *
  * This file contains the necessary content of the 'build.gradle' files for robot controller
- * applications built using the FTC SDK. Each individual 'build.gradle' in those applications
- * can simply contain the one line:
- *
- *      apply from: '../build.common.gradle'
- *
- * which will pick up this file here. This approach allows makes it easier to integrate
- * updates to the FTC SDK into your code.
+ * applications built using the FTC SDK.
  */
 
 import java.util.regex.Pattern
 
 apply plugin: 'com.android.application'
 
+// Load the version.properties file
+ext {
+    def versionPropsFile = rootProject.file('version.properties')
+    if (versionPropsFile.exists()) {
+        def props = new Properties()
+        props.load(new FileInputStream(versionPropsFile))
+        ext.ftcSdkVersion = props['ftc.sdk.version']
+    }
+}
+
 android {
-
     compileSdk 34
-
+    
+    // Enable Java 8 features
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+        
+        // Enable core library desugaring for Java 8+ APIs on older Android versions
+        coreLibraryDesugaringEnabled true
+    }
+    
+    // Add build config fields for version information
+    defaultConfig {
+        // Set the application ID (package name) for the app
+        applicationId "com.qualcomm.ftcrobotcontroller"
+        
+        // Set the minimum and target SDK versions
+        minSdkVersion 24
+        targetSdkVersion 33
+        
+        // Version code and name
+        versionCode 1
+        versionName "1.0"
+        
+        // Enable multidex support
+        multiDexEnabled true
+        
+        // Add test instrumentation runner
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Enable vector drawable support
+        vectorDrawables.useSupportLibrary = true
+    }
+    
+    // Configure signing
     signingConfigs {
         release {
+            // Try to get signing config from environment variables
             def apkStoreFile = System.getenv("APK_SIGNING_STORE_FILE")
             if (apkStoreFile != null) {
                 keyAlias System.getenv("APK_SIGNING_KEY_ALIAS")
@@ -110,6 +143,20 @@ android {
         pickFirst '**/*.so'
     }
     ndkVersion '21.3.6528147'
+}
+
+// Helper method to get the current Git commit hash
+def getGitSha() {
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    } catch (Exception e) {
+        return 'unknown'
+    }
 }
 
 repositories {
