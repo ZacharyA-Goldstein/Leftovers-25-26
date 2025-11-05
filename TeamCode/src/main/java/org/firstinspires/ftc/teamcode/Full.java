@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 //full
 @TeleOp(name = "Full", group = "TeleOp")
@@ -19,6 +20,9 @@ public class Full extends OpMode {
     private DcMotor shoot; //EH1
 
     private DcMotor shooterTurn; //EH2
+
+
+
 
     // --- Constants ---
     private static final double DEADBAND = 0.05;
@@ -38,6 +42,7 @@ public class Full extends OpMode {
         shoot      = hardwareMap.get(DcMotor.class, "shoot");
         shooterTurn = hardwareMap.get(DcMotor.class, "shooterTurn");
 
+
         // --- Motor directions ---
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -46,6 +51,7 @@ public class Full extends OpMode {
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         shoot.setDirection(DcMotorSimple.Direction.FORWARD);
         shooterTurn.setDirection(DcMotorSimple.Direction.FORWARD);
+
 
         // --- Stop all motors on init ---
         stopAllMotors();
@@ -59,6 +65,8 @@ public class Full extends OpMode {
         moveDriveTrain();
         intakeSpin();
         shooterControl();
+        new servoFlickTest();
+
         telemetry.update();
     }
 
@@ -139,6 +147,8 @@ public class Full extends OpMode {
         telemetry.addData("Shooter Power", shoot.getPower());
         telemetry.addData("Right Trigger", gamepad1.right_trigger);
     }
+
+
 
     // --- Utility: Deadzone filter ---
     private double applyDeadzone(double value, double thresh) {
