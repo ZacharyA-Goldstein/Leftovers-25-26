@@ -543,8 +543,8 @@ class LateralVelocityTuner extends OpMode {
  */
 class ForwardZeroPowerAccelerationTuner extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
-    public static double VELOCITY = 15;  // Target velocity - requires ~15-20 feet of space
-    public static double MAX_DISTANCE = 50;  // Maximum distance in inches (15 feet) before emergency stop
+    public static double VELOCITY = 50;  // Set to 50 in/s based on ForwardVelocityTuner results
+    public static double MAX_DISTANCE = 50;  // Reduced to 100 inches (about 8 feet) since we're using a lower target velocity
 
     private double previousVelocity;
     private long previousTimeNano;
@@ -610,9 +610,10 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
         // Emergency stop if traveled too far without reaching target velocity
         if (!stopping && distanceTraveled > MAX_DISTANCE) {
             telemetryM.debug("!!! EMERGENCY STOP - Traveled " + String.format("%.1f", distanceTraveled) + " inches");
-            telemetryM.debug("!!! Robot never reached target velocity of " + VELOCITY + " in/s");
+            telemetryM.debug("!!! Robot reached " + String.format("%.1f", (currentVelocity/VELOCITY)*100) + "% of target velocity (" + VELOCITY + " in/s)");
             telemetryM.debug("!!! Current velocity: " + String.format("%.2f", currentVelocity) + " in/s");
             telemetryM.debug("Press B to stop OpMode");
+            telemetryM.debug("Try increasing MAX_DISTANCE or decreasing VELOCITY if needed");
             telemetryM.update(telemetry);
             stopRobot();
             end = true;  // Set end flag instead of calling requestOpModeStop
@@ -625,11 +626,13 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
                 // Continuously drive forward at full power during acceleration
                 follower.setTeleOpDrive(1,0,0,true);
                 
-                if (follower.getVelocity().dot(heading) > VELOCITY) {
+                // Check if we've reached 90% of target velocity (with 10% buffer for overshoot)
+                if (follower.getVelocity().dot(heading) > VELOCITY * 0.9) {
                     previousVelocity = follower.getVelocity().dot(heading);
                     previousTimeNano = System.nanoTime();
                     stopping = true;
                     follower.setTeleOpDrive(0,0,0,true);
+                    telemetryM.debug(">>> TARGET VELOCITY REACHED - " + String.format("%.1f", follower.getVelocity().dot(heading)) + " in/s");
                     telemetryM.debug(">>> POWER CUT - Starting deceleration measurement");
                 }
             } else {
