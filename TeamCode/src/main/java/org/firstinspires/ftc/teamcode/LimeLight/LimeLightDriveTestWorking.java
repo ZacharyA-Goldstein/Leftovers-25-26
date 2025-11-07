@@ -1,4 +1,4 @@
-//green and purple detection with PID and manual driving
+//limelight drive works: //green and purple detection with PID and manual driving
 package org.firstinspires.ftc.teamcode.LimeLight;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -39,21 +39,21 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
     // Control parameters
     private static final double TARGET_X = 0.0; // Target X position (center of screen)
     private static final double ROTATION_KP = 0.02; // Proportional constant for rotation (AprilTag)
-    
+
     // Minimum area (in pixels^2) for ball detection to be considered valid
     private static final double MIN_GREEN_BALL_AREA = 0.5;  // Require at least 2% of screen
     private static final double MIN_PURPLE_BALL_AREA = 0.5;  // Require at least 2% of screen
-    
+
     // Green ball tracking parameters - matched to reference code for faster response
     private static final double GREEN_BALL_KP = 0.02;     // Matches reference code kPBall_g
     private static final double GREEN_BALL_KI = 0.0;      // No integral term (like reference)
     private static final double GREEN_BALL_KD = 0.0;      // No derivative term (like reference)
-    
+
     // Purple ball tracking parameters - matched to reference code for faster response
     private static final double PURPLE_BALL_KP = 0.02;    // Matches reference code kPBall_p
     private static final double PURPLE_BALL_KI = 0.0;     // No integral term (like reference)
     private static final double PURPLE_BALL_KD = 0.0;     // No derivative term (like reference)
-    
+
     private static final double MIN_ROTATION_POWER = 0.10; // Matches reference minPowerBall
     private static final double TOLERANCE = 1.0;          // Degrees from target to consider aligned
     private static final double SLOW_ZONE = 3.0;           // Degrees where we start reducing speed
@@ -145,7 +145,7 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
             if (xButtonCurrentState && !xButtonPreviousState &&
                     (System.currentTimeMillis() - lastToggleTime > DEBOUNCE_DELAY_MS)) {
                 alignmentActive = !alignmentActive; // Toggle state
-                
+
                 // Switch to AprilTag pipeline when enabling alignment
                 if (alignmentActive) {
                     ballDetectionActive = false; // Turn off ball detection
@@ -154,7 +154,7 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
                         limelight.pipelineSwitch(0);
                     }
                 }
-                
+
                 lastToggleTime = System.currentTimeMillis();
             }
             xButtonPreviousState = xButtonCurrentState;
@@ -162,9 +162,9 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
             // Toggle ball detection mode with Y button (with debounce)
             // Cycle: Off -> Green Ball -> Purple Ball -> Off
             boolean yButtonCurrentState = gamepad1.y;
-            if (yButtonCurrentState && !yButtonPreviousState && 
-                (System.currentTimeMillis() - lastGreenToggleTime > DEBOUNCE_DELAY_MS)) {
-                
+            if (yButtonCurrentState && !yButtonPreviousState &&
+                    (System.currentTimeMillis() - lastGreenToggleTime > DEBOUNCE_DELAY_MS)) {
+
                 if (!ballDetectionActive && currentPipeline == 0) {
                     // First press - enable green ball detection
                     ballDetectionActive = true;
@@ -185,17 +185,17 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
                     isSearching = false;
                     setMotorPowers(0, 0, 0); // Stop any movement
                 }
-                
+
                 // Switch pipeline if we're in a ball detection mode
                 if (ballDetectionActive) {
                     limelight.pipelineSwitch(currentPipeline);
                     sleep(50); // Let the pipeline switch
                 }
-                
+
                 lastGreenToggleTime = System.currentTimeMillis();
             }
             yButtonPreviousState = yButtonCurrentState;
-            
+
             // Show current detection status
             String mode = "Manual";
             if (alignmentActive) {
@@ -235,53 +235,53 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
         // Process ball detection if active
         LLResult result = limelight.getLatestResult();
         boolean targetFound = false;
-        
+
         // Get tx, ty, ta directly from LLResult (like working DriveTest.java)
         double txDeg = 0.0;
         double tyDeg = 0.0;
         double ta = 0.0;
-        
+
         if (result != null) {
             txDeg = result.getTx();
             tyDeg = result.getTy();
             ta = result.getTa();
         }
-        
+
         // Check if we have a valid detection with sufficient area
         double minArea = (currentPipeline == 1) ? MIN_GREEN_BALL_AREA : MIN_PURPLE_BALL_AREA;
-        
+
         // Always show what area is being detected for debugging
         telemetry.addData("Ball ta (area %)", "%.2f (min: %.2f)", ta, minArea);
-        
+
         if (ta >= minArea) {
             // Reset search state when target is found
             isSearching = false;
             lostFrames = 0;
-            
+
             double xAngle = txDeg;
-            
+
             // Stronger low-pass filter to reduce jitter
             xAngle = (0.5 * xAngle) + (0.5 * lastXAngle);
             lastXAngle = xAngle;
-            
+
             telemetry.addLine("✅ " + (currentPipeline == 1 ? "Green" : "Purple") + " ball detected!");
             telemetry.addData("Ball tx (deg)", "%.2f", txDeg);
             telemetry.addData("Ball ty (deg)", "%.2f", tyDeg);
             telemetry.addData("Ball ta (area %)", "%.2f", ta);
-            
+
             // Calculate time delta for integral and derivative terms
             long currentTime = System.currentTimeMillis();
             double deltaTime = (lastTime > 0) ? (currentTime - lastTime) / 1000.0 : 0.02; // Default to 50Hz if first run
             lastTime = currentTime;
-            
+
             // Calculate error and apply deadband
             double error = (Math.abs(xAngle) < DEADBAND) ? 0 : xAngle;
-            
+
             // Get PID constants based on ball color
             double kp = (currentPipeline == 1) ? GREEN_BALL_KP : PURPLE_BALL_KP;
             double ki = (currentPipeline == 1) ? GREEN_BALL_KI : PURPLE_BALL_KI;
             double kd = (currentPipeline == 1) ? GREEN_BALL_KD : PURPLE_BALL_KD;
-            
+
             // Calculate integral term with anti-windup
             if (Math.abs(error) > 0.1) { // Only integrate when error is significant
                 integralSum += error * deltaTime;
@@ -290,14 +290,14 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
             } else {
                 integralSum = 0; // Reset integral when close to target
             }
-            
+
             // Calculate derivative term with smoothing
             double derivative = (deltaTime > 0) ? (error - lastError) / deltaTime : 0;
             derivative = lastXAngle * (1 - SMOOTHING_FACTOR) + derivative * SMOOTHING_FACTOR;
-            
+
             // Calculate base PID output
             double basePower = (kp * error) + (ki * integralSum) + (kd * derivative);
-            
+
             // Apply speed reduction in the slow zone (close to target)
             double rotationPower = basePower;
             if (Math.abs(error) < SLOW_ZONE) {
@@ -305,18 +305,18 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
                 double speedFactor = 0.3 + (0.7 * (Math.abs(error) / SLOW_ZONE));
                 rotationPower *= speedFactor;
             }
-            
+
             // Apply minimum power threshold with sign preservation
             if (Math.abs(rotationPower) > 0 && Math.abs(rotationPower) < MIN_ROTATION_POWER) {
                 rotationPower = Math.copySign(MIN_ROTATION_POWER, rotationPower);
             }
-            
+
             // Limit max rotation power (matches reference code max of 0.7)
             rotationPower = Math.max(-0.7, Math.min(0.7, rotationPower));
-            
+
             // Store values for next iteration
             lastError = error;
-            
+
             // Only rotate if we're not already centered (within tolerance)
             if (Math.abs(xAngle) > TOLERANCE) {
                 // Rotate to center the ball (inverted because of coordinate system)
@@ -325,8 +325,8 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
                 setMotorPowers(forward, finalPower, strafe);
                 lastRotationPower = finalPower;
                 targetLocked = true;
-                telemetry.addData("Action", "Rotating %.2f power (P:%.3f, I:%.3f, D:%.3f)", 
-                    finalPower, kp*error, ki*integralSum, kd*derivative);
+                telemetry.addData("Action", "Rotating %.2f power (P:%.3f, I:%.3f, D:%.3f)",
+                        finalPower, kp*error, ki*integralSum, kd*derivative);
             } else {
                 // Stop rotating when centered, but allow manual driving
                 setMotorPowers(forward, 0, strafe);
@@ -334,19 +334,19 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
                 integralSum = 0; // Reset integral when centered
                 targetLocked = false;
                 telemetry.addLine("✅ Centered on ball!");
-                
+
                 // Gentle rumble when locked on
                 if (opModeIsActive() && !isStopRequested()) {
                     gamepad1.rumble(50);
                 }
             }
-            
+
             targetFound = true;
         } else {
             // Ball area too small, handle as lost
             handleBallLost();
         }
-        
+
         // Handle case when no target is found
         if (!targetFound) {
             handleBallLost();
@@ -456,27 +456,27 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
      */
     private void handleBallLost() {
         lostFrames++;
-        
+
         // Reset PID terms when target is lost
         integralSum = 0;
         lastError = 0;
-        
+
         // Initialize search if this is the first frame we lost the target
         if (!isSearching) {
             isSearching = true;
             searchStartAngle = 0; // This would ideally get the current robot heading
             telemetry.addLine("🔍 Starting 360° search...");
         }
-        
+
         // If we're in search mode, rotate slowly
         if (isSearching) {
             // Use different search speeds for green vs purple to reduce overshooting
             double searchPower = (currentPipeline == 1) ? 0.15 : 0.12; // Reduced from 0.2/0.15
-            
+
             // Add a small oscillation to help with detection
             double oscillation = 0.02 * Math.sin(System.currentTimeMillis() * 0.005);
             searchPower += oscillation;
-            
+
             setMotorPowers(0, searchPower, 0);
             telemetry.addLine("🔍 Searching for " + (currentPipeline == 1 ? "green" : "purple") + " ball...");
         } else {
@@ -495,7 +495,7 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
                 telemetry.addLine("⚠️  Ball lost - stopped");
             }
         }
-        
+
         // If we've been searching too long, reset state
         if (lostFrames > MAX_LOST_FRAMES * 3) { // Increased from 2x to 3x
             lastXAngle = 0;
@@ -529,8 +529,8 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
 
         // Normalize the wheel speeds so no value exceeds 1.0
         double maxPower = Math.max(Math.max(
-                Math.abs(leftFrontPower),
-                Math.abs(rightFrontPower)),
+                        Math.abs(leftFrontPower),
+                        Math.abs(rightFrontPower)),
                 Math.max(
                         Math.abs(leftBackPower),
                         Math.abs(rightBackPower)
@@ -551,3 +551,4 @@ public class LimeLightDriveTestWorking extends LinearOpMode {
         rightBack.setPower(rightBackPower);
     }
 }
+

@@ -8,9 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.dumbMap;
 import org.firstinspires.ftc.teamcode.pathing.Follower;
 import org.firstinspires.ftc.teamcode.pathing.Pose;
@@ -147,12 +145,20 @@ public class LimeLightDriveTest extends LinearOpMode {
             }
             xButtonPreviousState = xButtonCurrentState; // Update previous state
             
-            // If alignment is active, use Limelight to align
-            if (alignmentActive) {
-                alignToTarget();
-            } else {
-                // Set motor powers directly if not aligning
+            // ALWAYS allow manual rotation when right stick X is used, regardless of alignment state
+            if (Math.abs(rotate) > 0.1) {
+                // Manual rotation takes full control - disable alignment during manual rotation
                 setMotorPowers(forward, strafe, rotate);
+                targetLocked = false; // Reset alignment state
+                lastRotationPower = 0;
+            } 
+            // If not manually rotating and alignment is active, use Limelight alignment
+            else if (alignmentActive) {
+                alignToTarget();
+            } 
+            // If not manually rotating and alignment is not active, just drive normally
+            else {
+                setMotorPowers(forward, strafe, 0);
             }
             
             // Display alignment status
@@ -176,8 +182,8 @@ public class LimeLightDriveTest extends LinearOpMode {
             // Show green ball detection status
             telemetry.addData("Green Ball Mode", greenBallMode ? "ACTIVE" : "INACTIVE");
             
-            // Process green ball detection if active
-            if (greenBallMode) {
+            // Process green ball detection if active AND not manually rotating
+            if (greenBallMode && Math.abs(rotate) < 0.1) {  // Only track ball if not manually rotating
                 LLResult result = limelight.getLatestResult();
                 
                 if (result != null && result.isValid()) {
@@ -311,13 +317,20 @@ public class LimeLightDriveTest extends LinearOpMode {
      */
     private void setMotorPowers(double forward, double strafe, double rotate) {
         // Standard mecanum drive equations
-        // For pure rotation (forward=0, strafe=0, rotate≠0):
-        //   Left motors get -rotate, Right motors get +rotate
-        // This makes the robot spin in place without translating
-        double leftFrontPower = forward + strafe + rotate;
-        double rightFrontPower = forward - strafe - rotate;
-        double leftBackPower = forward - strafe + rotate;
-        double rightBackPower = forward + strafe - rotate;
+        // For a standard mecanum drive:
+        // - Forward/backward: All motors get +forward
+        // - Strafe left/right: Left front/right back get +strafe, right front/left back get -strafe
+        // - Rotate: Left side gets -rotate, right side gets +rotate
+        double leftFrontPower = forward + strafe - rotate;  // Was: forward + strafe + rotate
+        double rightFrontPower = forward - strafe + rotate; // Was: forward - strafe - rotate
+        double leftBackPower = forward - strafe - rotate;   // Was: forward - strafe + rotate
+        double rightBackPower = forward + strafe + rotate;  // Was: forward + strafe - rotate
+        
+        // Apply motor direction corrections if needed (uncomment and adjust if necessary)
+        // leftFrontPower *= 1.0;
+        // rightFrontPower *= 1.0;
+        // leftBackPower *= 1.0;
+        // rightBackPower *= 1.0;
         
         // Debug output for motor powers
         telemetry.addData("LF Power", "%4.2f", leftFrontPower);
