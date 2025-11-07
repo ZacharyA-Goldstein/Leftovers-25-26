@@ -1,16 +1,11 @@
-/**
- * Top-level build file for ftc_app project.
- *
- * It is extraordinarily rare that you will ever need to edit this file.
- */
-
 buildscript {
     repositories {
         mavenCentral()
+        maven { url = 'https://maven.brott.dev/' }
+        maven { url = 'https://maven.bqmarton.me/' }
         google()
     }
     dependencies {
-        // Note for FTC Teams: Do not modify this yourself.
         classpath 'com.android.tools.build:gradle:8.7.0'
     }
 }
@@ -20,10 +15,32 @@ buildscript {
 allprojects {
     repositories {
         mavenCentral()
+        maven { url = 'https://maven.brott.dev/' }
+        maven { url = 'https://maven.bqmarton.me/' }
         google()
     }
 }
 
 repositories {
     mavenCentral()
+    maven { url = 'https://maven.brott.dev/' }
+    maven { url = 'https://maven.bqmarton.me/' }
+}
+
+// Load the FTC SDK version from the version.properties file
+ext {
+    def versionPropsFile = rootProject.file('version.properties')
+    if (versionPropsFile.exists()) {
+        def props = new Properties()
+        props.load(new FileInputStream(versionPropsFile))
+        ext.ftcSdkVersion = props['ftc.sdk.version']
+    }
+}
+
+// Configure Java compilation
+allprojects {
+    tasks.withType(JavaCompile) {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
 }
