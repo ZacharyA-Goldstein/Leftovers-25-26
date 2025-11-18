@@ -160,7 +160,7 @@ public class dumbMapLime {
         this.opMode.telemetry.addData("Battery Voltage", "%.1fV", batteryVoltageSensor.getVoltage());
 
         // Initialize LimeLight
-        //initLimeLight();
+        initLimeLight();
 
         // Initialize other sensors (uncomment and modify as needed)
         /*
