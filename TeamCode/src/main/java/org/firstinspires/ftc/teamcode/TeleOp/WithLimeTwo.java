@@ -165,7 +165,7 @@ public class bot1teleLime extends LinearOpMode {
                     int angleTicks = spinnerTicksForDistance(distanceIn);
 
                     // Set shooter wheel
-                    robot.outtake.setPower(wheelPower);
+                    robot.shooter.setPower(wheelPower);
 
                     // Aim shooter angle with spinner RUN_TO_POSITION
                     robot.spinner.setTargetPosition(angleTicks);
@@ -207,7 +207,7 @@ public class bot1teleLime extends LinearOpMode {
 
             // If auto-aim is OFF, set outtake by toggle; if ON, wheel power is set above
             if (!autoAimEnabled) {
-                robot.outtake.setPower(outtakeOn ? 1.0 : 0.0);
+                robot.shooter.setPower(outtakeOn ? 1.0 : 0.0);
             }
 
             // D-pad left/right DISABLED for manual angle; auto-aim handles horizontal alignment
@@ -245,7 +245,7 @@ public class bot1teleLime extends LinearOpMode {
         robot.leftBack.setPower(0);
         robot.rightBack.setPower(0);
         robot.intake.setPower(0);
-        robot.outtake.setPower(0);
+        robot.shooter.setPower(0);
         setTransferPower(0.0);
         if (shooterTurn != null) shooterTurn.setPower(0.0);
     }

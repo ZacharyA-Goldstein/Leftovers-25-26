@@ -128,20 +128,7 @@ public class Tuning extends SelectableOpMode {
 class LocalizationTest extends OpMode {
     @Override
     public void init() {
-        // Initialize the follower using the Constants class
-        if (follower == null) {
-            follower = Constants.createFollower(hardwareMap);
-            follower.setStartingPose(new Pose(0, 0, 0));
-        }
-
-        // Start teleop drive mode
-        follower.startTeleopDrive();
-
-        // Initialize telemetry
-        telemetry.update();
-
-        // Initialize the Drawing system if not already done
-        Drawing.init();
+        follower.setStartingPose(new Pose(72,72));
     }
 
     /** This initializes the PoseUpdater, the mecanum drive motors, and the Panels telemetry. */
@@ -197,6 +184,7 @@ class ForwardTuner extends OpMode {
 
     @Override
     public void init() {
+        follower.setStartingPose(new Pose(72,72));
         follower.update();
         drawOnlyCurrent();
     }
@@ -219,7 +207,7 @@ class ForwardTuner extends OpMode {
 
         telemetryM.debug("Distance Moved: " + follower.getPose().getX());
         telemetryM.debug("The multiplier will display what your forward ticks to inches should be to scale your current distance to " + DISTANCE + " inches.");
-        telemetryM.debug("Multiplier: " + (DISTANCE / (follower.getPose().getX() / follower.getPoseTracker().getLocalizer().getForwardMultiplier())));
+        telemetryM.debug("Multiplier: " + (DISTANCE / ((follower.getPose().getX() - 72) / follower.getPoseTracker().getLocalizer().getForwardMultiplier())));
         telemetryM.update(telemetry);
 
         draw();
@@ -244,6 +232,7 @@ class LateralTuner extends OpMode {
 
     @Override
     public void init() {
+        follower.setStartingPose(new Pose(72,72));
         follower.update();
         drawOnlyCurrent();
     }
@@ -266,7 +255,7 @@ class LateralTuner extends OpMode {
 
         telemetryM.debug("Distance Moved: " + follower.getPose().getY());
         telemetryM.debug("The multiplier will display what your strafe ticks to inches should be to scale your current distance to " + DISTANCE + " inches.");
-        telemetryM.debug("Multiplier: " + (DISTANCE / (follower.getPose().getY() / follower.getPoseTracker().getLocalizer().getLateralMultiplier())));
+        telemetryM.debug("Multiplier: " + (DISTANCE / ((follower.getPose().getY() - 72) / follower.getPoseTracker().getLocalizer().getLateralMultiplier())));
         telemetryM.update(telemetry);
 
         draw();
@@ -291,6 +280,7 @@ class TurnTuner extends OpMode {
 
     @Override
     public void init() {
+        follower.setStartingPose(new Pose(72,72));
         follower.update();
         drawOnlyCurrent();
     }
@@ -344,7 +334,9 @@ class ForwardVelocityTuner extends OpMode {
     private boolean end;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /** This initializes the drive motors as well as the cache of velocities and the Panels telemetry. */
     @Override
@@ -355,7 +347,6 @@ class ForwardVelocityTuner extends OpMode {
         telemetryM.debug("Press B on game pad 1 to stop.");
         telemetryM.debug("pose", follower.getPose());
         telemetryM.update(telemetry);
-
         follower.update();
         drawOnlyCurrent();
     }
@@ -389,7 +380,7 @@ class ForwardVelocityTuner extends OpMode {
 
 
         if (!end) {
-            if (Math.abs(follower.getPose().getX()) > DISTANCE) {
+            if (Math.abs(follower.getPose().getX()) > (DISTANCE + 72)) {
                 end = true;
                 stopRobot();
             } else {
@@ -427,7 +418,7 @@ class ForwardVelocityTuner extends OpMode {
 }
 
 /**
- * This is the StrafeVelocityTuner autonomous follower OpMode. This runs the robot right at max
+ * This is the StrafeVelocityTuner autonomous follower OpMode. This runs the robot left at max
  * power until it reaches some specified distance. It records the most recent velocities, and on
  * reaching the end of the distance, it averages them and prints out the velocity obtained. It is
  * recommended to run this multiple times on a full battery to get the best results. What this does
@@ -450,7 +441,9 @@ class LateralVelocityTuner extends OpMode {
     private boolean end;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /**
      * This initializes the drive motors as well as the cache of velocities and the Panels
@@ -458,17 +451,16 @@ class LateralVelocityTuner extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetryM.debug("The robot will run at 1 power until it reaches " + DISTANCE + " inches to the right.");
+        telemetryM.debug("The robot will run at 1 power until it reaches " + DISTANCE + " inches to the left.");
         telemetryM.debug("Make sure you have enough room, since the robot has inertia after cutting power.");
         telemetryM.debug("After running the distance, the robot will cut power from the drivetrain and display the strafe velocity.");
         telemetryM.debug("Press B on Gamepad 1 to stop.");
         telemetryM.update(telemetry);
-
         follower.update();
         drawOnlyCurrent();
     }
 
-    /** This starts the OpMode by setting the drive motors to run right at full power. */
+    /** This starts the OpMode by setting the drive motors to run left at full power. */
     @Override
     public void start() {
         for (int i = 0; i < RECORD_NUMBER; i++) {
@@ -495,7 +487,7 @@ class LateralVelocityTuner extends OpMode {
         draw();
 
         if (!end) {
-            if (Math.abs(follower.getPose().getY()) > DISTANCE) {
+            if (Math.abs(follower.getPose().getY()) > (DISTANCE + 72)) {
                 end = true;
                 stopRobot();
             } else {
@@ -543,127 +535,116 @@ class LateralVelocityTuner extends OpMode {
  */
 class ForwardZeroPowerAccelerationTuner extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
-    public static double VELOCITY = 50;  // Set to 50 in/s based on ForwardVelocityTuner results
-    public static double MAX_DISTANCE = 50;  // Reduced to 100 inches (about 8 feet) since we're using a lower target velocity
+    public static double VELOCITY = 50;
+    public static double MAX_DISTANCE = 60; // Maximum distance in inches before stopping
 
     private double previousVelocity;
     private long previousTimeNano;
     private double startX;
+    private double startY;
 
     private boolean stopping;
     private boolean end;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
-    /** This initializes the drive motors as well as the Panels telemetryM. */
     @Override
     public void init_loop() {
-        telemetryM.debug("The robot will run forward until it reaches " + VELOCITY + " inches per second.");
-        telemetryM.debug("Then, it will cut power from the drivetrain and roll to a stop.");
+        telemetryM.debug("The robot will run forward until it reaches " + VELOCITY + " inches per second");
+        telemetryM.debug("or travels " + MAX_DISTANCE + " inches.");
+        telemetryM.debug("Then, it will cut power and roll to a stop.");
         telemetryM.debug("Make sure you have enough room.");
-        telemetryM.debug("After stopping, the forward zero power acceleration (natural deceleration) will be displayed.");
-        telemetryM.debug("Press B on Gamepad 1 to stop.");
         telemetryM.update(telemetry);
         follower.update();
         drawOnlyCurrent();
     }
 
-    /** This starts the OpMode by setting the drive motors to run forward at full power. */
     @Override
     public void start() {
         follower.startTeleopDrive(false);
         follower.update();
         startX = follower.getPose().getX();
-        follower.setTeleOpDrive(1,0,0,true);
+        startY = follower.getPose().getY();
+        follower.setTeleOpDrive(1, 0, 0, true);
+        previousTimeNano = System.nanoTime();
     }
 
-    /**
-     * This runs the OpMode. At any point during the running of the OpMode, pressing B on
-     * game pad 1 will stop the OpMode. When the robot hits the specified velocity, the robot will
-     * record its deceleration / negative acceleration until it stops. Then, it will average all the
-     * recorded deceleration / negative acceleration and print that value.
-     */
     @Override
     public void loop() {
         if (gamepad1.bWasPressed()) {
             stopRobot();
             requestOpModeStop();
+            return;
         }
 
         follower.update();
         draw();
 
-        Vector heading = new Vector(1.0, follower.getPose().getHeading());
-        double currentVelocity = follower.getVelocity().dot(heading);
-        double distanceTraveled = Math.abs(follower.getPose().getX() - startX);
-        
-        // Add debug telemetry
-        telemetryM.debug("Current Velocity: " + String.format("%.2f", currentVelocity) + " in/s");
-        telemetryM.debug("Target Velocity: " + VELOCITY + " in/s");
-        telemetryM.debug("Distance Traveled: " + String.format("%.1f", distanceTraveled) + " in");
-        telemetryM.debug("Stopping: " + stopping);
-        telemetryM.debug("End: " + end);
-        telemetryM.debug("Samples collected: " + accelerations.size());
-        telemetryM.update(telemetry);
-        
-        // Emergency stop if traveled too far without reaching target velocity
-        if (!stopping && distanceTraveled > MAX_DISTANCE) {
-            telemetryM.debug("!!! EMERGENCY STOP - Traveled " + String.format("%.1f", distanceTraveled) + " inches");
-            telemetryM.debug("!!! Robot reached " + String.format("%.1f", (currentVelocity/VELOCITY)*100) + "% of target velocity (" + VELOCITY + " in/s)");
-            telemetryM.debug("!!! Current velocity: " + String.format("%.2f", currentVelocity) + " in/s");
-            telemetryM.debug("Press B to stop OpMode");
-            telemetryM.debug("Try increasing MAX_DISTANCE or decreasing VELOCITY if needed");
-            telemetryM.update(telemetry);
-            stopRobot();
-            end = true;  // Set end flag instead of calling requestOpModeStop
-            return;
+        // Calculate distance traveled
+        double currentX = follower.getPose().getX();
+        double currentY = follower.getPose().getY();
+        double distanceTraveled = Math.hypot(currentX - startX, currentY - startY);
+
+        // Check max distance
+        if (distanceTraveled >= MAX_DISTANCE && !stopping) {
+            telemetryM.debug("Max distance reached! Stopping...");
+            stopping = true;
+            follower.setTeleOpDrive(0, 0, 0, true);
+            previousVelocity = new Vector(1.0, follower.getPose().getHeading()).dot(follower.getVelocity());
+            previousTimeNano = System.nanoTime();
         }
-        
+
+        Vector heading = new Vector(1.0, follower.getPose().getHeading());
+        double currentVelocity = heading.dot(follower.getVelocity());
+
         if (!end) {
             if (!stopping) {
-                telemetryM.debug("STATE: Accelerating to target velocity");
-                // Continuously drive forward at full power during acceleration
-                follower.setTeleOpDrive(1,0,0,true);
+                telemetryM.debug(String.format("Velocity: %.1f/%d in/s", currentVelocity, (int)VELOCITY));
+                telemetryM.debug(String.format("Distance: %.1f/%.0f in", distanceTraveled, MAX_DISTANCE));
                 
-                // Check if we've reached 90% of target velocity (with 10% buffer for overshoot)
-                if (follower.getVelocity().dot(heading) > VELOCITY * 0.9) {
-                    previousVelocity = follower.getVelocity().dot(heading);
+                if (currentVelocity > VELOCITY) {
+                    telemetryM.debug("Target velocity reached! Measuring deceleration...");
+                    previousVelocity = currentVelocity;
                     previousTimeNano = System.nanoTime();
                     stopping = true;
-                    follower.setTeleOpDrive(0,0,0,true);
-                    telemetryM.debug(">>> TARGET VELOCITY REACHED - " + String.format("%.1f", follower.getVelocity().dot(heading)) + " in/s");
-                    telemetryM.debug(">>> POWER CUT - Starting deceleration measurement");
+                    follower.setTeleOpDrive(0, 0, 0, true);
                 }
             } else {
-                telemetryM.debug("STATE: Decelerating and measuring");
-                double currentVel = follower.getVelocity().dot(heading);
-                accelerations.add((currentVel - previousVelocity) / ((System.nanoTime() - previousTimeNano) / Math.pow(10.0, 9)));
-                previousVelocity = currentVel;
-                previousTimeNano = System.nanoTime();
-                // End test when robot has nearly stopped (velocity < 0.5 inches/sec)
-                if (Math.abs(currentVel) < 0.5) {
+                // Calculate and record acceleration
+                long currentTime = System.nanoTime();
+                double dt = (currentTime - previousTimeNano) * 1e-9; // Convert to seconds
+                if (dt > 0) { // Prevent division by zero
+                    double acceleration = (currentVelocity - previousVelocity) / dt;
+                    accelerations.add(acceleration);
+                    telemetryM.debug(String.format("Decel: %.2f in/s² (%.1f in/s)", 
+                        acceleration, currentVelocity));
+                }
+                
+                previousVelocity = currentVelocity;
+                previousTimeNano = currentTime;
+
+                // Stop if velocity is very small
+                if (Math.abs(currentVelocity) < 0.5) {
                     end = true;
-                    stopRobot();  // Ensure motors are stopped
-                    telemetryM.debug(">>> STOPPED - Test complete");
                 }
             }
         } else {
-            double average = 0;
-            for (double acceleration : accelerations) {
-                average += acceleration;
-            }
-            average /= accelerations.size();
+            // Calculate and display average deceleration
+            if (!accelerations.isEmpty()) {
+                double average = accelerations.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+                telemetryM.debug("Forward Zero Power Acceleration (Deceleration): " + average);
+                telemetryM.debug("Press A to apply this value");
+                telemetryM.update(telemetry);
 
-            telemetryM.debug("Forward Zero Power Acceleration (Deceleration): " + average);
-            telemetryM.debug("\n");
-            telemetryM.debug("Press A to set the Forward Zero Power Acceleration temporarily (while robot remains on).");
-            telemetryM.update(telemetry);
-
-            if (gamepad1.aWasPressed()) {
-                follower.getConstants().setForwardZeroPowerAcceleration(average);
-                String message = "Forward Zero Power Acceleration: " + average;
-                changes.add(message);
+                if (gamepad1.aWasPressed()) {
+                    follower.getConstants().setForwardZeroPowerAcceleration(average);
+                    changes.add("Forward Zero Power Acceleration: " + average);
+                }
+            } else {
+                telemetryM.debug("No acceleration data collected!");
             }
         }
     }
@@ -671,7 +652,7 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
 
 /**
  * This is the LateralZeroPowerAccelerationTuner autonomous follower OpMode. This runs the robot
- * to the right until a specified velocity is achieved. Then, the robot cuts power to the motors, setting
+ * to the left until a specified velocity is achieved. Then, the robot cuts power to the motors, setting
  * them to zero power. The deceleration, or negative acceleration, is then measured until the robot
  * stops. The accelerations across the entire time the robot is slowing down is then averaged and
  * that number is then printed. This is used to determine how the robot will decelerate in the
@@ -693,12 +674,14 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
     private boolean end;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /** This initializes the drive motors as well as the Panels telemetry. */
     @Override
     public void init_loop() {
-        telemetryM.debug("The robot will run to the right until it reaches " + VELOCITY + " inches per second.");
+        telemetryM.debug("The robot will run to the left until it reaches " + VELOCITY + " inches per second.");
         telemetryM.debug("Then, it will cut power from the drivetrain and roll to a stop.");
         telemetryM.debug("Make sure you have enough room.");
         telemetryM.debug("After stopping, the lateral zero power acceleration (natural deceleration) will be displayed.");
@@ -789,7 +772,9 @@ class TranslationalTuner extends OpMode {
     private Path backwards;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /** This initializes the Follower and creates the forward and backward Paths. */
     @Override
@@ -806,9 +791,9 @@ class TranslationalTuner extends OpMode {
     public void start() {
         follower.deactivateAllPIDFs();
         follower.activateTranslational();
-        forwards = new Path(new BezierLine(new Pose(0,0), new Pose(DISTANCE,0)));
+        forwards = new Path(new BezierLine(new Pose(72,72), new Pose(DISTANCE + 72,72)));
         forwards.setConstantHeadingInterpolation(0);
-        backwards = new Path(new BezierLine(new Pose(DISTANCE,0), new Pose(0,0)));
+        backwards = new Path(new BezierLine(new Pose(DISTANCE + 72,72), new Pose(72,72)));
         backwards.setConstantHeadingInterpolation(0);
         follower.followPath(forwards);
     }
@@ -853,7 +838,9 @@ class HeadingTuner extends OpMode {
     private Path backwards;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /**
      * This initializes the Follower and creates the forward and backward Paths. Additionally, this
@@ -873,9 +860,9 @@ class HeadingTuner extends OpMode {
     public void start() {
         follower.deactivateAllPIDFs();
         follower.activateHeading();
-        forwards = new Path(new BezierLine(new Pose(0,0), new Pose(DISTANCE,0)));
+        forwards = new Path(new BezierLine(new Pose(72,72), new Pose(DISTANCE + 72,72)));
         forwards.setConstantHeadingInterpolation(0);
-        backwards = new Path(new BezierLine(new Pose(DISTANCE,0), new Pose(0,0)));
+        backwards = new Path(new BezierLine(new Pose(DISTANCE + 72,72), new Pose(72,72)));
         backwards.setConstantHeadingInterpolation(0);
         follower.followPath(forwards);
     }
@@ -921,7 +908,9 @@ class DriveTuner extends OpMode {
     private PathChain backwards;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /**
      * This initializes the Follower and creates the forward and backward Paths. Additionally, this
@@ -941,16 +930,16 @@ class DriveTuner extends OpMode {
     public void start() {
         follower.deactivateAllPIDFs();
         follower.activateDrive();
-
+        
         forwards = follower.pathBuilder()
                 .setGlobalDeceleration()
-                .addPath(new BezierLine(new Pose(0,0), new Pose(DISTANCE,0)))
+                .addPath(new BezierLine(new Pose(72,72), new Pose(DISTANCE + 72,72)))
                 .setConstantHeadingInterpolation(0)
                 .build();
 
         backwards = follower.pathBuilder()
                 .setGlobalDeceleration()
-                .addPath(new BezierLine(new Pose(DISTANCE,0), new Pose(0,0)))
+                .addPath(new BezierLine(new Pose(DISTANCE + 72,72), new Pose(72,72)))
                 .setConstantHeadingInterpolation(0)
                 .build();
 
@@ -999,7 +988,9 @@ class Line extends OpMode {
     private Path backwards;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /** This initializes the Follower and creates the forward and backward Paths. */
     @Override
@@ -1015,9 +1006,9 @@ class Line extends OpMode {
     @Override
     public void start() {
         follower.activateAllPIDFs();
-        forwards = new Path(new BezierLine(new Pose(0,0), new Pose(DISTANCE,0)));
+        forwards = new Path(new BezierLine(new Pose(72,72), new Pose(DISTANCE + 72,72)));
         forwards.setConstantHeadingInterpolation(0);
-        backwards = new Path(new BezierLine(new Pose(DISTANCE,0), new Pose(0,0)));
+        backwards = new Path(new BezierLine(new Pose(DISTANCE + 72,72), new Pose(72,72)));
         backwards.setConstantHeadingInterpolation(0);
         follower.followPath(forwards);
     }
@@ -1064,7 +1055,9 @@ class CentripetalTuner extends OpMode {
     private Path backwards;
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /**
      * This initializes the Follower and creates the forward and backward Paths.
@@ -1083,8 +1076,8 @@ class CentripetalTuner extends OpMode {
     @Override
     public void start() {
         follower.activateAllPIDFs();
-        forwards = new Path(new BezierCurve(new Pose(), new Pose(Math.abs(DISTANCE),0), new Pose(Math.abs(DISTANCE),DISTANCE)));
-        backwards = new Path(new BezierCurve(new Pose(Math.abs(DISTANCE),DISTANCE), new Pose(Math.abs(DISTANCE),0), new Pose(0,0)));
+        forwards = new Path(new BezierCurve(new Pose(72,72), new Pose(Math.abs(DISTANCE) + 72,72), new Pose(Math.abs(DISTANCE) + 72,DISTANCE + 72)));
+        backwards = new Path(new BezierCurve(new Pose(Math.abs(DISTANCE) + 72,DISTANCE + 72), new Pose(Math.abs(DISTANCE) + 72,72), new Pose(72,72)));
 
         backwards.setTangentHeadingInterpolation();
         backwards.reverseHeadingInterpolation();
@@ -1125,9 +1118,9 @@ class CentripetalTuner extends OpMode {
  */
 class Triangle extends OpMode {
 
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose interPose = new Pose(24, -24, Math.toRadians(90));
-    private final Pose endPose = new Pose(24, 24, Math.toRadians(45));
+    private final Pose startPose = new Pose(72, 72, Math.toRadians(0));
+    private final Pose interPose = new Pose(24 + 72, -24 + 72, Math.toRadians(90));
+    private final Pose endPose = new Pose(24 + 72, 24 + 72, Math.toRadians(45));
 
     private PathChain triangle;
 
@@ -1146,7 +1139,9 @@ class Triangle extends OpMode {
     }
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     @Override
     public void init_loop() {
@@ -1192,14 +1187,14 @@ class Circle extends OpMode {
 
     public void start() {
         circle = follower.pathBuilder()
-                .addPath(new BezierCurve(new Pose(0, 0), new Pose(RADIUS, 0), new Pose(RADIUS, RADIUS)))
-                .setHeadingInterpolation(HeadingInterpolator.facingPoint(0, RADIUS))
-                .addPath(new BezierCurve(new Pose(RADIUS, RADIUS), new Pose(RADIUS, 2 * RADIUS), new Pose(0, 2 * RADIUS)))
-                .setHeadingInterpolation(HeadingInterpolator.facingPoint(0, RADIUS))
-                .addPath(new BezierCurve(new Pose(0, 2 * RADIUS), new Pose(-RADIUS, 2 * RADIUS), new Pose(-RADIUS, RADIUS)))
-                .setHeadingInterpolation(HeadingInterpolator.facingPoint(0, RADIUS))
-                .addPath(new BezierCurve(new Pose(-RADIUS, RADIUS), new Pose(-RADIUS, 0), new Pose(0, 0)))
-                .setHeadingInterpolation(HeadingInterpolator.facingPoint(0, RADIUS))
+                .addPath(new BezierCurve(new Pose(72, 72), new Pose(RADIUS + 72, 72), new Pose(RADIUS + 72, RADIUS + 72)))
+                .setHeadingInterpolation(HeadingInterpolator.facingPoint(72, RADIUS + 72))
+                .addPath(new BezierCurve(new Pose(RADIUS + 72, RADIUS + 72), new Pose(RADIUS + 72, (2 * RADIUS) + 72), new Pose(72, (2 * RADIUS) + 72)))
+                .setHeadingInterpolation(HeadingInterpolator.facingPoint(72, RADIUS + 72))
+                .addPath(new BezierCurve(new Pose(72, (2 * RADIUS) + 72), new Pose(-RADIUS + 72, (2 * RADIUS) + 72), new Pose(-RADIUS + 72, RADIUS + 72)))
+                .setHeadingInterpolation(HeadingInterpolator.facingPoint(72, RADIUS + 72))
+                .addPath(new BezierCurve(new Pose(-RADIUS + 72, RADIUS + 72), new Pose(-RADIUS + 72, 72), new Pose(72, 72)))
+                .setHeadingInterpolation(HeadingInterpolator.facingPoint(72, RADIUS + 72))
                 .build();
         follower.followPath(circle);
     }
@@ -1215,7 +1210,9 @@ class Circle extends OpMode {
     }
 
     @Override
-    public void init() {}
+    public void init() {
+        follower.setStartingPose(new Pose(72, 72));
+    }
 
     /**
      * This runs the OpMode, updating the Follower as well as printing out the debug statements to

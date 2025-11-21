@@ -16,7 +16,7 @@ public class autonTest extends LinearOpMode{
 
 
     DcMotor intake;
-    DcMotor outtake;
+    DcMotor shooter;
 
     ElapsedTime timer = new ElapsedTime();
 
@@ -30,7 +30,7 @@ public class autonTest extends LinearOpMode{
         backRight = hardwareMap.get(DcMotor.class,"backRight");
 
         intake = hardwareMap.get(DcMotor.class, "intake");
-        outtake = hardwareMap.get(DcMotor.class, "outtake");
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);

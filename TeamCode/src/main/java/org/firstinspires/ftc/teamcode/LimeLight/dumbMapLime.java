@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.LimeLight;
 
 
 
@@ -48,17 +48,37 @@ public class dumbMapLime {
 
     public boolean halfSpeedToggle = false, qtrSpeedToggle = false, drivingReverse = false;
 
+    // Motor declarations
+    public DcMotor spinner;
+    public DcMotor shooter;
+
+    /**
+     * Initialize spinner and shooter motors
+     */
+    public void initMotors() {
+        // Initialize motors
+        spinner = opMode.hardwareMap.get(DcMotor.class, "spinner");
+        shooter = opMode.hardwareMap.get(DcMotor.class, "shooter");
+        
+        // Set motor directions
+        spinner.setDirection(DcMotor.Direction.FORWARD);
+        shooter.setDirection(DcMotor.Direction.FORWARD);
+        
+        // Set motor modes
+        spinner.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        
+        spinner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        
+        // Set zero power behavior
+        spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
     public double drivePower;
 
     public Telemetry telemetry;
-    public boolean clawOpen = false, clawRot = false, flip = false;
-    public boolean aLast1 = false, aLast2 = false, lbumpLast = false, rbumpLast = false, xLast = false, yLast = false, bLast = false, rstickpressLast = false, bonk = false, clawOpenH;
-
-    public int currentColor = 1;
-    public boolean aLast3=false;
-    double slidePower;
-    public int slideanglePos = -300, slidePos = 0;
-    public double rstickxLast = 0, rstickyLast = 0, lTpos = 0.46;
 
     public Servo servo;
 
@@ -112,9 +132,33 @@ public class dumbMapLime {
             if (limelight != null) {
                 // Start the camera stream
                 limelight.start();
+                
+                // Give Limelight time to start
+                // Use opMode.sleep() if it's a LinearOpMode, otherwise use Thread.sleep()
+                if (opMode instanceof LinearOpMode) {
+                    ((LinearOpMode) opMode).sleep(200);
+                } else {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
 
                 // Set up basic pipeline (0 is typically the default for AprilTag detection)
                 limelight.pipelineSwitch(0);
+                
+                // Give Limelight time to switch pipelines and start processing
+                // This is critical - pipeline switching takes time
+                if (opMode instanceof LinearOpMode) {
+                    ((LinearOpMode) opMode).sleep(500);
+                } else {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
 
                 // Note: Direct LED control is not available in the current API
                 // LED state is typically controlled through the pipeline settings

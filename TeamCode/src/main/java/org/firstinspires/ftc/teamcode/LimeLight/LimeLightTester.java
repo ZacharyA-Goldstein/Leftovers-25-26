@@ -37,12 +37,12 @@ public class LimeLightTester extends LinearOpMode {
     
     // AprilTag detector and robot instance
     private AprilTagDetector aprilTagDetector;
-    private dumbMap robot;
+    private dumbMapLime robot;
     
     @Override
     public void runOpMode() throws InterruptedException {
         // Initialize robot hardware
-        robot = new dumbMap(this);
+        robot = new dumbMapLime(this);
         robot.init2();  // This initializes the LimeLight and other hardware
         
         if (robot.getLimeLight() == null) {

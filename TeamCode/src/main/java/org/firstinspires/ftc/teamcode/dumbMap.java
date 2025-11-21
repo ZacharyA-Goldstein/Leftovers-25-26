@@ -25,10 +25,11 @@ public class dumbMap {
     // Servo positions
     public static final double SERVO_TRANSFER_POSITION = 0.08;  // Updated transfer position
     public static final double SERVO_INTAKE_POSITION = 0.22;    // Updated intake position
+    public static final double HOOD_START_POSITION = 0.08;
     
     // Hardware objects
-    public DcMotor leftFront, leftBack, rightFront, rightBack, outtake, spinner, intake;
-    public Servo servo;
+    public DcMotor leftFront, leftBack, rightFront, rightBack, shooter, spinner, intake;
+    public Servo transfer, hood;
     public double drivePower = 0.5;
     
     // Sensors and other hardware
@@ -47,14 +48,6 @@ public class dumbMap {
     public boolean halfSpeedToggle = false, qtrSpeedToggle = false, drivingReverse = false;
 
     public Telemetry telemetry;
-    public boolean clawOpen = false, clawRot = false, flip = false;
-    public boolean aLast1 = false, aLast2 = false, lbumpLast = false, rbumpLast = false, xLast = false, yLast = false, bLast = false, rstickpressLast = false, bonk = false, clawOpenH;
-
-    public int currentColor = 1;
-    public boolean aLast3=false;
-    double slidePower;
-    public int slideanglePos = -300, slidePos = 0;
-    public double rstickxLast = 0, rstickyLast = 0, lTpos = 0.46;
 
 
     public dumbMap(OpMode opMode) {
@@ -154,10 +147,10 @@ public class dumbMap {
     public void init2() {
         try {
             // Initialize drive motors
-            leftFront = opMode.hardwareMap.get(DcMotor.class, "leftFront");
-            rightFront = opMode.hardwareMap.get(DcMotor.class, "rightFront");
-            leftBack = opMode.hardwareMap.get(DcMotor.class, "leftBack");
-            rightBack = opMode.hardwareMap.get(DcMotor.class, "rightBack");
+            leftFront = opMode.hardwareMap.get(DcMotor.class, "frontLeft");
+            rightFront = opMode.hardwareMap.get(DcMotor.class, "frontRight");
+            leftBack = opMode.hardwareMap.get(DcMotor.class, "backLeft");
+            rightBack = opMode.hardwareMap.get(DcMotor.class, "backRight");
 
             // Set motor directions (adjust if needed)
             leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -181,10 +174,10 @@ public class dumbMap {
                 motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
             
-            // Initialize outtake motor
-            outtake = opMode.hardwareMap.get(DcMotor.class, "outtake");
-            outtake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            outtake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            // Initialize shooter motor
+            shooter = opMode.hardwareMap.get(DcMotor.class, "shooter");
+            shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             
             // Initialize spinner motor
             spinner = opMode.hardwareMap.get(DcMotor.class, "spinner");
@@ -198,8 +191,10 @@ public class dumbMap {
             intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             
             // Initialize servo
-            servo = opMode.hardwareMap.get(Servo.class, "servo");
-            servo.setPosition(SERVO_TRANSFER_POSITION);  // Start in transfer position
+            transfer = opMode.hardwareMap.get(Servo.class, "transfer");
+            transfer.setPosition(SERVO_TRANSFER_POSITION);
+            hood = opMode.hardwareMap.get(Servo.class, "hood");
+            hood.setPosition(HOOD_START_POSITION);
             
             // Initialize voltage sensor
             batteryVoltageSensor = opMode.hardwareMap.voltageSensor.iterator().next();

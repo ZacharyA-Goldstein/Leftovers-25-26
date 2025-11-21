@@ -85,7 +85,7 @@ public class bot1tele extends LinearOpMode {
             
             // Set outtake power based on toggle state
             double outtakePower = outtakeOn ? 1.0 : 0.0;
-            robot.outtake.setPower(outtakePower);
+            robot.shooter.setPower(outtakePower);
 
             // Update telemetry
             telemetry.addData("Drive Power", "%.0f%%", drivePower * 100);
@@ -136,13 +136,17 @@ public class bot1tele extends LinearOpMode {
             
             // Set servo to intake position (0.15) on D-pad down press
             if (currentDpadUp && !lastDpadUp) {
-                robot.servo.setPosition(dumbMap.SERVO_INTAKE_POSITION);
+                if (robot.transfer != null) {
+                    robot.transfer.setPosition(dumbMap.SERVO_INTAKE_POSITION);
+                }
                 telemetry.addData("Servo Position", "INTAKE (%.2f)", dumbMap.SERVO_INTAKE_POSITION);
             }
             
             // Set servo to transfer position (0.0) on D-pad up press
             if (currentDpadDown && !lastDpadDown) {
-                robot.servo.setPosition(dumbMap.SERVO_TRANSFER_POSITION);
+                if (robot.transfer != null) {
+                    robot.transfer.setPosition(dumbMap.SERVO_TRANSFER_POSITION);
+                }
                 telemetry.addData("Servo Position", "TRANSFER (%.2f)", dumbMap.SERVO_TRANSFER_POSITION);
             }
             
@@ -152,7 +156,7 @@ public class bot1tele extends LinearOpMode {
             
             // Show current servo position if not already set
             if (!currentDpadUp && !currentDpadDown) {
-                double currentPos = robot.servo.getPosition();
+                double currentPos = robot.transfer != null ? robot.transfer.getPosition() : 0.0;
                 String posName = Math.abs(currentPos - dumbMap.SERVO_INTAKE_POSITION) < 0.01 ? "INTAKE" : "TRANSFER";
                 telemetry.addData("Servo Position", "%s (%.2f)", posName, currentPos);
             }

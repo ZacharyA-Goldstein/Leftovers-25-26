@@ -113,9 +113,12 @@ public class AprilTagDetector { //test
         if (limelight == null) return results;
         
         LLResult result = limelight.getLatestResult();
-        if (result == null || !result.isValid()) return results;
+        if (result == null) return results;
         
+        // Don't check result.isValid() - it may return false even when fiducials are detected
+        // Instead, check if fiducials exist directly
         List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+        if (fiducialResults == null || fiducialResults.isEmpty()) return results;
         
         for (LLResultTypes.FiducialResult fiducial : fiducialResults) {
             int tagId = fiducial.getFiducialId();
@@ -216,14 +219,15 @@ public class AprilTagDetector { //test
     private double calculateDistance(double yDegrees) {
         // Get the latest result which contains the fiducial data
         LLResult result = limelight.getLatestResult();
-        if (result == null || !result.isValid()) {
-            System.out.println("DEBUG - No valid result from Limelight");
-            return 60.0;  // Default to 60" when no valid result
+        if (result == null) {
+            System.out.println("DEBUG - No result from Limelight");
+            return 60.0;  // Default to 60" when no result
         }
         
         // Get the first detected fiducial (AprilTag)
+        // Don't check result.isValid() - check fiducials directly
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-        if (fiducials.isEmpty()) {
+        if (fiducials == null || fiducials.isEmpty()) {
             System.out.println("DEBUG - No fiducials detected");
             return 60.0;  // Default to 60" when no fiducials detected
         }

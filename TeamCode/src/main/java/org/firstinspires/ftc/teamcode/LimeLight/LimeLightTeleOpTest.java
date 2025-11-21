@@ -33,9 +33,12 @@ public class LimeLightTeleOpTest extends LinearOpMode {
     private static final long BLIND_SPOT_DRIVE_MS = 3000; // Continue driving for 3s after losing ball at close range
     
     // Ball tracking parameters
-    private static final double BALL_KP = 0.025;        // Reduced for smoother rotation
+    private static final double BALL_KP = 0.04;          // Increased for more responsive rotation
     private static final double BALL_DEADBAND = 0.5;     // Degrees of deadband for centering
     private static final double TOLERANCE = 1.0;         // Degrees of tolerance for centered
+    private static final double MIN_AUTO_ROTATION = 0.4; // Minimum rotation power for auto-rotation
+    private static final double MAX_AUTO_ROTATION = 0.8; // Maximum rotation power for auto-rotation
+    private static final double SPEED_SCALING = 0.7;     // How much to scale rotation at max speed
     
     // AprilTag constants
     private static final double TAG_TARGET_DISTANCE = 12.0; // Target distance in inches
@@ -256,8 +259,24 @@ public class LimeLightTeleOpTest extends LinearOpMode {
             double error = (Math.abs(tx) < BALL_DEADBAND) ? 0 : tx;
             double rotationCorrection = -BALL_KP * error;
             
-            // Limit correction power to be subtle (max 30% power)
-            rotationCorrection = Math.max(-0.3, Math.min(0.3, rotationCorrection));
+            // Calculate speed factor (0-1) based on how fast we're moving
+            double speed = Math.hypot(forward, strafe);
+            double speedFactor = 1.0 - (SPEED_SCALING * speed);
+            speedFactor = Math.max(0.3, speedFactor);  // Don't go below 30% power
+            
+            // Scale rotation correction by speed factor
+            rotationCorrection *= speedFactor;
+            
+            // Apply minimum and maximum rotation power
+            double absCorrection = Math.abs(rotationCorrection);
+            if (absCorrection > 0) {
+                // Ensure minimum rotation power when error is significant
+                if (absCorrection < MIN_AUTO_ROTATION) {
+                    rotationCorrection = Math.copySign(MIN_AUTO_ROTATION, rotationCorrection);
+                } else if (absCorrection > MAX_AUTO_ROTATION) {
+                    rotationCorrection = Math.copySign(MAX_AUTO_ROTATION, rotationCorrection);
+                }
+            }
             
             // Apply driver's forward/strafe with auto-rotation
             setMotorPowers(forward, strafe, rotationCorrection);
@@ -525,11 +544,11 @@ public class LimeLightTeleOpTest extends LinearOpMode {
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         
         // Set motor directions
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
-        
+        leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+
         // Set zero power behavior
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
