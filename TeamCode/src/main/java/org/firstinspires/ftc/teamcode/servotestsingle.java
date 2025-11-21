@@ -18,29 +18,30 @@ public class servotestsingle extends LinearOpMode {
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         servo = hardwareMap.get(Servo.class, "servo" );
-        servo.setPosition(0);
+        servo.setPosition(1.0);
         waitForStart();
 
         while (opModeIsActive()) {
 
             if (gamepad1.a) {
-                pos += 0.01;
+                pos += 0.001;
                 sleep(50);
             }
             if (gamepad1.b) {
-                pos -= 0.01;
+                pos -= 0.001;
                 sleep(50);
             }
             if (gamepad1.x) {
-                pos += 0.1;
+                pos += 0.01;
                 sleep(50);
             }
             if (gamepad1.y) {
-                pos -= 0.1;
+                pos -= 0.01;
                 sleep(50);
             }
 
-            servo.setPosition(pos);
+            pos = Math.max(0.0, Math.min(1.0, pos));
+            servo.setPosition(1.0 - pos);
 
 
 

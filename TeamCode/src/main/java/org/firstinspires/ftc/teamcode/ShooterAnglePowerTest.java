@@ -39,9 +39,9 @@ public class ShooterAnglePowerTest extends LinearOpMode {
     
     // --- TUNING: Hood servo positions ---
     private double currentHoodPosition = 0;  // Start at middle position
-    private static final double HOOD_POS_INCREMENT = 0.001;  // Position change per button press
+    private static final double HOOD_POS_INCREMENT = 0.003;  // Position change per button press
     private static final double MIN_HOOD_POS = 0.00;  // Minimum servo position (hood down/flat)
-    private static final double MAX_HOOD_POS = 0.5;  // Maximum servo position (hood up/angled)
+    private static final double MAX_HOOD_POS = 0.99;  // Maximum servo position (hood up/angled)
     
     // Button state tracking
     private boolean lastA = false;

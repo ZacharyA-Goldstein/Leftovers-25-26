@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.LimeLight.AprilTagDetector;
 import org.firstinspires.ftc.teamcode.dumbMap;
-import org.firstinspires.ftc.teamcode.pathing.Pose;
+//import org.firstinspires.ftc.teamcode.pathing.Pose;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ import java.util.List;
 @TeleOp(name = "LimeLight Drive Test Working", group = "Test")
 public class LimeLightDriveTestWorking extends LinearOpMode {
     private DcMotor leftFront, leftBack, rightFront, rightBack;
-    private final Pose startPose = new Pose(0, 0, 0);
+    //private final Pose startPose = new Pose(0, 0, 0);
     private dumbMap dumbBot;
 
     // Limelight variables

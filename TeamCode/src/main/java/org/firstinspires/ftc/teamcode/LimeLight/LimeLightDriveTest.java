@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.dumbMap;
-import org.firstinspires.ftc.teamcode.pathing.Follower;
-import org.firstinspires.ftc.teamcode.pathing.Pose;
+//import org.firstinspires.ftc.teamcode.pathing.Follower;
+//import org.firstinspires.ftc.teamcode.pathing.Pose;
 
 import java.util.List;
 
@@ -21,9 +21,9 @@ import java.util.List;
 
 @TeleOp(name = "LimeLight Drive Test", group = "Test")
 public class LimeLightDriveTest extends LinearOpMode {
-    private Follower follower;
+    //private Follower follower;
     private DcMotor leftFront, leftBack, rightFront, rightBack;
-    private final Pose startPose = new Pose(0, 0, 0);
+    //private final Pose startPose = new Pose(0, 0, 0);
     private dumbMap dumbBot;
     
     // Limelight variables
@@ -293,7 +293,7 @@ public class LimeLightDriveTest extends LinearOpMode {
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         
         // Initialize follower with hardware map
-        follower = new Follower(hardwareMap);
+        //follower = new Follower(hardwareMap);
         
         // Set motor directions for mecanum drive
         // Flipping the back motors to match front direction
