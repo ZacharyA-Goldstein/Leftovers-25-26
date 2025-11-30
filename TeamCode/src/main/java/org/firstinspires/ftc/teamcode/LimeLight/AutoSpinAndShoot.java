@@ -4,37 +4,70 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLStatus;
+
 import java.util.List;
 
 /**
- * AutoSpinAndShoot - Simple search and lock behavior for AprilTag 24
+ * AutoSpinAndShoot - Search and lock behavior for AprilTag 24, then shoot
  * 
  * Behavior:
  * - Spinner moves continuously searching for April Tag 24
  * - When tag is found within 5 degrees, stops and locks onto it
+ * - After locking, automatically shoots the ball
  * - If tag not found within 2 full spins, stops and reports "no april tag found"
  */
 @TeleOp(name = "Auto Spin and Shoot", group = "Test")
 public class AutoSpinAndShoot extends LinearOpMode {
     private dumbMapLime robot;
     private Limelight3A limelight;
+    private DcMotorEx shooterMotor;
+    private Servo hoodServo;
+    
+    // Hood servo limits (from HeleOpBase)
+    private static final double HOOD_MIN = 0.206;
+    private static final double HOOD_MAX = 0.295;
+    
+    // Shooter motor constants (GoBILDA 6000 RPM motor)
+    private static final int TICKS_PER_REVOLUTION = 28; // PPR for GoBILDA 6000 RPM motor
     
     // Constants
-    private static final int SPINNER_MIN = -1000;  // Encoder limit (min) - roughly 90 degrees left
-    private static final int SPINNER_MAX = 3000;   // Encoder limit (max) - roughly 300 degrees right
+    private static final int SPINNER_MIN = -550;  // Encoder limit (min) - roughly 90 degrees left
+    private static final int SPINNER_MAX = 590;   // Encoder limit (max) - roughly 300 degrees right
     private static final int TARGET_TAG_ID = 24;   // AprilTag ID to track
-    private static final double CAMERA_HEIGHT = 9.5; // Camera height in inches
+    private static final double CAMERA_HEIGHT = 13.0; // Camera height in inches (matches ShooterAnglePowerTest)
     private static final double CAMERA_ANGLE = 0.0; // Camera angle in degrees
-    private static final double MAX_DISTANCE = 150.0; // Max detection distance in inches
-    private static final double TOLERANCE = 3.0;   // Degrees tolerance - stop correcting within this (like ShooterTurnTest)
+    private static final double MAX_DISTANCE = 144.0; // Max detection distance in inches (matches ShooterAnglePowerTest)
+    private static final double TOLERANCE = 0.5;   // Degrees tolerance - stop correcting within this (tighter alignment)
     private static final double DEADBAND = 0.5;    // Deadband - no movement within this (like ShooterTurnTest)
-    private static final double ALIGN_KP = 0.02;   // Proportional constant (like ShooterTurnTest TURRET_KP)
-    private static final double MIN_ALIGN_POWER = 0.12; // Minimum power to move (like ShooterTurnTest)
-    private static final double MAX_ALIGN_POWER = 0.5;  // Maximum alignment power (like ShooterTurnTest)
-    private static final double SEARCH_POWER = 0.3; // Power for searching rotation
+    private static final double ALIGN_KP = 0.04;   // Proportional constant (reduced further to prevent overcorrection)
+    private static final double MIN_ALIGN_POWER = 0.15; // Minimum power to move (reduced to prevent overcorrection)
+    private static final double MAX_ALIGN_POWER = 0.5;  // Maximum alignment power (reduced to prevent overshooting)
+    
+    // RPM scaling - distance-based adjustment
+    // Close distances need more reduction, far distances need less (or none)
+    private static double calculateRPMScaleFactor(double distance) {
+        // At close distances (50-80"), use lower multiplier (0.90)
+        // At far distances (120-144"), use higher multiplier (0.95-1.0)
+        // Linear interpolation between these ranges
+        if (distance <= 80.0) {
+            return 0.90; // Close distances
+        } else if (distance >= 120.0) {
+            return 0.98; // Far distances (less reduction needed)
+        } else {
+            // Linear interpolation between 80" and 120"
+            // At 80": 0.90, at 120": 0.98
+            double t = (distance - 80.0) / (120.0 - 80.0); // 0 to 1
+            return 0.90 + (0.98 - 0.90) * t; // Interpolate
+        }
+    }
+    private static final double SEARCH_POWER = 0.25; // Power for searching rotation
     private static final int MAX_SPINS = 2;        // Maximum number of full spins before stopping
+    
+    // Shooter constants
+    private static final double SHOOTER_POWER_BASE = 1.0; // Base shooter power (will be adjusted by distance)
     
     // Runtime variables
     private boolean isLocked = false;   // Whether we've locked onto the target
@@ -45,6 +78,15 @@ public class AutoSpinAndShoot extends LinearOpMode {
     private boolean lastWasLeftLimit = false;
     private AprilTagDetector aprilTagDetector; // AprilTag detector instance
     private AprilTagDetector.AprilTagResult cachedTagResult = null; // Cache tag result to avoid multiple Limelight calls
+    private int loopCounter = 0; // Counter to limit Limelight calls (only call every N loops)
+    private static final int LIMELIGHT_CALL_INTERVAL = 5; // Only call Limelight every 5 loops (~100ms)
+    
+    // Shooting state
+    private long lockTime = 0; // Time when we locked onto the tag
+    private boolean isShooting = false; // Whether we're currently shooting (toggled by A button)
+    private boolean lastAButton = false; // Track A button state for toggle
+    private double lockedDistance = 0.0; // Distance to tag when locked (for shooter RPM calculation)
+    private double targetRPM = 0.0; // Calculated target RPM for shooter (set when locked)
     
     @Override
     public void runOpMode() {
@@ -63,6 +105,40 @@ public class AutoSpinAndShoot extends LinearOpMode {
                 robot.spinner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 robot.spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 robot.spinner.setPower(0.0); // Ensure it starts stopped
+            }
+            
+            // Initialize shooter motor (as DcMotorEx for velocity control)
+            try {
+                shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter");
+                if (shooterMotor == null) {
+                    shooterMotor = hardwareMap.get(DcMotorEx.class, "outtake");
+                }
+                if (shooterMotor != null) {
+                    shooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    shooterMotor.setVelocity(0); // Start at 0 velocity
+                    targetRPM = 0.0;
+                    telemetry.addData("Shooter Motor", "Initialized (Velocity Control)");
+                } else {
+                    telemetry.addData("Shooter Motor", "NOT FOUND");
+                }
+            } catch (Exception e) {
+                telemetry.addData("Shooter Motor", "Error: " + e.getMessage());
+            }
+            
+            // Initialize hood servo
+            try {
+                hoodServo = hardwareMap.get(Servo.class, "hood");
+                if (hoodServo != null) {
+                    // Start at middle position
+                    hoodServo.setPosition((HOOD_MIN + HOOD_MAX) / 2.0);
+                    telemetry.addData("Hood Servo", "Initialized");
+                } else {
+                    telemetry.addData("Hood Servo", "NOT FOUND");
+                }
+            } catch (Exception e) {
+                telemetry.addData("Hood Servo", "Error: " + e.getMessage());
             }
             
             telemetry.addData("Status", "Motors initialized");
@@ -153,14 +229,193 @@ public class AutoSpinAndShoot extends LinearOpMode {
         
         // Main loop
         while (opModeIsActive()) {
-            // Search for and lock onto AprilTag
-            searchAndLock();
+            try {
+                // Handle A button toggle for shooting
+                handleShootingToggle();
+                
+                // Search for and lock onto AprilTag
+                searchAndLock();
+                
+                // Handle shooting when locked and toggled on
+                handleShooting();
             
             // Update telemetry
             updateTelemetry();
             
             // Small delay to prevent overwhelming the robot
             sleep(20);
+            } catch (Exception e) {
+                // Catch any exceptions to prevent OpMode from ending
+                telemetry.addData("ERROR", "Exception in main loop: " + e.getMessage());
+                telemetry.update();
+                try {
+                    if (robot != null && robot.spinner != null) {
+                        robot.spinner.setPower(0.0);
+                    }
+                    if (shooterMotor != null) {
+                        shooterMotor.setVelocity(0);
+                    }
+                } catch (Exception e2) {
+                    // Ignore
+                }
+                sleep(100); // Wait before continuing
+            }
+        }
+        
+        // Stop all motors when OpMode ends
+        try {
+            if (robot != null && robot.spinner != null) {
+                robot.spinner.setPower(0.0);
+            }
+            if (shooterMotor != null) {
+                shooterMotor.setPower(0.0);
+            }
+            if (hoodServo != null) {
+                // Reset hood to middle position
+                hoodServo.setPosition((HOOD_MIN + HOOD_MAX) / 2.0);
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+    
+    /**
+     * Handle A button toggle for shooting
+     * Simple toggle: A button turns shooting ON/OFF (only works when locked)
+     */
+    private void handleShootingToggle() {
+        boolean aPressed = gamepad1.a;
+        
+        // Toggle shooting on/off when A is pressed (only if locked)
+        if (aPressed && !lastAButton) {
+            if (isLocked) {
+                isShooting = !isShooting;
+            } else {
+                // If not locked, can't shoot
+                isShooting = false;
+            }
+        }
+        lastAButton = aPressed;
+        
+        // Auto-stop shooting if we lose lock
+        if (!isLocked) {
+            isShooting = false;
+        }
+    }
+    
+    /**
+     * Handle shooting when locked onto target and A button is toggled on
+     * Uses 31-point formula to calculate optimal hood position and RPM
+     */
+    private void handleShooting() {
+        // Calculate hood position and RPM when we first lock (only once)
+        if (isLocked && lockTime == 0) {
+            lockTime = System.currentTimeMillis();
+            
+            // Calculate hood position and RPM using 31-point formula
+            if (robot != null && lockedDistance > 0) {
+                try {
+                    // Calculate optimal hood position from distance
+                    double calculatedHood = robot.calculateHoodPosition(lockedDistance, null);
+                    // Clamp to servo limits
+                    double hoodPosition = Math.max(HOOD_MIN, Math.min(HOOD_MAX, calculatedHood));
+                    
+                    // Set hood servo position immediately when locked
+                    if (hoodServo != null) {
+                        hoodServo.setPosition(hoodPosition);
+                        telemetry.addLine("🎯 Hood adjusted to: " + String.format("%.4f", hoodPosition));
+                    }
+                    
+                    // Calculate target RPM and store it for velocity control (with distance-based scaling)
+                    double calculatedRPM = robot.calculateShooterRPM(lockedDistance);
+                    double scaleFactor = calculateRPMScaleFactor(lockedDistance);
+                    targetRPM = calculatedRPM * scaleFactor; // Apply distance-based scaling factor
+                    telemetry.addData("Formula RPM (raw)", "%.0f", calculatedRPM);
+                    telemetry.addData("RPM Scale Factor", "%.3f (distance-based)", scaleFactor);
+                    telemetry.addData("Formula RPM (scaled)", "%.0f", targetRPM);
+                    telemetry.addData("Formula Hood", "%.4f", hoodPosition);
+                    telemetry.addData("Distance", "%.1f\"", lockedDistance);
+                } catch (Exception e) {
+                    telemetry.addData("Formula Error", e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                telemetry.addData("Formula Warning", "Robot or distance not available");
+            }
+        }
+        
+        // Control shooter based on toggle state
+        if (shooterMotor == null) {
+            return;
+        }
+        
+        // Only shoot if locked AND toggled on
+        if (isLocked && isShooting) {
+            // If lockedDistance is 0, try to get it fresh (critical for shooting)
+            if (lockedDistance <= 0 && aprilTagDetector != null) {
+                try {
+                    AprilTagDetector.AprilTagResult freshTag = aprilTagDetector.getTagById(TARGET_TAG_ID);
+                    if (freshTag != null && freshTag.isValid && freshTag.distance > 0) {
+                        lockedDistance = freshTag.distance;
+                        cachedTagResult = freshTag; // Update cache
+                        telemetry.addLine("⚠️ Retrieved distance on shoot: " + String.format("%.1f\"", lockedDistance));
+                    }
+                } catch (Exception e) {
+                    telemetry.addData("Distance Retrieval Error", e.getMessage());
+                }
+            }
+            
+            // ALWAYS recalculate RPM when shooting (ensures it's always up to date)
+            if (lockedDistance > 0 && robot != null) {
+                try {
+                    double newRPM = robot.calculateShooterRPM(lockedDistance);
+                    if (newRPM != 0.0) {
+                        double scaleFactor = calculateRPMScaleFactor(lockedDistance);
+                        targetRPM = newRPM * scaleFactor; // Apply distance-based scaling factor
+                        telemetry.addData("RPM Calculated (raw)", "%.0f", newRPM);
+                        telemetry.addData("RPM Scale Factor", "%.3f (distance-based)", scaleFactor);
+                        telemetry.addData("RPM Calculated (scaled)", "%.0f (from %.1f\")", targetRPM, lockedDistance);
+                    } else {
+                        telemetry.addData("RPM Warning", "Calculation returned 0 for distance %.1f\"", lockedDistance);
+                    }
+                } catch (Exception e) {
+                    telemetry.addData("RPM Calc Error", e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                telemetry.addData("RPM Error", "lockedDistance=%.1f, robot=%s", lockedDistance, robot != null ? "OK" : "NULL");
+                if (aprilTagDetector == null) {
+                    telemetry.addLine("⚠️ AprilTagDetector is NULL!");
+                }
+            }
+            
+            if (targetRPM != 0.0) {
+                try {
+                    // Convert RPM to ticks per second for velocity control
+                    // RPM to ticks/sec: (RPM / 60) * TICKS_PER_REVOLUTION
+                    // Note: targetRPM is negative (reverse direction), so velocity will be negative
+                    int velocityTicksPerSec = (int)Math.round((targetRPM / 60.0) * TICKS_PER_REVOLUTION);
+                    shooterMotor.setVelocity(velocityTicksPerSec);
+                    
+                    // Debug telemetry
+                    telemetry.addData("Shooter Target RPM", "%.0f", targetRPM);
+                    telemetry.addData("Shooter Velocity", "%d ticks/sec", velocityTicksPerSec);
+                } catch (Exception e) {
+                    telemetry.addData("Shoot Error", e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                telemetry.addData("Shooter Warning", "targetRPM is 0 - cannot shoot");
+                telemetry.addData("Debug Info", "lockedDistance=%.1f, robot=%s, isLocked=%s", 
+                    lockedDistance, robot != null ? "OK" : "NULL", isLocked);
+            }
+        } else {
+            // Stop shooting if not locked or not toggled on
+            try {
+                shooterMotor.setVelocity(0);
+            } catch (Exception e) {
+                telemetry.addData("Shoot Stop Error", e.getMessage());
+            }
         }
     }
     
@@ -177,32 +432,43 @@ public class AutoSpinAndShoot extends LinearOpMode {
         }
         
         // If already locked or search stopped, don't move - ALWAYS set power to 0
+        // Skip ALL Limelight calls when locked to prevent disconnects
         if (isLocked || searchStopped) {
-            robot.spinner.setPower(0.0);
-            return;
+            try {
+                robot.spinner.setPower(0.0);
+                // Add simple status to show OpMode is still active
+                if (isLocked) {
+                    telemetry.addLine("🔒 LOCKED - OpMode Active (No Limelight calls)");
+                }
+            } catch (Exception e) {
+                // Ignore hardware errors when locked
+                telemetry.addData("Lock Status", "Motor stopped (error ignored)");
+            }
+            return; // Exit early - NO Limelight calls when locked!
         }
         
         // Check if we've exceeded max spins
         if (limitHitCount >= MAX_SPINS * 2) {
-            robot.spinner.setPower(0);
+            try {
+                robot.spinner.setPower(0);
+            } catch (Exception e) {
+                // Ignore hardware errors
+            }
             searchStopped = true;
             return;
         }
         
         try {
+            // Only call Limelight every N loops to prevent disconnects
+            loopCounter++;
+            boolean shouldCallLimelight = (loopCounter % LIMELIGHT_CALL_INTERVAL == 0);
+            
             // Use raw Limelight result like LimeLightTeleOpTest does (which works!)
-            if (limelight != null) {
-                // Check status first to see what pipeline we're on
-                try {
-                    LLStatus status = limelight.getStatus();
-                    if (status != null) {
-                        telemetry.addData("DEBUG Pipeline", "%d (%s)", 
-                            status.getPipelineIndex(), 
-                            status.getPipelineType() != null ? status.getPipelineType() : "Unknown");
-                    }
-                } catch (Exception e) {
-                    telemetry.addData("DEBUG Status Error", e.getMessage());
-                }
+            // BUT only call it every N loops to reduce network traffic
+            if (limelight != null && shouldCallLimelight) {
+                // Skip status check to reduce network calls - only check when needed
+                // Skip status check to reduce network calls - only check occasionally
+                // Removed frequent status checks to prevent disconnects
                 
                 LLResult result = limelight.getLatestResult();
                 if (result != null) {
@@ -211,37 +477,42 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     double ty = result.getTy();
                     double ta = result.getTa();
                     
-                    // DEBUG: Show what we're detecting
-                    telemetry.addData("DEBUG Result Valid", result.isValid() ? "YES" : "NO");
-                    telemetry.addData("DEBUG Raw tx", "%.3f°", tx);
-                    telemetry.addData("DEBUG Raw ty", "%.3f°", ty);
-                    telemetry.addData("DEBUG Raw ta", "%.3f%%", ta * 100);
-                    
                     // Check if we have a valid AprilTag detection using area (like LimeLightTeleOpTest line 336)
-                    // MIN_TAG_AREA from LimeLightTeleOpTest is 0.5
-                    double MIN_TAG_AREA = 0.5;
+                    // MIN_TAG_AREA: ta is 0-1 range where 1.0 = 100%, so 0.005 = 0.5%
+                    double MIN_TAG_AREA = 0.005;
                     
                     // Also check fiducials to verify it's tag 24
                     List<com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
                     boolean hasTag24 = false;
                     
-                    telemetry.addData("DEBUG Fiducial Count", fiducials != null ? fiducials.size() : 0);
-                    
                     if (fiducials != null && !fiducials.isEmpty()) {
                         for (int i = 0; i < fiducials.size(); i++) {
                             com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult fid = fiducials.get(i);
                             int tagId = fid.getFiducialId();
-                            telemetry.addData("DEBUG Fiducial " + i, "ID: %d", tagId);
                             if (tagId == TARGET_TAG_ID) {
                                 hasTag24 = true;
+                                break; // Found it, no need to continue
                             }
                         }
                     }
                     
-                    // Check if we have a valid detection (area check like LimeLightTeleOpTest)
-                    // AND verify it's tag 24
+                    // Reduced debug telemetry to prevent overload (only show key info)
+                    if (hasTag24) {
+                        telemetry.addData("DEBUG", "Tag 24 detected! ta=%.3f%%", ta * 100);
+                    }
+                    
                     if (ta > MIN_TAG_AREA && hasTag24) {
+                        // Tag 24 found! Cache the tag result to avoid extra Limelight calls
+                        try {
+                            if (aprilTagDetector != null) {
+                                cachedTagResult = aprilTagDetector.getTagById(TARGET_TAG_ID);
+                            }
+                        } catch (Exception e) {
+                            // Ignore - will use raw tx/ty values instead
+                        }
+                        
                         // Tag 24 found! Use logic similar to LimeLightTeleOpTest which actually stops
+                        telemetry.addLine("✅✅✅ TAG 24 DETECTED - ENTERING ALIGNMENT ✅✅✅");
                         // tx is already set from raw result (like LimeLightTeleOpTest line 330)
                         double absTx = Math.abs(tx);
                         
@@ -255,6 +526,32 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             cmd = 0.0;
                             isLocked = true;
                             searchStopped = true;
+                            // Get distance - try cached first, then get fresh if needed (critical for shooting)
+                            if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
+                                lockedDistance = cachedTagResult.distance;
+                                telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
+                            } else {
+                                // Cached result invalid - get fresh distance (one extra call is OK when locking)
+                                try {
+                                    if (aprilTagDetector != null) {
+                                        AprilTagDetector.AprilTagResult freshTag = aprilTagDetector.getTagById(TARGET_TAG_ID);
+                                        if (freshTag != null && freshTag.isValid && freshTag.distance > 0) {
+                                            lockedDistance = freshTag.distance;
+                                            cachedTagResult = freshTag; // Update cache
+                                            telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
+                                        } else {
+                                            lockedDistance = 60.0; // Fallback default
+                                            telemetry.addLine("⚠️ LOCKED - Using default distance: 60.0\"");
+                                        }
+                                    } else {
+                                        lockedDistance = 60.0; // Fallback default
+                                        telemetry.addLine("⚠️ LOCKED - AprilTagDetector NULL, using default: 60.0\"");
+                                    }
+                                } catch (Exception e) {
+                                    lockedDistance = 60.0; // Fallback default on error
+                                    telemetry.addLine("⚠️ LOCKED - Error getting distance: " + e.getMessage());
+                                }
+                            }
                             // Immediately stop motor - don't wait for next loop
                             try {
                                 robot.spinner.setPower(0.0);
@@ -268,6 +565,32 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             cmd = 0.0;
                             isLocked = true;
                             searchStopped = true;
+                            // Get distance - try cached first, then get fresh if needed (critical for shooting)
+                            if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
+                                lockedDistance = cachedTagResult.distance;
+                                telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
+                            } else {
+                                // Cached result invalid - get fresh distance (one extra call is OK when locking)
+                                try {
+                                    if (aprilTagDetector != null) {
+                                        AprilTagDetector.AprilTagResult freshTag = aprilTagDetector.getTagById(TARGET_TAG_ID);
+                                        if (freshTag != null && freshTag.isValid && freshTag.distance > 0) {
+                                            lockedDistance = freshTag.distance;
+                                            cachedTagResult = freshTag; // Update cache
+                                            telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
+                                        } else {
+                                            lockedDistance = 60.0; // Fallback default
+                                            telemetry.addLine("⚠️ LOCKED - Using default distance: 60.0\"");
+                                        }
+                                    } else {
+                                        lockedDistance = 60.0; // Fallback default
+                                        telemetry.addLine("⚠️ LOCKED - AprilTagDetector NULL, using default: 60.0\"");
+                                    }
+                                } catch (Exception e) {
+                                    lockedDistance = 60.0; // Fallback default on error
+                                    telemetry.addLine("⚠️ LOCKED - Error getting distance: " + e.getMessage());
+                                }
+                            }
                             // Immediately stop motor - don't wait for next loop
                             try {
                                 robot.spinner.setPower(0.0);
@@ -284,7 +607,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             
                             // Check encoder limits (with exception handling)
                             try {
-                                int currentPos = robot.spinner.getCurrentPosition();
+                int currentPos = robot.spinner.getCurrentPosition();
                                 if (cmd > 0 && currentPos >= SPINNER_MAX - 50) {
                                     cmd = 0.0; // Can't go right
                                 }
@@ -311,11 +634,53 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         telemetry.addData("DEBUG locked", isLocked ? "YES" : "NO");
                     
                     } else {
-                        // No tag 24 found (either no detection or wrong tag) - keep searching
+                        // No tag 24 found (either no detection or wrong tag) - clear cache and keep searching
+                        cachedTagResult = null;
                         continueSearch();
                     }
                 } else {
-                    // No result from Limelight - keep searching
+                    // No result from Limelight - clear cache and keep searching
+                    cachedTagResult = null;
+                    continueSearch();
+                }
+            } else if (!shouldCallLimelight) {
+                // Not calling Limelight this loop - use cached result if available, otherwise continue searching
+                if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.tagId == TARGET_TAG_ID) {
+                    // Use cached result for alignment (but don't update it - wait for next Limelight call)
+                    double cachedTx = cachedTagResult.xDegrees;
+                    double absTx = Math.abs(cachedTx);
+                    
+                    if (absTx <= DEADBAND) {
+                        // Already locked from previous detection
+                        isLocked = true;
+                        searchStopped = true;
+                        try {
+                            robot.spinner.setPower(0.0);
+                        } catch (Exception e) {
+                            // Ignore
+                        }
+                    } else if (absTx <= TOLERANCE) {
+                        // Within tolerance - lock
+                        isLocked = true;
+                        searchStopped = true;
+                        try {
+                            robot.spinner.setPower(0.0);
+                        } catch (Exception e) {
+                            // Ignore
+                        }
+                    } else {
+                        // Still need to align - use cached tx
+                        double cmd = cachedTx * ALIGN_KP;
+                        double sign = Math.signum(cmd);
+                        cmd = Math.min(MAX_ALIGN_POWER, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
+                        try {
+                            robot.spinner.setPower(cmd);
+                        } catch (Exception e) {
+                            // Ignore
+                        }
+                    }
+                } else {
+                    // No cached result - continue searching
                     continueSearch();
                 }
             } else {
@@ -416,8 +781,9 @@ public class AutoSpinAndShoot extends LinearOpMode {
     }
     
     private void updateTelemetry() {
+        try {
         // Limelight status
-        if (limelight != null && aprilTagDetector != null) {
+            if (limelight != null && aprilTagDetector != null) {
             try {
                 // Only get status occasionally to avoid blocking (every 10 loops = ~200ms)
                 // For now, skip getStatus() to reduce network calls
@@ -429,7 +795,8 @@ public class AutoSpinAndShoot extends LinearOpMode {
                 AprilTagDetector.AprilTagResult tagResult = cachedTagResult;
                 
                 // If no cached result, try to get one (but only if we haven't already this loop)
-                if (tagResult == null) {
+                // Skip Limelight calls when locked to prevent disconnects
+                if (tagResult == null && !isLocked) {
                     try {
                         tagResult = aprilTagDetector.getTagById(TARGET_TAG_ID);
                         cachedTagResult = tagResult; // Cache it
@@ -437,6 +804,9 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         // Limelight call failed - use invalid result
                         tagResult = new AprilTagDetector.AprilTagResult();
                     }
+                } else if (isLocked && tagResult == null) {
+                    // When locked, use a dummy result to avoid Limelight calls
+                    tagResult = new AprilTagDetector.AprilTagResult();
                 }
                 
                 if (tagResult != null && tagResult.isValid) {
@@ -456,6 +826,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     
                     if (isLocked) {
                         telemetry.addLine("✅ Locked onto target!");
+                        telemetry.addData("Shooting", isShooting ? "ON (Press A to toggle)" : "OFF (Press A to toggle)");
                     } else {
                         String direction = tagResult.xDegrees > 0 ? "right" : "left";
                         double absTx = Math.abs(tagResult.xDegrees);
@@ -530,18 +901,83 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     telemetry.addData("Position", "Error reading encoder: " + e.getMessage());
                 }
                 
+                // Shooter status
+                telemetry.addLine("\n--- Shooter Status ---");
+                if (shooterMotor != null) {
+                    try {
+                        // Show velocity (since we're using velocity control, not power)
+                        double currentVelocity = shooterMotor.getVelocity();
+                        int currentRPM = (int)Math.round((currentVelocity / TICKS_PER_REVOLUTION) * 60.0);
+                        telemetry.addData("Shooter Velocity", "%.1f ticks/sec (%.0f RPM)", currentVelocity, (double)currentRPM);
+                        telemetry.addData("Target RPM", "%.0f", targetRPM);
+                        telemetry.addData("Shooting", isShooting ? "ON (A toggled)" : "OFF");
+                        telemetry.addData("Is Locked", isLocked ? "YES" : "NO");
+                        if (!isLocked && isShooting) {
+                            telemetry.addLine("⚠️ Must be locked to shoot");
+                        }
+                        if (isLocked && isShooting && targetRPM == 0.0) {
+                            telemetry.addLine("⚠️ WARNING: targetRPM is 0!");
+                        }
+                    } catch (Exception e) {
+                        telemetry.addData("Shooter", "Error reading: " + e.getMessage());
+                    }
+                } else {
+                    telemetry.addData("Shooter", "NOT FOUND");
+                }
+                
+                // Controls
+                telemetry.addLine("\n--- Controls ---");
+                telemetry.addData("A Button", "Toggle shooting (ON/OFF)");
+                telemetry.addData("Note", "Must be locked to shoot");
+                
+                // Hood status
+                if (isLocked && lockedDistance > 0) {
+                    try {
+                        if (robot != null) {
+                            double calculatedRPM = robot.calculateShooterRPM(lockedDistance);
+                            double calculatedHood = robot.calculateHoodPosition(lockedDistance, null);
+                            telemetry.addLine("\n--- Formula Settings (31-point) ---");
+                            telemetry.addData("Distance", "%.1f\"", lockedDistance);
+                            telemetry.addData("Calculated RPM", "%.0f", calculatedRPM);
+                            telemetry.addData("Calculated Hood", "%.4f", calculatedHood);
+                        }
+                    } catch (Exception e) {
+                        telemetry.addData("Formula", "Error: " + e.getMessage());
+                    }
+                }
+                
+                if (hoodServo != null) {
+                    try {
+                        telemetry.addData("Hood Position", "%.4f", hoodServo.getPosition());
+                    } catch (Exception e) {
+                        telemetry.addData("Hood Position", "Error reading");
+                    }
+                } else {
+                    telemetry.addData("Hood Servo", "NOT FOUND");
+                }
+                
             } catch (Exception e) {
                 telemetry.addData("Error", "Limelight status error: " + e.getMessage());
             }
         }
         
-        // Show final status if search stopped without finding tag
-        if (searchStopped && !isLocked) {
-            telemetry.addLine("\n=== SEARCH COMPLETE ===");
-            telemetry.addLine("❌ NO APRIL TAG FOUND");
-            telemetry.addData("Reason", "Completed %d full spins without finding tag", MAX_SPINS);
-        }
+            // Show final status if search stopped without finding tag
+            if (searchStopped && !isLocked) {
+                telemetry.addLine("\n=== SEARCH COMPLETE ===");
+                telemetry.addLine("❌ NO APRIL TAG FOUND");
+                telemetry.addData("Reason", "Completed %d full spins without finding tag", MAX_SPINS);
+            }
         
         telemetry.update();
+        } catch (Exception e) {
+            // Catch any exceptions in telemetry to prevent OpMode from ending
+            try {
+                telemetry.addData("Telemetry Error", e.getMessage());
+                telemetry.update();
+            } catch (Exception e2) {
+                // If even telemetry fails, just continue
+            }
+        }
     }
 }
+

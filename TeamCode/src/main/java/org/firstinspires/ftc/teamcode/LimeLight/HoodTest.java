@@ -13,7 +13,7 @@ public class HoodTest extends LinearOpMode {
     private static final double HOOD_MAX = 0.14;
     private static final double HOOD_SMALL_STEP = 0.01;
     private static final double HOOD_LARGE_STEP = 0.05;
-    private static final double SHOOTER_POWER = -1.0;
+    private static final double SHOOTER_POWER = 1.0;
     private static final int[] TARGET_TAG_IDS = {24, 20};
 
     private dumbMap robot;
@@ -33,7 +33,7 @@ public class HoodTest extends LinearOpMode {
         limelight = robot.getLimeLight();
         if (limelight != null) {
             limelight.pipelineSwitch(0);
-            tagDetector = new AprilTagDetector(limelight, 9.5, 0.0, 150.0);
+            tagDetector = new AprilTagDetector(limelight, 13, 0.0, 150.0);
         }
 
         hoodServo = robot.hood;

@@ -8,5 +8,10 @@ public class HeleOpBlue extends HeleOpBase {
     protected int[] getTargetTagIds() {
         return new int[]{20};
     }
+
+    @Override
+    protected int getAprilTagPipelineIndex() {
+        return 3;
+    }
 }
 

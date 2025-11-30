@@ -29,7 +29,7 @@ public class dumbMap {
     
     // Hardware objects
     public DcMotor leftFront, leftBack, rightFront, rightBack, shooter, spinner, intake;
-    public Servo transfer, hood;
+    public Servo transfer, hood, flicker;
     public double drivePower = 0.5;
     
     // Sensors and other hardware
@@ -153,9 +153,9 @@ public class dumbMap {
             rightBack = opMode.hardwareMap.get(DcMotor.class, "backRight");
 
             // Set motor directions (adjust if needed)
-            leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
             leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+            rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
             rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
 
             // Set motor modes for velocity control
@@ -163,9 +163,9 @@ public class dumbMap {
             setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             
             // Set motor directions (adjust if needed)
-            leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
             leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+            rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
             rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
             
             // Reset encoders and set to run using encoder
@@ -174,8 +174,11 @@ public class dumbMap {
                 motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
             
-            // Initialize shooter motor
-            shooter = opMode.hardwareMap.get(DcMotor.class, "shooter");
+            // Initialize shooter motor (fall back to old name)
+            shooter = tryGetMotor("shooter");
+            if (shooter == null) {
+                shooter = tryGetMotor("outtake");
+            }
             shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             
@@ -191,10 +194,24 @@ public class dumbMap {
             intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             
             // Initialize servo
-            transfer = opMode.hardwareMap.get(Servo.class, "transfer");
-            transfer.setPosition(SERVO_TRANSFER_POSITION);
-            hood = opMode.hardwareMap.get(Servo.class, "hood");
-            hood.setPosition(HOOD_START_POSITION);
+            transfer = tryGetServo("transfer");
+            if (transfer == null) {
+                transfer = tryGetServo("flicker");
+            }
+            if (transfer != null) {
+                transfer.setPosition(SERVO_TRANSFER_POSITION);
+            }
+            hood = tryGetServo("hood");
+            if (hood == null) {
+                hood = tryGetServo("servo");
+            }
+            flicker = tryGetServo("flicker");
+            if (flicker == null) {
+                flicker = transfer;
+            }
+            if (hood != null) {
+                hood.setPosition(HOOD_START_POSITION);
+            }
             
             // Initialize voltage sensor
             batteryVoltageSensor = opMode.hardwareMap.voltageSensor.iterator().next();
@@ -238,6 +255,22 @@ public class dumbMap {
         leftBack.setPower(0);
         rightBack.setPower(0);
     }
+
+    private DcMotor tryGetMotor(String name) {
+        try {
+            return opMode.hardwareMap.get(DcMotor.class, name);
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
+    private Servo tryGetServo(String name) {
+        try {
+            return opMode.hardwareMap.get(Servo.class, name);
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
     
     /**
      * Initialize all hardware components
@@ -275,5 +308,17 @@ public class dumbMap {
             sum += arr.get(i);
         }
         return sum/count;
+    }
+    
+    /**
+     * Calculate shooter power based on distance to target
+     * @param distanceIn Distance to target in inches
+     * @return Shooter motor power (0.0 to 1.0)
+     */
+    public double calculateShooterPower(double distanceIn) {
+        // For now, return constant power
+        // TODO: Add distance-based formula if you have one
+        // Example: return Math.min(1.0, Math.max(0.4, basePower + (distanceIn * scaleFactor)));
+        return 1.0;
     }
 }
