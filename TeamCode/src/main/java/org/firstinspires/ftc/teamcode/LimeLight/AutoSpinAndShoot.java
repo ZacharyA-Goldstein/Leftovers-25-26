@@ -668,76 +668,26 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         telemetry.addData("DEBUG locked", isLocked ? "YES" : "NO");
                     
                     } else {
-                        // No tag 24 found this loop
-                        if (isTracking && cachedTagResult != null && cachedTagResult.isValid) {
-                            // We were tracking - give it a few loops before giving up (tag might be temporarily out of view)
-                            lostDetectionCount++;
-                            if (lostDetectionCount <= MAX_LOST_DETECTIONS) {
-                                // Continue tracking using cached result
-                                double cachedTx = cachedTagResult.xDegrees;
-                                double absTx = Math.abs(cachedTx);
-                                
-                                if (absTx <= DEADBAND) {
-                                    // Within deadband (0.5°) - lock!
-                                    isLocked = true;
-                                    isTracking = false;
-                                    searchStopped = true;
-                                    lostDetectionCount = 0;
-                                    try {
-                                        robot.spinner.setPower(0.0);
-                                    } catch (Exception e) {
-                                        // Ignore
-                                    }
-                                } else {
-                                    // Continue aligning using cached position with distance-based power
-                                    double cmd = cachedTx * ALIGN_KP;
-                                    double sign = Math.signum(cmd);
-                                    
-                                    // Adjust power based on distance from target and post-brake phase
-                                    double maxPower = MAX_ALIGN_POWER;
-                                    boolean inPostBrakePhase = (postBrakeStartTime > 0 && 
-                                        (System.currentTimeMillis() - postBrakeStartTime) < POST_BRAKE_DURATION_MS);
-                                    
-                                    if (inPostBrakePhase) {
-                                        // Just after braking - use very gentle correction
-                                        maxPower = Math.min(0.15, SEARCH_POWER);
-                                    } else if (absTx > TOLERANCE) {
-                                        // Far off - use moderate correction
-                                        maxPower = Math.min(0.25, MAX_ALIGN_POWER * 1.2);
-                                        postBrakeStartTime = 0;
-                                    } else {
-                                        maxPower = MAX_ALIGN_POWER;
-                                        postBrakeStartTime = 0;
-                                    }
-                                    
-                                    cmd = Math.min(maxPower, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
-                                    try {
-                                        robot.spinner.setPower(cmd);
-                                    } catch (Exception e) {
-                                        // Ignore
-                                    }
-                                }
-                            } else {
-                                // Lost detection for too long - give up tracking and resume search
-                                isTracking = false;
-                                lostDetectionCount = 0;
-                                cachedTagResult = null;
-                                continueSearch();
-                            }
-                        } else {
-                            // Not tracking - clear cache and keep searching
-                            isTracking = false;
-                            cachedTagResult = null;
-                            continueSearch();
-                        }
+                        // No tag 24 found this loop - immediately reset tracking and search (like AutoSpin.java)
+                        // This ensures the spinner always moves when no tag is detected
+                        isTracking = false;
+                        lostDetectionCount = 0;
+                        cachedTagResult = null;
+                        brakeStartTime = 0; // Reset brake timer
+                        postBrakeStartTime = 0; // Reset post-brake timer
+                        continueSearch();
                     }
                 } else {
                     // No result from Limelight - clear cache and keep searching
                     cachedTagResult = null;
+                    isTracking = false; // Make sure tracking is off
+                    brakeStartTime = 0; // Reset brake timer
+                    postBrakeStartTime = 0; // Reset post-brake timer
                     continueSearch();
                 }
             } else if (!shouldCallLimelight) {
-                // Not calling Limelight this loop - use cached result if tracking, otherwise continue searching
+                // Not calling Limelight this loop - if we have a valid cached result and are tracking, use it
+                // Otherwise, just continue searching (simpler logic like AutoSpin.java)
                 if (isTracking && cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.tagId == TARGET_TAG_ID) {
                     // Use cached result for alignment (we're tracking, just waiting for next Limelight call)
                     double cachedTx = cachedTagResult.xDegrees;
@@ -783,9 +733,11 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             // Ignore
                         }
                     }
-            } else {
-                    // Not tracking or no cached result - continue searching
+                } else {
+                    // Not tracking or no valid cached result - immediately search (like AutoSpin.java)
                     isTracking = false;
+                    brakeStartTime = 0; // Reset brake timer
+                    postBrakeStartTime = 0; // Reset post-brake timer
                     continueSearch();
                 }
             } else {
@@ -809,6 +761,14 @@ public class AutoSpinAndShoot extends LinearOpMode {
     private void continueSearch() {
         if (robot == null || robot.spinner == null) {
             return;
+        }
+        
+        // CRITICAL: When searching, we should NOT be tracking or braking
+        // Reset these states to ensure clean search behavior
+        if (isTracking) {
+            isTracking = false;
+            brakeStartTime = 0;
+            postBrakeStartTime = 0;
         }
         
         int currentPos;
@@ -874,7 +834,10 @@ public class AutoSpinAndShoot extends LinearOpMode {
         
         // Move in search direction (direction already corrected if at limit)
         try {
-            robot.spinner.setPower(searchDirection * SEARCH_POWER);
+            double searchPower = searchDirection * SEARCH_POWER;
+            robot.spinner.setPower(searchPower);
+            // Debug: confirm we're actually setting power
+            telemetry.addData("Search Power", "%.3f (dir: %d)", searchPower, searchDirection);
         } catch (Exception e) {
             // Hardware access failed - stop motor
             try {
@@ -882,6 +845,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
             } catch (Exception e2) {
                 // Ignore
             }
+            telemetry.addData("Search Error", e.getMessage());
         }
     }
     
