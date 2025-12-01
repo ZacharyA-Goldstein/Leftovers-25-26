@@ -34,17 +34,26 @@ public class AutoSpinAndShoot extends LinearOpMode {
     private static final int TICKS_PER_REVOLUTION = 28; // PPR for GoBILDA 6000 RPM motor
     
     // Constants
-    private static final int SPINNER_MIN = -550;  // Encoder limit (min) - roughly 90 degrees left
-    private static final int SPINNER_MAX = 590;   // Encoder limit (max) - roughly 300 degrees right
+    // Turret limits: ±90 degrees from initialization position (0 degrees = straight ahead)
+    private static final int SPINNER_MIN = -550;  // Encoder limit (min) - -90 degrees left
+    private static final int SPINNER_MAX = 550;   // Encoder limit (max) - +90 degrees right
     private static final int TARGET_TAG_ID = 24;   // AprilTag ID to track
     private static final double CAMERA_HEIGHT = 13.0; // Camera height in inches (matches ShooterAnglePowerTest)
     private static final double CAMERA_ANGLE = 0.0; // Camera angle in degrees
     private static final double MAX_DISTANCE = 144.0; // Max detection distance in inches (matches ShooterAnglePowerTest)
     private static final double TOLERANCE = 2.0;   // Degrees tolerance - start aligning when within this (wider to catch tag)
-    private static final double DEADBAND = 0.5;    // Deadband - lock when within 0.5° (tight margin of error as requested)
+    private static final double DEADBAND = 1.0;    // Deadband - lock when within 0.5° (tight margin of error as requested)
     private static final double ALIGN_KP = 0.04;   // Proportional constant (reduced further to prevent overcorrection)
-    private static final double MIN_ALIGN_POWER = 0.15; // Minimum power to move (reduced to prevent overcorrection)
-    private static final double MAX_ALIGN_POWER = 0.3;  // Maximum alignment power (reduced to prevent overshooting)
+    private static final double MIN_ALIGN_POWER = 0.25; // Minimum power to move (increased to ensure motor moves)
+    private static final double MAX_ALIGN_POWER = 0.5;  // Maximum alignment power (increased to ensure motor moves)
+    
+    // Horizontal alignment offset to fix shooting left
+    // Positive value shifts aim to the right (compensates for shooting left)
+    private static final double HORIZONTAL_OFFSET_DEG = 2.0; // Degrees to offset (tune this value)
+    
+    // Hood adjustment for close distances
+    private static final double CLOSE_DISTANCE_THRESHOLD = 80.0; // Inches - below this is "close"
+    private static final double HOOD_CLOSE_ADJUSTMENT = -0.02; // Subtract this from hood position when close (lowers hood)
     
     // RPM scaling - distance-based adjustment
     // Close distances need more reduction, far distances need less (or none)
@@ -112,7 +121,14 @@ public class AutoSpinAndShoot extends LinearOpMode {
                 // Use RUN_WITHOUT_ENCODER for more direct power control (like drive motors)
                 robot.spinner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 robot.spinner.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                // Set motor direction explicitly - try REVERSE if FORWARD doesn't work
+                robot.spinner.setDirection(DcMotor.Direction.FORWARD);
                 robot.spinner.setPower(0.0); // Ensure it starts stopped
+                telemetry.addData("Spinner Motor", "Initialized - Direction: FORWARD");
+                telemetry.addData("Spinner Min Power", "%.2f", MIN_ALIGN_POWER);
+                telemetry.addData("Spinner Max Power", "%.2f", MAX_ALIGN_POWER);
+            } else {
+                telemetry.addData("Spinner Motor", "NULL - Check hardware mapping!");
             }
             
             // Initialize shooter motor (as DcMotorEx for velocity control)
@@ -125,9 +141,10 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     shooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    shooterMotor.setDirection(DcMotor.Direction.FORWARD); // Set direction explicitly
                     shooterMotor.setVelocity(0); // Start at 0 velocity
                     targetRPM = 0.0;
-                    telemetry.addData("Shooter Motor", "Initialized (Velocity Control)");
+                    telemetry.addData("Shooter Motor", "Initialized (Velocity Control - FORWARD)");
                 } else {
                     telemetry.addData("Shooter Motor", "NOT FOUND");
                 }
@@ -325,6 +342,12 @@ public class AutoSpinAndShoot extends LinearOpMode {
                 try {
                     // Calculate optimal hood position from distance
                     double calculatedHood = robot.calculateHoodPosition(lockedDistance, null);
+                    
+                    // Adjust hood for close distances (lower the hood)
+                    if (lockedDistance < CLOSE_DISTANCE_THRESHOLD) {
+                        calculatedHood += HOOD_CLOSE_ADJUSTMENT; // Negative adjustment lowers hood
+                    }
+                    
                     // Clamp to servo limits
                     double hoodPosition = Math.max(HOOD_MIN, Math.min(HOOD_MAX, calculatedHood));
                     
@@ -373,7 +396,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
                 }
             }
             
-            // ALWAYS recalculate RPM when shooting (ensures it's always up to date)
+            // ALWAYS recalculate RPM and hood when shooting (ensures it's always up to date)
             if (lockedDistance > 0 && robot != null) {
                 try {
                     double newRPM = robot.calculateShooterRPM(lockedDistance);
@@ -385,6 +408,16 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         telemetry.addData("RPM Calculated (scaled)", "%.0f (from %.1f\")", targetRPM, lockedDistance);
                     } else {
                         telemetry.addData("RPM Warning", "Calculation returned 0 for distance %.1f\"", lockedDistance);
+                    }
+                    
+                    // Update hood position (with close-distance adjustment)
+                    double calculatedHood = robot.calculateHoodPosition(lockedDistance, null);
+                    if (lockedDistance < CLOSE_DISTANCE_THRESHOLD) {
+                        calculatedHood += HOOD_CLOSE_ADJUSTMENT; // Negative adjustment lowers hood
+                    }
+                    double hoodPosition = Math.max(HOOD_MIN, Math.min(HOOD_MAX, calculatedHood));
+                    if (hoodServo != null) {
+                        hoodServo.setPosition(hoodPosition);
                     }
                 } catch (Exception e) {
                     telemetry.addData("RPM Calc Error", e.getMessage());
@@ -401,21 +434,26 @@ public class AutoSpinAndShoot extends LinearOpMode {
                 try {
                     // Convert RPM to ticks per second for velocity control
                     // RPM to ticks/sec: (RPM / 60) * TICKS_PER_REVOLUTION
-                    // Note: targetRPM is negative (reverse direction), so velocity will be negative
-                    int velocityTicksPerSec = (int)Math.round((targetRPM / 60.0) * TICKS_PER_REVOLUTION);
-                    shooterMotor.setVelocity(velocityTicksPerSec);
+                    // Note: targetRPM should be positive, shooter uses positive velocity (forward direction)
+                    double velocityTicksPerSec = (targetRPM / 60.0) * TICKS_PER_REVOLUTION;
+                    // Use positive velocity for forward direction (shooting out)
+                    int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
+                    shooterMotor.setVelocity(velocityTicksPerSecInt);
                     
                     // Debug telemetry
                     telemetry.addData("Shooter Target RPM", "%.0f", targetRPM);
-                    telemetry.addData("Shooter Velocity", "%d ticks/sec", velocityTicksPerSec);
+                    telemetry.addData("Shooter Velocity", "%d ticks/sec", velocityTicksPerSecInt);
+                    telemetry.addData("Shooter Velocity Set", "YES");
                 } catch (Exception e) {
                     telemetry.addData("Shoot Error", e.getMessage());
+                    telemetry.addData("Shooter Velocity Set", "NO - ERROR");
                     e.printStackTrace();
                 }
             } else {
                 telemetry.addData("Shooter Warning", "targetRPM is 0 - cannot shoot");
                 telemetry.addData("Debug Info", "lockedDistance=%.1f, robot=%s, isLocked=%s", 
                     lockedDistance, robot != null ? "OK" : "NULL", isLocked);
+                telemetry.addData("Shooter Velocity Set", "NO - RPM is 0");
             }
         } else {
             // Stop shooting if not locked or not toggled on
@@ -439,21 +477,18 @@ public class AutoSpinAndShoot extends LinearOpMode {
             return;
         }
         
-        // If already locked or search stopped, don't move - ALWAYS set power to 0
-        // Skip ALL Limelight calls when locked to prevent disconnects
-        if (isLocked || searchStopped) {
+        // If search stopped (but not locked), don't move
+        if (searchStopped && !isLocked) {
             try {
                 robot.spinner.setPower(0.0);
-                // Add simple status to show OpMode is still active
-                if (isLocked) {
-                    telemetry.addLine("🔒 LOCKED - OpMode Active (No Limelight calls)");
-                }
             } catch (Exception e) {
-                // Ignore hardware errors when locked
-                telemetry.addData("Lock Status", "Motor stopped (error ignored)");
+                // Ignore hardware errors
             }
-            return; // Exit early - NO Limelight calls when locked!
+            return; // Exit early if search stopped without finding tag
         }
+        
+        // If locked, continue tracking to maintain lock as bot moves
+        // Don't return early - continue to adjust spinner to keep tag centered
         
         // Check if we've exceeded max spins
         if (limitHitCount >= MAX_SPINS * 2) {
@@ -533,6 +568,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         }
                         
                         // tx is already set from raw result (like LimeLightTeleOpTest line 330)
+                        // Use raw tx for deadband check (to determine if we're close enough to lock)
                         double absTx = Math.abs(tx);
                         
                         // Check if we're still in braking phase
@@ -562,55 +598,72 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             }
                         }
                         
-                        // Check deadband FIRST (like LimeLightTeleOpTest) - if within deadband, stop completely
-                        // This matches LimeLightTeleOpTest line 341: if (Math.abs(tx) > TAG_DEADBAND)
+                        // Check deadband FIRST - if within deadband, set lock state (but continue tracking)
+                        // Use raw tx for deadband check (no offset - we lock when close to center)
                         if (absTx <= DEADBAND) {
-                            // Within deadband - stop completely and lock (like LimeLightTeleOpTest stops rotation)
-                            cmd = 0.0;
-                            isLocked = true;
-                            isTracking = false; // No longer tracking, we're locked
-                            searchStopped = true;
-                            lostDetectionCount = 0;
-                            brakeStartTime = 0; // Reset brake timer
-                            postBrakeStartTime = 0; // Reset post-brake timer
-                            // Get distance - try cached first, then get fresh if needed (critical for shooting)
-                            if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
-                                lockedDistance = cachedTagResult.distance;
-                                telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
-                            } else {
-                                // Cached result invalid - get fresh distance (one extra call is OK when locking)
-                                try {
-                                    if (aprilTagDetector != null) {
-                                        AprilTagDetector.AprilTagResult freshTag = aprilTagDetector.getTagById(TARGET_TAG_ID);
-                                        if (freshTag != null && freshTag.isValid && freshTag.distance > 0) {
-                                            lockedDistance = freshTag.distance;
-                                            cachedTagResult = freshTag; // Update cache
-                                            telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
+                            // Within deadband - set lock state (but continue tracking to maintain lock as bot moves)
+                            if (!isLocked) {
+                                // First time locking - set lock state and get distance
+                                isLocked = true;
+                                isTracking = false; // No longer in initial tracking phase
+                                lostDetectionCount = 0;
+                                brakeStartTime = 0; // Reset brake timer
+                                postBrakeStartTime = 0; // Reset post-brake timer
+                                
+                                // Get distance - try cached first, then get fresh if needed (critical for shooting)
+                                if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
+                                    lockedDistance = cachedTagResult.distance;
+                                    telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
+                                } else {
+                                    // Cached result invalid - get fresh distance (one extra call is OK when locking)
+                                    try {
+                                        if (aprilTagDetector != null) {
+                                            AprilTagDetector.AprilTagResult freshTag = aprilTagDetector.getTagById(TARGET_TAG_ID);
+                                            if (freshTag != null && freshTag.isValid && freshTag.distance > 0) {
+                                                lockedDistance = freshTag.distance;
+                                                cachedTagResult = freshTag; // Update cache
+                                                telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
+                                            } else {
+                                                lockedDistance = 60.0; // Fallback default
+                                                telemetry.addLine("⚠️ LOCKED - Using default distance: 60.0\"");
+                                            }
                                         } else {
                                             lockedDistance = 60.0; // Fallback default
-                                            telemetry.addLine("⚠️ LOCKED - Using default distance: 60.0\"");
+                                            telemetry.addLine("⚠️ LOCKED - AprilTagDetector NULL, using default: 60.0\"");
                                         }
-                                    } else {
-                                        lockedDistance = 60.0; // Fallback default
-                                        telemetry.addLine("⚠️ LOCKED - AprilTagDetector NULL, using default: 60.0\"");
+                                    } catch (Exception e) {
+                                        lockedDistance = 60.0; // Fallback default on error
+                                        telemetry.addLine("⚠️ LOCKED - Error getting distance: " + e.getMessage());
                                     }
-                                } catch (Exception e) {
-                                    lockedDistance = 60.0; // Fallback default on error
-                                    telemetry.addLine("⚠️ LOCKED - Error getting distance: " + e.getMessage());
+                                }
+                            } else {
+                                // Already locked - update distance if bot moved
+                                if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
+                                    lockedDistance = cachedTagResult.distance;
                                 }
                             }
-                            // Immediately stop motor - don't wait for next loop
-                            try {
-                                robot.spinner.setPower(0.0);
-                            } catch (Exception e) {
-                                // Ignore
-                            }
+                            
+                            // When locked and within deadband, use very gentle correction to maintain lock
+                            // Apply horizontal offset to alignment command (compensates for shooting left)
+                            double adjustedTx = tx + HORIZONTAL_OFFSET_DEG;
+                            cmd = adjustedTx * ALIGN_KP * 0.5; // Reduce power by 50% when locked to prevent overshooting
+                            double sign = Math.signum(cmd);
+                            cmd = Math.min(MAX_ALIGN_POWER * 0.3, Math.max(MIN_ALIGN_POWER * 0.5, Math.abs(cmd))) * sign;
                         }
-                        // Outside deadband - continue aligning (tolerance is just for reference, not locking)
-                        // Only lock when within deadband (0.5°) for tight margin of error
+                        // Outside deadband - continue aligning (or maintain lock if already locked)
                         else {
-                            // Use POSITIVE multiplier like ShooterTurnTest (tx * KP)
-                            cmd = tx * ALIGN_KP;
+                            // If locked but outside deadband, bot moved - continue tracking to re-center
+                            if (isLocked) {
+                                // Bot moved - continue tracking to maintain lock
+                                // Update distance if available
+                                if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
+                                    lockedDistance = cachedTagResult.distance;
+                                }
+                            }
+                            // Apply horizontal offset to alignment command (compensates for shooting left)
+                            // This shifts the target slightly to the right to account for left bias
+                            double adjustedTx = tx + HORIZONTAL_OFFSET_DEG;
+                            cmd = adjustedTx * ALIGN_KP;
                             double sign = Math.signum(cmd);
                             
                             // Adjust power based on distance from target and time since braking:
@@ -625,28 +678,37 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             
                             if (inPostBrakePhase) {
                                 // Just after braking - use very gentle correction to prevent speeding up
-                                maxPower = Math.min(0.15, SEARCH_POWER); // Same as search power or less
+                                maxPower = Math.min(0.25, SEARCH_POWER); // Increased minimum to ensure movement
                                 telemetry.addData("Status", "Post-brake gentle alignment");
                             } else if (absTx > TOLERANCE) {
                                 // Far off - use moderate correction (not too strong to prevent overshooting)
-                                maxPower = Math.min(0.25, MAX_ALIGN_POWER * 1.2); // Max 25% power when far
+                                maxPower = Math.min(0.4, MAX_ALIGN_POWER * 1.2); // Increased to ensure movement
                                 postBrakeStartTime = 0; // Clear post-brake timer
                             } else {
                                 // Within tolerance - use normal correction for fine alignment toward 0.5° deadband
-                                maxPower = MAX_ALIGN_POWER; // Normal max power (0.3)
+                                maxPower = MAX_ALIGN_POWER; // Normal max power (0.5)
                                 postBrakeStartTime = 0; // Clear post-brake timer
                             }
                             
                             cmd = Math.min(maxPower, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
                             
-                            // Check encoder limits (with exception handling)
+                            // Check encoder limits (with exception handling) - enforce ±90 degree limit
                             try {
-                int currentPos = robot.spinner.getCurrentPosition();
-                                if (cmd > 0 && currentPos >= SPINNER_MAX - 50) {
-                                    cmd = 0.0; // Can't go right
+                                int currentPos = robot.spinner.getCurrentPosition();
+                                
+                                // Safety check: if already past limits, stop and don't move further
+                                if (currentPos >= SPINNER_MAX) {
+                                    cmd = 0.0; // Already at or past right limit (+90°) - stop
+                                    telemetry.addData("Limit Warning", "At/past RIGHT limit (+90°)");
+                                } else if (currentPos <= SPINNER_MIN) {
+                                    cmd = 0.0; // Already at or past left limit (-90°) - stop
+                                    telemetry.addData("Limit Warning", "At/past LEFT limit (-90°)");
                                 }
-                                if (cmd < 0 && currentPos <= SPINNER_MIN + 50) {
-                                    cmd = 0.0; // Can't go left
+                                // Check if approaching limits - prevent movement beyond ±90 degrees
+                                else if (cmd > 0 && currentPos >= SPINNER_MAX - 50) {
+                                    cmd = 0.0; // Can't go right - approaching +90° limit
+                                } else if (cmd < 0 && currentPos <= SPINNER_MIN + 50) {
+                                    cmd = 0.0; // Can't go left - approaching -90° limit
                                 }
                             } catch (Exception e) {
                                 // Hardware access failed - stop motor
@@ -657,56 +719,193 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         // Apply command to motor - ALWAYS set power, even if 0.0
                         try {
                             robot.spinner.setPower(cmd);
+                            // DEBUG telemetry for spinner
+                            telemetry.addData("Spinner Cmd", "%.3f", cmd);
+                            telemetry.addData("Spinner Power Set", "YES");
                         } catch (Exception e) {
                             // Hardware access failed - log and continue
                             telemetry.addData("Error", "Motor setPower failed: " + e.getMessage());
+                            telemetry.addData("Spinner Power Set", "NO - ERROR");
                         }
                         
                         // DEBUG telemetry
-                        telemetry.addData("DEBUG tx", "%.3f° (abs: %.3f°)", tx, absTx);
+                        telemetry.addData("DEBUG tx (raw)", "%.3f°", tx);
+                        telemetry.addData("DEBUG absTx (for lock)", "%.3f°", absTx);
+                        if (!isLocked) {
+                            double adjustedTx = tx + HORIZONTAL_OFFSET_DEG;
+                            telemetry.addData("DEBUG tx (adjusted for align)", "%.3f° (offset: %.1f°)", adjustedTx, HORIZONTAL_OFFSET_DEG);
+                        }
                         telemetry.addData("DEBUG cmd", "%.3f", cmd);
                         telemetry.addData("DEBUG locked", isLocked ? "YES" : "NO");
                     
                     } else {
-                        // No tag 24 found this loop - immediately reset tracking and search (like AutoSpin.java)
-                        // This ensures the spinner always moves when no tag is detected
+                        // No tag 24 found this loop
+                        // Check if we were tracking or locked - give it a few loops before giving up
+                        if ((isTracking || isLocked) && cachedTagResult != null && cachedTagResult.isValid) {
+                            // We were tracking or locked - give it a few loops before giving up (tag might be temporarily out of view)
+                            lostDetectionCount++;
+                            if (lostDetectionCount <= MAX_LOST_DETECTIONS) {
+                                // Continue tracking using cached result
+                                double cachedTx = cachedTagResult.xDegrees;
+                                // Use raw tx for deadband check (no offset - we lock when close to center)
+                                double absTx = Math.abs(cachedTx);
+                                
+                                if (absTx <= DEADBAND) {
+                                    // Within deadband - set lock state (but continue tracking)
+                                    if (!isLocked) {
+                                        isLocked = true;
+                                        isTracking = false;
+                                        lostDetectionCount = 0;
+                                    }
+                                    // When locked and within deadband, use gentle correction
+                                    double adjustedCachedTx = cachedTx + HORIZONTAL_OFFSET_DEG;
+                                    double cmd = adjustedCachedTx * ALIGN_KP * 0.5; // Reduced power when locked
+                                    double sign = Math.signum(cmd);
+                                    cmd = Math.min(MAX_ALIGN_POWER * 0.3, Math.max(MIN_ALIGN_POWER * 0.5, Math.abs(cmd))) * sign;
+                                    try {
+                                        robot.spinner.setPower(cmd);
+                                        telemetry.addData("Spinner Cmd (locked)", "%.3f", cmd);
+                                    } catch (Exception e) {
+                                        // Ignore
+                                    }
+                                } else {
+                                    // Continue aligning using cached position with distance-based power
+                                    // Apply horizontal offset to alignment command (compensates for shooting left)
+                                    double adjustedCachedTx = cachedTx + HORIZONTAL_OFFSET_DEG;
+                                    double cmd = adjustedCachedTx * ALIGN_KP;
+                                    double sign = Math.signum(cmd);
+                                    
+                                    // Adjust power based on distance from target and post-brake phase
+                                    double maxPower = MAX_ALIGN_POWER;
+                                    boolean inPostBrakePhase = (postBrakeStartTime > 0 && 
+                                        (System.currentTimeMillis() - postBrakeStartTime) < POST_BRAKE_DURATION_MS);
+                                    
+                                    if (inPostBrakePhase) {
+                                        // Just after braking - use very gentle correction
+                                        maxPower = Math.min(0.25, SEARCH_POWER); // Increased minimum
+                                    } else if (absTx > TOLERANCE) {
+                                        // Far off - use moderate correction
+                                        maxPower = Math.min(0.4, MAX_ALIGN_POWER * 1.2); // Increased
+                                        postBrakeStartTime = 0;
+                                    } else {
+                                        maxPower = MAX_ALIGN_POWER;
+                                        postBrakeStartTime = 0;
+                                    }
+                                    
+                                    cmd = Math.min(maxPower, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
+                                    try {
+                                        robot.spinner.setPower(cmd);
+                                        telemetry.addData("Spinner Cmd (cached)", "%.3f", cmd);
+                                    } catch (Exception e) {
+                                        telemetry.addData("Spinner Error (cached)", e.getMessage());
+                                    }
+                                }
+                            } else {
+                                // Lost detection for too long - reset lock/tracking state and resume search
+                                isLocked = false; // Reset lock state
+                                isTracking = false;
+                                lostDetectionCount = 0;
+                                cachedTagResult = null;
+                                brakeStartTime = 0; // Reset brake timer
+                                postBrakeStartTime = 0; // Reset post-brake timer
+                                lockedDistance = 0.0; // Reset distance
+                                telemetry.addLine("⚠️ Tag lost - Resuming search");
+                                continueSearch();
+                            }
+                        } else {
+                            // Not tracking and not locked - clear cache and keep searching
+                            if (isLocked) {
+                                // Was locked but no cached result - reset lock state
+                                isLocked = false;
+                                lockedDistance = 0.0;
+                                telemetry.addLine("⚠️ Tag lost while locked - Resuming search");
+                            }
+                            isTracking = false;
+                            cachedTagResult = null;
+                            continueSearch();
+                        }
+                    }
+                } else {
+                    // No result from Limelight - handle lost tag
+                    if (isLocked || isTracking) {
+                        // Was tracking or locked - increment lost count
+                        lostDetectionCount++;
+                        if (lostDetectionCount > MAX_LOST_DETECTIONS) {
+                            // Lost for too long - reset state and search
+                            isLocked = false;
+                            isTracking = false;
+                            lostDetectionCount = 0;
+                            cachedTagResult = null;
+                            brakeStartTime = 0;
+                            postBrakeStartTime = 0;
+                            lockedDistance = 0.0;
+                            telemetry.addLine("⚠️ Tag lost (no Limelight result) - Resuming search");
+                            continueSearch();
+                        } else {
+                            // Still within tolerance - try to use cached result if available
+                            if (cachedTagResult != null && cachedTagResult.isValid) {
+                                // Use cached result for one more loop
+                                // Don't clear cache yet
+                            } else {
+                                // No cached result - reset and search
+                                isLocked = false;
+                                isTracking = false;
+                                cachedTagResult = null;
+                                continueSearch();
+                            }
+                        }
+                    } else {
+                        // Not tracking or locked - clear cache and keep searching
+                        cachedTagResult = null;
+                        continueSearch();
+                    }
+                }
+            } else if (!shouldCallLimelight) {
+                // Not calling Limelight this loop - use cached result if tracking or locked, otherwise continue searching
+                if ((isTracking || isLocked) && cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.tagId == TARGET_TAG_ID) {
+                    // Increment lost detection count when not calling Limelight (tag might be lost)
+                    lostDetectionCount++;
+                    if (lostDetectionCount > MAX_LOST_DETECTIONS * 2) {
+                        // Lost for too long even with cached result - reset and search
+                        isLocked = false;
                         isTracking = false;
                         lostDetectionCount = 0;
                         cachedTagResult = null;
-                        brakeStartTime = 0; // Reset brake timer
-                        postBrakeStartTime = 0; // Reset post-brake timer
+                        brakeStartTime = 0;
+                        postBrakeStartTime = 0;
+                        lockedDistance = 0.0;
+                        telemetry.addLine("⚠️ Tag lost (no fresh detection) - Resuming search");
                         continueSearch();
+                        return;
                     }
-                } else {
-                    // No result from Limelight - clear cache and keep searching
-                    cachedTagResult = null;
-                    isTracking = false; // Make sure tracking is off
-                    brakeStartTime = 0; // Reset brake timer
-                    postBrakeStartTime = 0; // Reset post-brake timer
-                    continueSearch();
-                }
-            } else if (!shouldCallLimelight) {
-                // Not calling Limelight this loop - if we have a valid cached result and are tracking, use it
-                // Otherwise, just continue searching (simpler logic like AutoSpin.java)
-                if (isTracking && cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.tagId == TARGET_TAG_ID) {
                     // Use cached result for alignment (we're tracking, just waiting for next Limelight call)
                     double cachedTx = cachedTagResult.xDegrees;
+                    // Use raw tx for deadband check (no offset - we lock when close to center)
                     double absTx = Math.abs(cachedTx);
                     
                     if (absTx <= DEADBAND) {
-                        // Within deadband (0.5°) - lock!
-                        isLocked = true;
-                        isTracking = false;
-                        searchStopped = true;
-                        lostDetectionCount = 0;
+                        // Within deadband - set lock state (but continue tracking)
+                        if (!isLocked) {
+                            isLocked = true;
+                            isTracking = false;
+                            lostDetectionCount = 0;
+                        }
+                        // When locked and within deadband, use gentle correction
+                        double adjustedCachedTx = cachedTx + HORIZONTAL_OFFSET_DEG;
+                        double cmd = adjustedCachedTx * ALIGN_KP * 0.5; // Reduced power when locked
+                        double sign = Math.signum(cmd);
+                        cmd = Math.min(MAX_ALIGN_POWER * 0.3, Math.max(MIN_ALIGN_POWER * 0.5, Math.abs(cmd))) * sign;
                         try {
-                            robot.spinner.setPower(0.0);
+                            robot.spinner.setPower(cmd);
+                            telemetry.addData("Spinner Cmd (locked2)", "%.3f", cmd);
                         } catch (Exception e) {
                             // Ignore
                         }
                     } else {
                         // Still need to align - use cached tx with distance-based power
-                        double cmd = cachedTx * ALIGN_KP;
+                        // Apply horizontal offset to alignment command (compensates for shooting left)
+                        double adjustedCachedTx = cachedTx + HORIZONTAL_OFFSET_DEG;
+                        double cmd = adjustedCachedTx * ALIGN_KP;
                         double sign = Math.signum(cmd);
                         
                         // Adjust power based on distance from target and post-brake phase (same logic as main detection)
@@ -716,10 +915,10 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         
                         if (inPostBrakePhase) {
                             // Just after braking - use very gentle correction
-                            maxPower = Math.min(0.15, SEARCH_POWER);
+                            maxPower = Math.min(0.25, SEARCH_POWER); // Increased minimum
                         } else if (absTx > TOLERANCE) {
                             // Far off - use moderate correction
-                            maxPower = Math.min(0.25, MAX_ALIGN_POWER * 1.2);
+                            maxPower = Math.min(0.4, MAX_ALIGN_POWER * 1.2); // Increased
                             postBrakeStartTime = 0;
                         } else {
                             maxPower = MAX_ALIGN_POWER;
@@ -729,15 +928,20 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         cmd = Math.min(maxPower, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
                         try {
                             robot.spinner.setPower(cmd);
+                            telemetry.addData("Spinner Cmd (cached2)", "%.3f", cmd);
                         } catch (Exception e) {
-                            // Ignore
+                            telemetry.addData("Spinner Error (cached2)", e.getMessage());
                         }
                     }
-                } else {
-                    // Not tracking or no valid cached result - immediately search (like AutoSpin.java)
+            } else {
+                    // Not tracking and not locked, or no cached result - continue searching
+                    if (isLocked) {
+                        // Was locked but no cached result - reset lock state
+                        isLocked = false;
+                        lockedDistance = 0.0;
+                        telemetry.addLine("⚠️ Tag lost (no cached result) - Resuming search");
+                    }
                     isTracking = false;
-                    brakeStartTime = 0; // Reset brake timer
-                    postBrakeStartTime = 0; // Reset post-brake timer
                     continueSearch();
                 }
             } else {
@@ -763,14 +967,6 @@ public class AutoSpinAndShoot extends LinearOpMode {
             return;
         }
         
-        // CRITICAL: When searching, we should NOT be tracking or braking
-        // Reset these states to ensure clean search behavior
-        if (isTracking) {
-            isTracking = false;
-            brakeStartTime = 0;
-            postBrakeStartTime = 0;
-        }
-        
         int currentPos;
         try {
             currentPos = robot.spinner.getCurrentPosition();
@@ -784,10 +980,10 @@ public class AutoSpinAndShoot extends LinearOpMode {
             return;
         }
         
-        // Strict limit enforcement - stop immediately if past limits
+        // Strict limit enforcement - stop immediately if past ±90 degree limits
         try {
             if (currentPos >= SPINNER_MAX) {
-                // At or past right limit - stop and reverse
+                // At or past right limit (+90°) - stop and reverse
                 robot.spinner.setPower(0);
                 if (searchDirection > 0 && !lastWasRightLimit) {
                     searchDirection = -1;
@@ -795,10 +991,11 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     lastWasLeftLimit = false;
                     limitHitCount++;
                 }
+                telemetry.addData("Limit", "At/past RIGHT limit (+90°)");
                 return;
             }
             if (currentPos <= SPINNER_MIN) {
-                // At or past left limit - stop and reverse
+                // At or past left limit (-90°) - stop and reverse
                 robot.spinner.setPower(0);
                 if (searchDirection < 0 && !lastWasLeftLimit) {
                     searchDirection = 1;
@@ -806,6 +1003,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     lastWasRightLimit = false;
                     limitHitCount++;
                 }
+                telemetry.addData("Limit", "At/past LEFT limit (-90°)");
                 return;
             }
         } catch (Exception e) {
@@ -834,10 +1032,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
         
         // Move in search direction (direction already corrected if at limit)
         try {
-            double searchPower = searchDirection * SEARCH_POWER;
-            robot.spinner.setPower(searchPower);
-            // Debug: confirm we're actually setting power
-            telemetry.addData("Search Power", "%.3f (dir: %d)", searchPower, searchDirection);
+            robot.spinner.setPower(searchDirection * SEARCH_POWER);
         } catch (Exception e) {
             // Hardware access failed - stop motor
             try {
@@ -845,7 +1040,6 @@ public class AutoSpinAndShoot extends LinearOpMode {
             } catch (Exception e2) {
                 // Ignore
             }
-            telemetry.addData("Search Error", e.getMessage());
         }
     }
     
@@ -1018,12 +1212,21 @@ public class AutoSpinAndShoot extends LinearOpMode {
                 if (hoodServo != null) {
                     try {
                         telemetry.addData("Hood Position", "%.4f", hoodServo.getPosition());
+                        if (isLocked && lockedDistance < CLOSE_DISTANCE_THRESHOLD) {
+                            telemetry.addData("Hood Adjustment", "%.4f (close distance)", HOOD_CLOSE_ADJUSTMENT);
+                        }
                     } catch (Exception e) {
                         telemetry.addData("Hood Position", "Error reading");
                     }
                 } else {
                     telemetry.addData("Hood Servo", "NOT FOUND");
                 }
+                
+                // Tuning values
+                telemetry.addLine("\n--- Tuning Values ---");
+                telemetry.addData("Horizontal Offset", "%.1f° (adjust if shooting left/right)", HORIZONTAL_OFFSET_DEG);
+                telemetry.addData("Close Distance Threshold", "%.1f\"", CLOSE_DISTANCE_THRESHOLD);
+                telemetry.addData("Hood Close Adjustment", "%.4f (lowers hood when close)", HOOD_CLOSE_ADJUSTMENT);
                 
             } catch (Exception e) {
                 telemetry.addData("Error", "Limelight status error: " + e.getMessage());
@@ -1039,7 +1242,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
         
         telemetry.update();
         } catch (Exception e) {
-            // Catch any exceptions in telemetry to prevent OpMode from ending
+            // Catch any exceptions in telemetry to prevent OpMode from ending.
             try {
                 telemetry.addData("Telemetry Error", e.getMessage());
                 telemetry.update();
