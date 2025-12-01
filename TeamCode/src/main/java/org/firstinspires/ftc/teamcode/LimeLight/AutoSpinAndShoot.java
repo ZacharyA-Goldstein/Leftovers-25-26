@@ -27,8 +27,8 @@ public class AutoSpinAndShoot extends LinearOpMode {
     private Servo hoodServo;
     
     // Hood servo limits (from HeleOpBase)
-    private static final double HOOD_MIN = 0.206;
-    private static final double HOOD_MAX = 0.295;
+    private static final double HOOD_MIN = 0.217;
+    private static final double HOOD_MAX = 0.282;
     
     // Shooter motor constants (GoBILDA 6000 RPM motor)
     private static final int TICKS_PER_REVOLUTION = 28; // PPR for GoBILDA 6000 RPM motor
@@ -40,11 +40,11 @@ public class AutoSpinAndShoot extends LinearOpMode {
     private static final double CAMERA_HEIGHT = 13.0; // Camera height in inches (matches ShooterAnglePowerTest)
     private static final double CAMERA_ANGLE = 0.0; // Camera angle in degrees
     private static final double MAX_DISTANCE = 144.0; // Max detection distance in inches (matches ShooterAnglePowerTest)
-    private static final double TOLERANCE = 0.5;   // Degrees tolerance - stop correcting within this (tighter alignment)
-    private static final double DEADBAND = 0.5;    // Deadband - no movement within this (like ShooterTurnTest)
+    private static final double TOLERANCE = 2.0;   // Degrees tolerance - start aligning when within this (wider to catch tag)
+    private static final double DEADBAND = 0.5;    // Deadband - lock when within 0.5° (tight margin of error as requested)
     private static final double ALIGN_KP = 0.04;   // Proportional constant (reduced further to prevent overcorrection)
     private static final double MIN_ALIGN_POWER = 0.15; // Minimum power to move (reduced to prevent overcorrection)
-    private static final double MAX_ALIGN_POWER = 0.5;  // Maximum alignment power (reduced to prevent overshooting)
+    private static final double MAX_ALIGN_POWER = 0.3;  // Maximum alignment power (reduced to prevent overshooting)
     
     // RPM scaling - distance-based adjustment
     // Close distances need more reduction, far distances need less (or none)
@@ -55,15 +55,16 @@ public class AutoSpinAndShoot extends LinearOpMode {
         if (distance <= 80.0) {
             return 0.90; // Close distances
         } else if (distance >= 120.0) {
-            return 0.98; // Far distances (less reduction needed)
+            return 1.0; // Far distances (less reduction needed)
         } else {
             // Linear interpolation between 80" and 120"
             // At 80": 0.90, at 120": 0.98
             double t = (distance - 80.0) / (120.0 - 80.0); // 0 to 1
-            return 0.90 + (0.98 - 0.90) * t; // Interpolate
+            return 0.90 + (1.0 - 0.90) * t; // Interpolate
         }
     }
-    private static final double SEARCH_POWER = 0.25; // Power for searching rotation
+    private static final double SEARCH_POWER = 0.15; // Power for searching rotation (reduced to prevent overshooting)
+    private static final int BRAKE_DURATION_MS = 150; // How long to stop (milliseconds) - allows momentum to dissipate
     private static final int MAX_SPINS = 2;        // Maximum number of full spins before stopping
     
     // Shooter constants
@@ -71,6 +72,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
     
     // Runtime variables
     private boolean isLocked = false;   // Whether we've locked onto the target
+    private boolean isTracking = false; // Whether we're tracking the tag (detected but not yet locked)
     private boolean searchStopped = false; // Whether search has stopped (timeout or locked)
     private int searchDirection = 1;     // 1 for right, -1 for left
     private int limitHitCount = 0;       // Count of limit hits (2 hits = 1 full spin)
@@ -79,7 +81,13 @@ public class AutoSpinAndShoot extends LinearOpMode {
     private AprilTagDetector aprilTagDetector; // AprilTag detector instance
     private AprilTagDetector.AprilTagResult cachedTagResult = null; // Cache tag result to avoid multiple Limelight calls
     private int loopCounter = 0; // Counter to limit Limelight calls (only call every N loops)
-    private static final int LIMELIGHT_CALL_INTERVAL = 5; // Only call Limelight every 5 loops (~100ms)
+    private int lostDetectionCount = 0; // Count of consecutive loops without detection (reset when detected)
+    private static final int MAX_LOST_DETECTIONS = 5; // Max loops without detection before giving up tracking
+    private long brakeStartTime = 0; // Time when braking started (0 = not braking)
+    private long postBrakeStartTime = 0; // Time when braking ended (for gentle initial alignment)
+    private static final int POST_BRAKE_DURATION_MS = 200; // Gentle alignment period after braking
+    private static final int LIMELIGHT_CALL_INTERVAL_SEARCH = 2; // Call more frequently when searching (~40ms)
+    private static final int LIMELIGHT_CALL_INTERVAL_LOCKED = 10; // Call less frequently when locked (~200ms)
     
     // Shooting state
     private long lockTime = 0; // Time when we locked onto the tag
@@ -459,12 +467,13 @@ public class AutoSpinAndShoot extends LinearOpMode {
         }
         
         try {
-            // Only call Limelight every N loops to prevent disconnects
+            // Call Limelight more frequently when searching (to catch tag), less when locked
             loopCounter++;
-            boolean shouldCallLimelight = (loopCounter % LIMELIGHT_CALL_INTERVAL == 0);
+            int callInterval = isLocked ? LIMELIGHT_CALL_INTERVAL_LOCKED : LIMELIGHT_CALL_INTERVAL_SEARCH;
+            boolean shouldCallLimelight = (loopCounter % callInterval == 0);
             
             // Use raw Limelight result like LimeLightTeleOpTest does (which works!)
-            // BUT only call it every N loops to reduce network traffic
+            // Call more frequently when searching to catch the tag, less when locked to prevent disconnects
             if (limelight != null && shouldCallLimelight) {
                 // Skip status check to reduce network calls - only check when needed
                 // Skip status check to reduce network calls - only check occasionally
@@ -478,8 +487,8 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     double ta = result.getTa();
                     
                     // Check if we have a valid AprilTag detection using area (like LimeLightTeleOpTest line 336)
-                    // MIN_TAG_AREA: ta is 0-1 range where 1.0 = 100%, so 0.005 = 0.5%
-                    double MIN_TAG_AREA = 0.005;
+                    // MIN_TAG_AREA: ta is 0-1 range where 1.0 = 100%, so 0.003 = 0.3% (lowered to catch smaller detections)
+                    double MIN_TAG_AREA = 0.003;
                     
                     // Also check fiducials to verify it's tag 24
                     List<com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
@@ -511,13 +520,47 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             // Ignore - will use raw tx/ty values instead
                         }
                         
-                        // Tag 24 found! Use logic similar to LimeLightTeleOpTest which actually stops
-                        telemetry.addLine("✅✅✅ TAG 24 DETECTED - ENTERING ALIGNMENT ✅✅✅");
+                        // Reset lost detection counter - we found the tag!
+                        lostDetectionCount = 0;
+                        
+                        // Start braking if we just started tracking (first detection)
+                        if (!isTracking) {
+                            isTracking = true;
+                            brakeStartTime = System.currentTimeMillis(); // Start brake timer
+                            telemetry.addLine("✅✅✅ TAG 24 DETECTED - BRAKING & ALIGNING ✅✅✅");
+                        } else {
+                            telemetry.addLine("✅✅✅ TAG 24 DETECTED - ALIGNING ✅✅✅");
+                        }
+                        
                         // tx is already set from raw result (like LimeLightTeleOpTest line 330)
                         double absTx = Math.abs(tx);
                         
+                        // Check if we're still in braking phase
+                        long brakeElapsed = System.currentTimeMillis() - brakeStartTime;
+                        boolean isBraking = (brakeStartTime > 0 && brakeElapsed < BRAKE_DURATION_MS);
+                        
                         // Horizontal alignment: drive spinner so tx -> 0°
                         double cmd = 0.0;
+                        
+                        if (isBraking) {
+                            // Immediately stop the spinner (set power to 0) to stop momentum
+                            // This is safer than reverse braking which might go the wrong direction
+                            try {
+                                robot.spinner.setPower(0.0);
+                                telemetry.addData("Status", "STOPPING (%.0f ms)", (double)brakeElapsed);
+                            } catch (Exception e) {
+                                // Ignore
+                            }
+                            // Skip alignment during stopping phase - just stop, alignment will happen next loop
+                            return; // Exit early, continue stopping next loop
+                        } else {
+                            // Braking complete - start post-brake gentle alignment phase
+                            if (brakeStartTime > 0) {
+                                // Just finished braking - start post-brake timer
+                                postBrakeStartTime = System.currentTimeMillis();
+                                brakeStartTime = 0; // Reset brake timer
+                            }
+                        }
                         
                         // Check deadband FIRST (like LimeLightTeleOpTest) - if within deadband, stop completely
                         // This matches LimeLightTeleOpTest line 341: if (Math.abs(tx) > TAG_DEADBAND)
@@ -525,7 +568,11 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             // Within deadband - stop completely and lock (like LimeLightTeleOpTest stops rotation)
                             cmd = 0.0;
                             isLocked = true;
+                            isTracking = false; // No longer tracking, we're locked
                             searchStopped = true;
+                            lostDetectionCount = 0;
+                            brakeStartTime = 0; // Reset brake timer
+                            postBrakeStartTime = 0; // Reset post-brake timer
                             // Get distance - try cached first, then get fresh if needed (critical for shooting)
                             if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
                                 lockedDistance = cachedTagResult.distance;
@@ -559,51 +606,38 @@ public class AutoSpinAndShoot extends LinearOpMode {
                                 // Ignore
                             }
                         }
-                        // Check tolerance - if within tolerance, also stop (treat as aligned)
-                        else if (absTx <= TOLERANCE) {
-                            // Within tolerance - stop and lock
-                            cmd = 0.0;
-                            isLocked = true;
-                            searchStopped = true;
-                            // Get distance - try cached first, then get fresh if needed (critical for shooting)
-                            if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
-                                lockedDistance = cachedTagResult.distance;
-                                telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
-                            } else {
-                                // Cached result invalid - get fresh distance (one extra call is OK when locking)
-                                try {
-                                    if (aprilTagDetector != null) {
-                                        AprilTagDetector.AprilTagResult freshTag = aprilTagDetector.getTagById(TARGET_TAG_ID);
-                                        if (freshTag != null && freshTag.isValid && freshTag.distance > 0) {
-                                            lockedDistance = freshTag.distance;
-                                            cachedTagResult = freshTag; // Update cache
-                                            telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
-                                        } else {
-                                            lockedDistance = 60.0; // Fallback default
-                                            telemetry.addLine("⚠️ LOCKED - Using default distance: 60.0\"");
-                                        }
-                                    } else {
-                                        lockedDistance = 60.0; // Fallback default
-                                        telemetry.addLine("⚠️ LOCKED - AprilTagDetector NULL, using default: 60.0\"");
-                                    }
-                                } catch (Exception e) {
-                                    lockedDistance = 60.0; // Fallback default on error
-                                    telemetry.addLine("⚠️ LOCKED - Error getting distance: " + e.getMessage());
-                                }
-                            }
-                            // Immediately stop motor - don't wait for next loop
-                            try {
-                                robot.spinner.setPower(0.0);
-                            } catch (Exception e) {
-                                // Ignore
-                            }
-                        }
-                        // Outside both deadzone and tolerance - calculate correction
+                        // Outside deadband - continue aligning (tolerance is just for reference, not locking)
+                        // Only lock when within deadband (0.5°) for tight margin of error
                         else {
                             // Use POSITIVE multiplier like ShooterTurnTest (tx * KP)
                             cmd = tx * ALIGN_KP;
                             double sign = Math.signum(cmd);
-                            cmd = Math.min(MAX_ALIGN_POWER, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
+                            
+                            // Adjust power based on distance from target and time since braking:
+                            // - Just after braking: Use very gentle correction to prevent overshooting
+                            // - Far off (> TOLERANCE): Use moderate correction
+                            // - Getting close (within TOLERANCE): Use normal correction for fine alignment
+                            double maxPower = MAX_ALIGN_POWER;
+                            
+                            // Check if we're in post-brake gentle phase
+                            boolean inPostBrakePhase = (postBrakeStartTime > 0 && 
+                                (System.currentTimeMillis() - postBrakeStartTime) < POST_BRAKE_DURATION_MS);
+                            
+                            if (inPostBrakePhase) {
+                                // Just after braking - use very gentle correction to prevent speeding up
+                                maxPower = Math.min(0.15, SEARCH_POWER); // Same as search power or less
+                                telemetry.addData("Status", "Post-brake gentle alignment");
+                            } else if (absTx > TOLERANCE) {
+                                // Far off - use moderate correction (not too strong to prevent overshooting)
+                                maxPower = Math.min(0.25, MAX_ALIGN_POWER * 1.2); // Max 25% power when far
+                                postBrakeStartTime = 0; // Clear post-brake timer
+                            } else {
+                                // Within tolerance - use normal correction for fine alignment toward 0.5° deadband
+                                maxPower = MAX_ALIGN_POWER; // Normal max power (0.3)
+                                postBrakeStartTime = 0; // Clear post-brake timer
+                            }
+                            
+                            cmd = Math.min(maxPower, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
                             
                             // Check encoder limits (with exception handling)
                             try {
@@ -634,9 +668,68 @@ public class AutoSpinAndShoot extends LinearOpMode {
                         telemetry.addData("DEBUG locked", isLocked ? "YES" : "NO");
                     
                     } else {
-                        // No tag 24 found (either no detection or wrong tag) - clear cache and keep searching
-                        cachedTagResult = null;
-                        continueSearch();
+                        // No tag 24 found this loop
+                        if (isTracking && cachedTagResult != null && cachedTagResult.isValid) {
+                            // We were tracking - give it a few loops before giving up (tag might be temporarily out of view)
+                            lostDetectionCount++;
+                            if (lostDetectionCount <= MAX_LOST_DETECTIONS) {
+                                // Continue tracking using cached result
+                                double cachedTx = cachedTagResult.xDegrees;
+                                double absTx = Math.abs(cachedTx);
+                                
+                                if (absTx <= DEADBAND) {
+                                    // Within deadband (0.5°) - lock!
+                                    isLocked = true;
+                                    isTracking = false;
+                                    searchStopped = true;
+                                    lostDetectionCount = 0;
+                                    try {
+                                        robot.spinner.setPower(0.0);
+                                    } catch (Exception e) {
+                                        // Ignore
+                                    }
+                                } else {
+                                    // Continue aligning using cached position with distance-based power
+                                    double cmd = cachedTx * ALIGN_KP;
+                                    double sign = Math.signum(cmd);
+                                    
+                                    // Adjust power based on distance from target and post-brake phase
+                                    double maxPower = MAX_ALIGN_POWER;
+                                    boolean inPostBrakePhase = (postBrakeStartTime > 0 && 
+                                        (System.currentTimeMillis() - postBrakeStartTime) < POST_BRAKE_DURATION_MS);
+                                    
+                                    if (inPostBrakePhase) {
+                                        // Just after braking - use very gentle correction
+                                        maxPower = Math.min(0.15, SEARCH_POWER);
+                                    } else if (absTx > TOLERANCE) {
+                                        // Far off - use moderate correction
+                                        maxPower = Math.min(0.25, MAX_ALIGN_POWER * 1.2);
+                                        postBrakeStartTime = 0;
+                                    } else {
+                                        maxPower = MAX_ALIGN_POWER;
+                                        postBrakeStartTime = 0;
+                                    }
+                                    
+                                    cmd = Math.min(maxPower, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
+                                    try {
+                                        robot.spinner.setPower(cmd);
+                                    } catch (Exception e) {
+                                        // Ignore
+                                    }
+                                }
+                            } else {
+                                // Lost detection for too long - give up tracking and resume search
+                                isTracking = false;
+                                lostDetectionCount = 0;
+                                cachedTagResult = null;
+                                continueSearch();
+                            }
+                        } else {
+                            // Not tracking - clear cache and keep searching
+                            isTracking = false;
+                            cachedTagResult = null;
+                            continueSearch();
+                        }
                     }
                 } else {
                     // No result from Limelight - clear cache and keep searching
@@ -644,43 +737,55 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     continueSearch();
                 }
             } else if (!shouldCallLimelight) {
-                // Not calling Limelight this loop - use cached result if available, otherwise continue searching
-                if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.tagId == TARGET_TAG_ID) {
-                    // Use cached result for alignment (but don't update it - wait for next Limelight call)
+                // Not calling Limelight this loop - use cached result if tracking, otherwise continue searching
+                if (isTracking && cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.tagId == TARGET_TAG_ID) {
+                    // Use cached result for alignment (we're tracking, just waiting for next Limelight call)
                     double cachedTx = cachedTagResult.xDegrees;
                     double absTx = Math.abs(cachedTx);
                     
                     if (absTx <= DEADBAND) {
-                        // Already locked from previous detection
+                        // Within deadband (0.5°) - lock!
                         isLocked = true;
+                        isTracking = false;
                         searchStopped = true;
-                        try {
-                            robot.spinner.setPower(0.0);
-                        } catch (Exception e) {
-                            // Ignore
-                        }
-                    } else if (absTx <= TOLERANCE) {
-                        // Within tolerance - lock
-                        isLocked = true;
-                        searchStopped = true;
+                        lostDetectionCount = 0;
                         try {
                             robot.spinner.setPower(0.0);
                         } catch (Exception e) {
                             // Ignore
                         }
                     } else {
-                        // Still need to align - use cached tx
+                        // Still need to align - use cached tx with distance-based power
                         double cmd = cachedTx * ALIGN_KP;
                         double sign = Math.signum(cmd);
-                        cmd = Math.min(MAX_ALIGN_POWER, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
+                        
+                        // Adjust power based on distance from target and post-brake phase (same logic as main detection)
+                        double maxPower = MAX_ALIGN_POWER;
+                        boolean inPostBrakePhase = (postBrakeStartTime > 0 && 
+                            (System.currentTimeMillis() - postBrakeStartTime) < POST_BRAKE_DURATION_MS);
+                        
+                        if (inPostBrakePhase) {
+                            // Just after braking - use very gentle correction
+                            maxPower = Math.min(0.15, SEARCH_POWER);
+                        } else if (absTx > TOLERANCE) {
+                            // Far off - use moderate correction
+                            maxPower = Math.min(0.25, MAX_ALIGN_POWER * 1.2);
+                            postBrakeStartTime = 0;
+                        } else {
+                            maxPower = MAX_ALIGN_POWER;
+                            postBrakeStartTime = 0;
+                        }
+                        
+                        cmd = Math.min(maxPower, Math.max(MIN_ALIGN_POWER, Math.abs(cmd))) * sign;
                         try {
                             robot.spinner.setPower(cmd);
                         } catch (Exception e) {
                             // Ignore
                         }
                     }
-                } else {
-                    // No cached result - continue searching
+            } else {
+                    // Not tracking or no cached result - continue searching
+                    isTracking = false;
                     continueSearch();
                 }
             } else {
