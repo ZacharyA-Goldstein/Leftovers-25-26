@@ -63,6 +63,12 @@ public class TeleOpRed extends LinearOpMode {
     private static final int SPINNER_MIN = -550;  // Encoder limit (min) - -90 degrees left
     private static final int SPINNER_MAX = 550;   // Encoder limit (max) - +90 degrees right
     
+    // --- TUNING: Manual turret control ---
+    private static final double MANUAL_TURRET_POWER = 0.3; // Power for manual turret movement via D-pad
+    
+    // --- TUNING: Manual hood control ---
+    private static final double MANUAL_HOOD_STEP = 0.005; // Step size for manual hood adjustment (servo position increment)
+    
     // --- TUNING: Horizontal turret alignment ---
     private static final double TURRET_KP = 0.03;      // Proportional gain (degrees -> power)
     private static final double TURRET_MIN_POWER = 0.15; // Minimum power to move turret
@@ -128,6 +134,10 @@ public class TeleOpRed extends LinearOpMode {
     // Turret state tracking
     private boolean turretStopped = false; // Track if turret has been set to 0 when tag is lost
     
+    // Manual mode tracking
+    private boolean manualTurretActive = false; // Track if turret is being manually controlled
+    private boolean manualHoodActive = false; // Track if hood is being manually controlled
+    
     @Override
     public void runOpMode() {
         // Initialize drive motors
@@ -159,6 +169,9 @@ public class TeleOpRed extends LinearOpMode {
                 
                 // Handle shooter toggle (gamepad 2 right trigger)
                 handleShooterToggle();
+                
+                // Handle manual turret control (gamepad 2 D-pad) - only when no tag detected
+                handleManualTurret();
                 
                 // Detect AprilTag and update auto-aim systems (always active)
                 detectAndUpdate();
@@ -490,6 +503,106 @@ public class TeleOpRed extends LinearOpMode {
     }
     
     /**
+     * Handle manual turret and hood control via D-pad (gamepad 2)
+     * Only active when no tag is detected - allows human player to manually position turret and hood
+     * D-pad left: rotate turret left (counter-clockwise)
+     * D-pad right: rotate turret right (clockwise)
+     * D-pad up: raise hood (increase servo position)
+     * D-pad down: lower hood (decrease servo position)
+     */
+    private void handleManualTurret() {
+        // Reset manual mode flags
+        manualTurretActive = false;
+        manualHoodActive = false;
+        
+        // Only allow manual control when no tag is detected
+        if (tagDetected) {
+            return;
+        }
+        
+        try {
+            // Manual turret control (D-pad left/right)
+            if (robot != null && robot.spinner != null) {
+                // Get current turret position
+                int currentPos = robot.spinner.getCurrentPosition();
+                
+                // Check D-pad inputs for turret
+                boolean dpadLeft = gamepad2.dpad_left;
+                boolean dpadRight = gamepad2.dpad_right;
+                
+                double turretPower = 0.0;
+                
+                if (dpadLeft) {
+                    // Rotate left (negative direction) - check limit
+                    if (currentPos > SPINNER_MIN) {
+                        turretPower = -MANUAL_TURRET_POWER;
+                        manualTurretActive = true;
+                    } else {
+                        // At limit - stop
+                        turretPower = 0.0;
+                    }
+                } else if (dpadRight) {
+                    // Rotate right (positive direction) - check limit
+                    if (currentPos < SPINNER_MAX) {
+                        turretPower = MANUAL_TURRET_POWER;
+                        manualTurretActive = true;
+                    } else {
+                        // At limit - stop
+                        turretPower = 0.0;
+                    }
+                } else {
+                    // No D-pad input - set to 0 to maintain belt tension
+                    turretPower = 0.0;
+                }
+                
+                // Apply power to turret
+                robot.spinner.setPower(turretPower);
+                turretStopped = false; // Reset stopped flag since we're controlling it
+            }
+            
+            // Manual hood control (D-pad up/down)
+            if (hoodServo != null) {
+                // Check D-pad inputs for hood
+                boolean dpadUp = gamepad2.dpad_up;
+                boolean dpadDown = gamepad2.dpad_down;
+                
+                if (dpadUp || dpadDown) {
+                    manualHoodActive = true;
+                    
+                    // Get current hood position
+                    double currentHood = currentHoodPosition;
+                    
+                    if (dpadUp) {
+                        // Raise hood (increase position) - check limit
+                        currentHood = Math.min(HOOD_MAX, currentHood + MANUAL_HOOD_STEP);
+                    } else if (dpadDown) {
+                        // Lower hood (decrease position) - check limit
+                        currentHood = Math.max(HOOD_MIN, currentHood - MANUAL_HOOD_STEP);
+                    }
+                    
+                    // Clamp to limits
+                    currentHood = Math.max(HOOD_MIN, Math.min(HOOD_MAX, currentHood));
+                    
+                    // Update and apply hood position
+                    currentHoodPosition = currentHood;
+                    hoodServo.setPosition(currentHoodPosition);
+                }
+            }
+            
+        } catch (Exception e) {
+            telemetry.addData("Manual Control Error", e.getMessage());
+            // On error, stop turret
+            if (robot != null && robot.spinner != null) {
+                try {
+                    robot.spinner.setPower(0.0);
+                } catch (Exception e2) {
+                    // Ignore
+                }
+            }
+        }
+    }
+    
+    /**
      * Detect AprilTag and automatically update turret, hood, and shooter
      * This method is always active and continuously tracks the AprilTag.
      * Turret and hood update whenever a tag is detected.
@@ -577,7 +690,7 @@ public class TeleOpRed extends LinearOpMode {
             
             // Update all systems only if we have a valid, fresh tag detection in this loop
             if (freshTagDetected && tagDetected && cachedTagResult != null && cachedTagResult.isValid && currentDistance > 0) {
-                // Reset stopped flag when tag is detected
+                // Reset stopped flag when tag is detected (auto mode takes over)
                 turretStopped = false;
                 
                 // 1. Update turret (horizontal alignment) - always active when tag detected
@@ -600,18 +713,33 @@ public class TeleOpRed extends LinearOpMode {
                     }
                 }
             } else {
-                // No fresh tag detected - stop shooter motor and set turret to 0 power to maintain belt tension
-                if (shooterMotor != null) {
-                    try {
-                        shooterMotor.setVelocity(0);
-                    } catch (Exception e) {
-                        // Ignore
+                // No fresh tag detected - handle turret, hood, and shooter separately
+                
+                // Manual turret control is handled in handleManualTurret() method
+                // (called before detectAndUpdate() in main loop)
+                
+                // Hood and shooter respond to user input even when no tag detected
+                if (shooterOn) {
+                    // Use last known distance if available, otherwise use default distance
+                    double distanceToUse = (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) 
+                        ? cachedTagResult.distance 
+                        : 120.0; // Default distance when no tag detected
+                    
+                    // Update hood based on formula (even without tag)
+                    updateHood(distanceToUse);
+                    
+                    // Update shooter RPM based on formula
+                    updateShooter(distanceToUse);
+                } else {
+                    // Shooter motor off - stop velocity
+                    if (shooterMotor != null) {
+                        try {
+                            shooterMotor.setVelocity(0);
+                        } catch (Exception e) {
+                            // Ignore
+                        }
                     }
-                }
-                // Set turret to 0 power once to maintain belt tension (BRAKE mode holds position)
-                if (!turretStopped && robot.spinner != null) {
-                    robot.spinner.setPower(0.0);
-                    turretStopped = true;
+                    // Hood stays at last position when shooter is off
                 }
             }
         } catch (Exception e) {
@@ -906,17 +1034,27 @@ public class TeleOpRed extends LinearOpMode {
             telemetry.addData("Limelight", limelight != null ? "Connected" : "Missing");
             telemetry.addData("Tag Detected", tagDetected ? "YES" : "NO");
             
+            // Manual mode status
+            telemetry.addLine("\n--- Manual Mode Status ---");
+            telemetry.addData("Manual Turret", manualTurretActive ? "ACTIVE (D-pad Left/Right)" : "INACTIVE");
+            telemetry.addData("Manual Hood", manualHoodActive ? "ACTIVE (D-pad Up/Down)" : "INACTIVE");
+            if (!tagDetected) {
+                telemetry.addLine("Manual mode available (no tag detected)");
+            }
+            
             if (tagDetected && cachedTagResult != null && cachedTagResult.isValid) {
                 telemetry.addLine("\n--- AprilTag " + TARGET_TAG_ID + " Detected ---");
                 telemetry.addData("Distance", "%.1f inches", cachedTagResult.distance);
                 telemetry.addData("X Angle", "%.2f°", cachedTagResult.xDegrees);
                 
                 // Turret status
+                telemetry.addLine("\n--- Turret Status ---");
                 if (robot.spinner != null) {
                     try {
                         int pos = robot.spinner.getCurrentPosition();
                         double posDegrees = (pos / 550.0) * 90.0; // Approximate encoder to degrees conversion
                         telemetry.addData("Turret Position", "%d ticks (%.1f°)", pos, posDegrees);
+                        telemetry.addData("Turret Mode", "AUTO (tag detected)");
                     } catch (Exception e) {
                         // Ignore
                     }
@@ -928,6 +1066,7 @@ public class TeleOpRed extends LinearOpMode {
                     try {
                         telemetry.addData("Hood Position (current)", "%.4f", hoodServo.getPosition());
                         telemetry.addData("Hood Position (calculated)", "%.4f", currentHoodPosition);
+                        telemetry.addData("Hood Mode", "AUTO (tag detected)");
                         if (cachedTagResult.distance < CLOSE_DISTANCE_THRESHOLD) {
                             telemetry.addData("Hood Adjustment", "%.4f (close distance)", HOOD_CLOSE_ADJUSTMENT);
                         }
@@ -959,6 +1098,29 @@ public class TeleOpRed extends LinearOpMode {
                 }
             } else {
                 telemetry.addLine("\n❌ AprilTag " + TARGET_TAG_ID + " not detected");
+                
+                // Show turret and hood status when no tag
+                telemetry.addLine("\n--- Turret Status (No Tag) ---");
+                if (robot != null && robot.spinner != null) {
+                    try {
+                        int pos = robot.spinner.getCurrentPosition();
+                        double posDegrees = (pos / 550.0) * 90.0;
+                        telemetry.addData("Turret Position", "%d ticks (%.1f°)", pos, posDegrees);
+                        telemetry.addData("Turret Mode", manualTurretActive ? "MANUAL (D-pad Left/Right)" : "STATIONARY");
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+                }
+                
+                telemetry.addLine("\n--- Hood Status (No Tag) ---");
+                if (hoodServo != null) {
+                    try {
+                        telemetry.addData("Hood Position", "%.4f", hoodServo.getPosition());
+                        telemetry.addData("Hood Mode", manualHoodActive ? "MANUAL (D-pad Up/Down)" : "AUTO (formula)");
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+                }
             }
             
             // Controls
@@ -966,6 +1128,9 @@ public class TeleOpRed extends LinearOpMode {
             telemetry.addLine("Gamepad 1: Left stick Y = Forward, Right stick X = Strafe, Left stick X = Turn");
             telemetry.addLine("Gamepad 1: Right Bumper = Slow mode (0.5x speed)");
             telemetry.addLine("Gamepad 2: Left Trigger = Intake, A = Transfer, Right Trigger = Shooter");
+            if (!tagDetected) {
+                telemetry.addLine("Gamepad 2: D-pad Left/Right = Manual Turret, D-pad Up/Down = Manual Hood");
+            }
             
         } catch (Exception e) {
             telemetry.addData("Telemetry Error", e.getMessage());
