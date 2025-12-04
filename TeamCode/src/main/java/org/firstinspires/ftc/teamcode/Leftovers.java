@@ -15,7 +15,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
  * Full scrimmage code for Leftovers robot.
  * - Controller 1: Driver only movement
  * - Controller 2: Left trigger toggles intake, right trigger cycles/shoots balls
- * - Auto-aim runs only during shooting (full-bot turn) and ball tracking assists when intake is on
+ * - Auto-aim runs only during shooting (full-bot turn)
  */
 @TeleOp(name = "Leftovers", group = "TeleOp")
 public class Leftovers extends LinearOpMode {
@@ -50,12 +50,6 @@ public class Leftovers extends LinearOpMode {
     private static final double ALIGN_DEADBAND = 0.5;
     private static final double SEARCH_POWER = 0.25;
     private static final long SEARCH_TIMEOUT_MS = 5000;
-    
-    // --- Ball tracking constants (for intake assist) ---
-    private static final double BALL_KP = 0.04;
-    private static final double BALL_MIN_AREA = 0.5;
-    private static final double BALL_DEADBAND = 0.5;
-    private static final double BALL_MIN_ROTATION = 0.3;
     
     // --- Shooter power control (shooter motor) ---
     // TUNE THESE VALUES based on ShooterAnglePowerTest results:
@@ -200,9 +194,6 @@ public class Leftovers extends LinearOpMode {
             } else if (shootingActive) {
                 tagResult = updateAutoRotation();
                 autoCorrection = autoRotation;
-            } else if (intakeOn) {
-                autoCorrection = trackBallRotation();
-                tagResult = null;
             } else {
                 autoCorrection = 0.0;
                 tagResult = null;
@@ -400,31 +391,6 @@ public class Leftovers extends LinearOpMode {
         }
         double position = 187.75452 / (distanceIn * distanceIn);
         return Math.max(HOOD_POS_MIN, Math.min(HOOD_POS_MAX, position));
-    }
-
-    private double trackBallRotation() {
-        if (limelight == null) {
-            return 0.0;
-        }
-        LLResult result = limelight.getLatestResult();
-        if (result == null) {
-            return 0.0;
-        }
-        double ta = result.getTa();
-        if (ta < BALL_MIN_AREA) {
-            return 0.0;
-        }
-        double tx = result.getTx();
-        if (Math.abs(tx) <= BALL_DEADBAND) {
-            return 0.0;
-        }
-        double rotate = -tx * BALL_KP;
-        double absRotate = Math.abs(rotate);
-        if (absRotate < BALL_MIN_ROTATION) {
-            rotate = Math.copySign(BALL_MIN_ROTATION, rotate);
-        }
-        rotate = Math.max(-MAX_ALIGN_POWER, Math.min(MAX_ALIGN_POWER, rotate));
-        return rotate;
     }
 
     private AprilTagDetector.AprilTagResult updateAutoRotation() {

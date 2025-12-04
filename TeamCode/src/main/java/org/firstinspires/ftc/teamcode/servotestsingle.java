@@ -18,7 +18,7 @@ public class servotestsingle extends LinearOpMode {
     public void runOpMode() {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         servo = hardwareMap.get(Servo.class, "servo" );
-        servo.setPosition(1.0);
+        servo.setPosition(0.0);
         waitForStart();
 
         while (opModeIsActive()) {
@@ -41,7 +41,7 @@ public class servotestsingle extends LinearOpMode {
             }
 
             pos = Math.max(0.0, Math.min(1.0, pos));
-            servo.setPosition(1.0 - pos);
+            servo.setPosition(pos);
 
 
 
