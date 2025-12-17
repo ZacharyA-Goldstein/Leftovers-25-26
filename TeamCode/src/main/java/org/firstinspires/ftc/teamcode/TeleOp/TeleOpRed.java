@@ -56,6 +56,10 @@ public class TeleOpRed extends LinearOpMode {
     private static final double CAMERA_ANGLE = 0.0; // Degrees down from horizontal. Measure on robot
     private static final double MAX_DISTANCE = 144.0; // Maximum distance for tag detection
     
+    // --- TUNING: Distance limits for formula ---
+    private static final double MIN_DISTANCE = 30.0; // Minimum distance for formula calculation (tune this for close shots)
+    private static final double MAX_DISTANCE_FORMULA = 160.0; // Maximum distance for formula calculation
+    
     // --- TUNING: Target AprilTag ID for Red Alliance ---
     private static final int TARGET_TAG_ID = 24; // AprilTag ID to track (24 for red alliance)
     
@@ -67,41 +71,34 @@ public class TeleOpRed extends LinearOpMode {
     private static final double MANUAL_TURRET_POWER = 0.3; // Power for manual turret movement via D-pad
     
     // --- TUNING: Manual hood control ---
-    private static final double MANUAL_HOOD_STEP = 0.005; // Step size for manual hood adjustment (servo position increment)
+    private static final double MANUAL_HOOD_STEP = 0.0002; // Step size for manual hood adjustment (servo position increment)
     
     // --- TUNING: Horizontal turret alignment ---
-    private static final double TURRET_KP = 0.03;      // Proportional gain (degrees -> power)
-    private static final double TURRET_MIN_POWER = 0.15; // Minimum power to move turret
-    private static final double TURRET_MAX_POWER = 0.35;  // Maximum alignment power
-    private static final double TURRET_DEADBAND = 2.0;  // Deadband - no movement within this angle (degrees) - increased for stability
-    private static final double TURRET_SLOW_ZONE = 5.0; // Zone where turret slows down significantly (degrees)
-    private static final double TURRET_SLOW_POWER = 0.2; // Power used in slow zone for gentle approach
+    private static final double TURRET_KP = 0.02;      // Proportional gain (degrees -> power) - reduced to prevent wobbling
+    private static final double TURRET_MIN_POWER = 0.08; // Minimum power to move turret - reduced to prevent constant movement
+    private static final double TURRET_MAX_POWER = 0.25;  // Maximum alignment power - reduced to prevent overshoot
+    private static final double TURRET_DEADBAND = 2.5;  // Deadband - no movement within this angle (degrees) - increased to reduce wobbling
+    private static final double TURRET_SLOW_ZONE = 6.0; // Zone where turret slows down significantly (degrees) - increased
+    private static final double TURRET_SLOW_POWER = 0.12; // Power used in slow zone - reduced for smoother approach
+    private static final double TURRET_VERY_SLOW_ZONE = 3.5; // Very close zone with even slower power
+    private static final double TURRET_VERY_SLOW_POWER = 0.06; // Very slow power when very close to target
     private static final double HORIZONTAL_OFFSET_DEG = 2.0; // Offset to compensate for shooting left/right (tune this)
     
-    // --- TUNING: Hood adjustment for close distances ---
-    private static final double CLOSE_DISTANCE_THRESHOLD = 80.0; // Inches - below this distance is considered "close"
-    private static final double HOOD_CLOSE_ADJUSTMENT = -0.02; // Adjustment added to hood position when close (negative value lowers hood)
-    private static final double HOOD_MULTIPLIER = 0.95; // Multiplier applied to calculated hood position (tune this)
+    // --- TUNING: Hood adjustment ---
+    // NOTE: Removed close distance adjustment - new formula (R² = 0.972) handles all distances accurately
+    // If fine-tuning is needed, adjust the formula coefficients in dumbMapLime.java
+    private static final double HOOD_MULTIPLIER = 0.95; // Multiplier applied to calculated hood position (tune this if needed)
     
     // --- TUNING: Hood servo limits ---
-    private static final double HOOD_MIN = 0.217; // Minimum hood position
-    private static final double HOOD_MAX = 0.282; // Maximum hood position
+    private static final double HOOD_MIN = 0.677; // Minimum hood position
+    private static final double HOOD_MAX = 0.717; // Maximum hood position
     
     // --- TUNING: Shooter motor constants ---
     private static final int TICKS_PER_REVOLUTION = 28; // PPR for GoBILDA 6000 RPM motor
     
     // --- TUNING: RPM scaling (distance-based adjustment) ---
-    private static double calculateRPMScaleFactor(double distance) {
-        if (distance <= 80.0) {
-            return 0.90; // Close distances
-        } else if (distance >= 120.0) {
-            return 1.0; // Far distances
-        } else {
-            // Linear interpolation between 80" and 120"
-            double t = (distance - 80.0) / (120.0 - 80.0);
-            return 0.90 + (1.0 - 0.90) * t;
-        }
-    }
+    // NOTE: Removed scaling factor - new formula (R² = 0.972) is accurate enough
+    // If fine-tuning is needed, adjust the formula coefficients in dumbMapLime.java
     
     // Drive control (from HeleOpBase)
     private static final double DRIVE_DEADBAND = 0.05;
@@ -112,7 +109,12 @@ public class TeleOpRed extends LinearOpMode {
     private boolean lastIntakeTrigger = false;
     private boolean lastAButton = false;
     private static final double INTAKE_POWER = 1.0;
+    private static final double INTAKE_REVERSE_POWER = -1.0; // Reverse intake power
     private static final double TRANSFER_POWER = 1.0;
+    
+    // Haptics for shooter RPM
+    private static final double RPM_TOLERANCE = 50.0; // RPM tolerance for "good" RPM (tune this)
+    private boolean lastHapticState = false; // Track if haptics were active last loop
     
     // Auto-aim runtime variables
     private AprilTagDetector.AprilTagResult cachedTagResult = null;
@@ -137,6 +139,10 @@ public class TeleOpRed extends LinearOpMode {
     // Manual mode tracking
     private boolean manualTurretActive = false; // Track if turret is being manually controlled
     private boolean manualHoodActive = false; // Track if hood is being manually controlled
+    
+    // Simple shooter control
+    private boolean simpleShooterOn = false; // Toggle state for simple shooter
+    private boolean lastXButton = false; // Track X button state for toggle detection
     
     @Override
     public void runOpMode() {
@@ -167,6 +173,9 @@ public class TeleOpRed extends LinearOpMode {
                 // Handle intake and transfer controls (gamepad 2)
                 handleIntakeAndTransfer();
                 
+                // Handle simple shooter control (gamepad 2 X button)
+                handleSimpleShooter();
+                
                 // Handle shooter toggle (gamepad 2 right trigger)
                 handleShooterToggle();
                 
@@ -175,6 +184,9 @@ public class TeleOpRed extends LinearOpMode {
                 
                 // Detect AprilTag and update auto-aim systems (always active)
                 detectAndUpdate();
+                
+                // Check shooter RPM and trigger haptics if at target
+                checkShooterRPMAndHaptics();
                 
                 // Update telemetry
                 updateTelemetry();
@@ -409,8 +421,8 @@ public class TeleOpRed extends LinearOpMode {
         
         // Get inputs (HeleOpBase mapping)
         double forward = gamepad1.left_stick_y;      // Forward/backward
-        double strafe = -gamepad1.right_stick_x;     // Left/right strafe (negative right stick x)
-        double rotate = gamepad1.left_stick_x;       // Rotation (left stick x)
+        double strafe = -gamepad1.left_stick_x;     // Left/right strafe (negative right stick x)
+        double rotate = -gamepad1.right_stick_x;       // Rotation (left stick x)
         
         // Drive scale with right bumper (0.5 when pressed, 1.0 otherwise)
         double driveScale = gamepad1.right_bumper ? 0.5 : 1.0;
@@ -459,19 +471,34 @@ public class TeleOpRed extends LinearOpMode {
      * Handle intake and transfer controls (gamepad 2)
      */
     private void handleIntakeAndTransfer() {
-        // Intake toggle on left trigger (gamepad 2)
-        boolean currentIntakeTrigger = gamepad2.left_trigger > 0.5;
-        if (currentIntakeTrigger && !lastIntakeTrigger) {
-            intakeOn = !intakeOn;
-        }
-        lastIntakeTrigger = currentIntakeTrigger;
+        // Reverse intake on left bumper (gamepad 2) - takes priority over normal intake
+        boolean leftBumper = gamepad2.left_bumper;
         
         if (intake != null) {
             try {
-                intake.setPower(intakeOn ? INTAKE_POWER : 0.0);
+                if (leftBumper) {
+                    // Left bumper pressed - reverse intake
+                    intake.setPower(INTAKE_REVERSE_POWER);
+                } else {
+                    // Normal intake toggle on left trigger (gamepad 2)
+                    boolean currentIntakeTrigger = gamepad2.left_trigger > 0.5;
+                    if (currentIntakeTrigger && !lastIntakeTrigger) {
+                        intakeOn = !intakeOn;
+                    }
+                    lastIntakeTrigger = currentIntakeTrigger;
+                    
+                    intake.setPower(intakeOn ? INTAKE_POWER : 0.0);
+                }
             } catch (Exception e) {
                 // Ignore - motor may have disconnected
             }
+        } else {
+            // Intake not available, still update trigger state
+            boolean currentIntakeTrigger = gamepad2.left_trigger > 0.5;
+            if (currentIntakeTrigger && !lastIntakeTrigger) {
+                intakeOn = !intakeOn;
+            }
+            lastIntakeTrigger = currentIntakeTrigger;
         }
         
         // Transfer toggle on A button (gamepad 2)
@@ -486,6 +513,59 @@ public class TeleOpRed extends LinearOpMode {
                 transfer.setPower(transferOn ? TRANSFER_POWER : 0.0);
             } catch (Exception e) {
                 // Ignore - motor may have disconnected
+            }
+        }
+    }
+    
+    /**
+     * Simple shooter control: Toggle shooter on/off with X button (gamepad 2)
+     * When on, shooter runs at -6000 RPM and hood is at 0.677
+     */
+    private void handleSimpleShooter() {
+        // Keep hood at 0.677 always
+        if (hoodServo != null) {
+            try {
+                hoodServo.setPosition(HOOD_MIN); // HOOD_MIN is 0.677
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+        
+        // Toggle shooter on/off with X button (gamepad 2)
+        boolean xPressed = gamepad2.x;
+        
+        // Detect button press (edge detection)
+        if (xPressed && !lastXButton) {
+            // Button just pressed - toggle shooter state
+            simpleShooterOn = !simpleShooterOn;
+        }
+        lastXButton = xPressed;
+        
+        // Run shooter based on toggle state
+        if (simpleShooterOn && shooterMotor != null) {
+            try {
+                // Convert -6000 RPM to ticks per second (negative for reverse direction)
+                double velocityTicksPerSec = (-6000.0 / 60.0) * TICKS_PER_REVOLUTION;
+                int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
+                shooterMotor.setVelocity(velocityTicksPerSecInt);
+            } catch (Exception e) {
+                // If velocity control fails, try power control at -1.0
+                try {
+                    shooterMotor.setPower(-1.0);
+                } catch (Exception e2) {
+                    // Ignore
+                }
+            }
+        } else if (shooterMotor != null && !simpleShooterOn && !shooterOn) {
+            // Shooter off - stop motor (only if both simple shooter and auto-aim shooter are off)
+            try {
+                shooterMotor.setVelocity(0);
+            } catch (Exception e) {
+                try {
+                    shooterMotor.setPower(0.0);
+                } catch (Exception e2) {
+                    // Ignore
+                }
             }
         }
     }
@@ -696,14 +776,22 @@ public class TeleOpRed extends LinearOpMode {
                 // 1. Update turret (horizontal alignment) - always active when tag detected
                 updateTurret(currentTx);
                 
-                // 2. Update hood position - always active when tag detected
-                updateHood(currentDistance);
+                // 2. Update hood position - only if simple shooter is off (simple shooter keeps hood at 0.677)
+                if (!simpleShooterOn) {
+                    updateHood(currentDistance);
+                }
                 
-                // 3. Update shooter RPM - only when shooter motor is turned on via right trigger
-                if (shooterOn) {
-                    updateShooter(currentDistance);
-                } else {
-                    // Shooter motor off - stop velocity
+                // 3. Calculate shooter RPM - always calculate when tag detected (but don't apply if simple shooter is on)
+                // Motor only runs when shooterOn is true, but RPM is always calculated and ready
+                if (!simpleShooterOn) {
+                    calculateShooterRPM(currentDistance);
+                }
+                
+                // Only actually run motor if shooter toggle is on (and simple shooter is off)
+                if (shooterOn && !simpleShooterOn) {
+                    applyShooterRPM();
+                } else if (!simpleShooterOn) {
+                    // Motor off - stop velocity (only if simple shooter is also off)
                     if (shooterMotor != null) {
                         try {
                             shooterMotor.setVelocity(0);
@@ -718,8 +806,8 @@ public class TeleOpRed extends LinearOpMode {
                 // Manual turret control is handled in handleManualTurret() method
                 // (called before detectAndUpdate() in main loop)
                 
-                // Hood and shooter respond to user input even when no tag detected
-                if (shooterOn) {
+                // Hood and shooter respond to user input even when no tag detected (only if simple shooter is off)
+                if (shooterOn && !simpleShooterOn) {
                     // Use last known distance if available, otherwise use default distance
                     double distanceToUse = (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) 
                         ? cachedTagResult.distance 
@@ -728,10 +816,11 @@ public class TeleOpRed extends LinearOpMode {
                     // Update hood based on formula (even without tag)
                     updateHood(distanceToUse);
                     
-                    // Update shooter RPM based on formula
-                    updateShooter(distanceToUse);
-                } else {
-                    // Shooter motor off - stop velocity
+                    // Calculate and apply shooter RPM based on formula
+                    calculateShooterRPM(distanceToUse);
+                    applyShooterRPM();
+                } else if (!simpleShooterOn) {
+                    // Shooter motor off - stop velocity (only if simple shooter is also off)
                     if (shooterMotor != null) {
                         try {
                             shooterMotor.setVelocity(0);
@@ -796,12 +885,15 @@ public class TeleOpRed extends LinearOpMode {
                 return;
             }
             
-            // Progressive power control: slow down as we approach the target
+            // Progressive power control: slow down as we approach the target (reduces wobbling)
             double cmd;
             double sign = Math.signum(adjustedTx);
             
-            if (absTx <= TURRET_SLOW_ZONE) {
-                // Close to target - use slow, gentle power to prevent overshoot
+            if (absTx <= TURRET_VERY_SLOW_ZONE) {
+                // Very close to target - use very slow power to prevent wobbling
+                cmd = TURRET_VERY_SLOW_POWER * sign;
+            } else if (absTx <= TURRET_SLOW_ZONE) {
+                // Close to target - use slow, gentle power
                 cmd = TURRET_SLOW_POWER * sign;
             } else {
                 // Far from target - use proportional control with power limits
@@ -849,16 +941,15 @@ public class TeleOpRed extends LinearOpMode {
         }
         
         try {
-            // Calculate hood position using formula (matching AutoAimShooter)
-            double calculatedHood = robot.calculateHoodPosition(distance, null);
+            // Clamp distance to formula limits before calculation
+            double clampedDistance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE_FORMULA, distance));
             
-            // Apply hood multiplier
+            // Calculate hood position using new formula (R² = 0.972)
+            // Formula automatically finds optimal hood/RPM combination
+            double calculatedHood = robot.calculateHoodPosition(clampedDistance, null);
+            
+            // Apply hood multiplier (if still needed for fine-tuning)
             calculatedHood *= HOOD_MULTIPLIER;
-            
-            // Adjust hood for close distances (lower the hood)
-            if (distance < CLOSE_DISTANCE_THRESHOLD) {
-                calculatedHood += HOOD_CLOSE_ADJUSTMENT; // Negative adjustment lowers hood
-            }
             
             // Clamp to servo limits
             currentHoodPosition = Math.max(HOOD_MIN, Math.min(HOOD_MAX, calculatedHood));
@@ -873,37 +964,59 @@ public class TeleOpRed extends LinearOpMode {
     }
     
     /**
-     * Automatically adjust shooter RPM based on distance to AprilTag
-     * Uses formula-based calculation with distance-based scaling factor.
-     * Only called when shooter motor is turned on via right trigger.
+     * Calculate shooter RPM based on distance using new formula (prepares motor but doesn't run it)
      */
-    private void updateShooter(double distance) {
-        if (robot == null || shooterMotor == null) {
+    private void calculateShooterRPM(double distance) {
+        if (robot == null) {
             return;
         }
         
         try {
-            // Calculate target RPM using distance formula
-            double calculatedRPM = robot.calculateShooterRPM(distance);
+            // Clamp distance to formula limits before calculation
+            double clampedDistance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE_FORMULA, distance));
             
-            // Apply distance-based scaling factor (adjusts for close/far distances)
-            double scaleFactor = calculateRPMScaleFactor(distance);
-            targetRPM = calculatedRPM * scaleFactor;
+            // Calculate target RPM using new formula (R² = 0.972)
+            // Formula automatically finds optimal hood/RPM combination
+            targetRPM = robot.calculateShooterRPM(clampedDistance);
             
+        } catch (Exception e) {
+            telemetry.addData("Shooter Calc Error", e.getMessage());
+        }
+    }
+    
+    /**
+     * Apply the calculated RPM to the shooter motor
+     */
+    private void applyShooterRPM() {
+        if (shooterMotor == null) {
+            return;
+        }
+        
+        try {
             // Convert RPM to ticks per second for velocity control
             double velocityTicksPerSec = (targetRPM / 60.0) * TICKS_PER_REVOLUTION;
             int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
             
-            // Apply velocity to shooter motor (positive velocity for forward direction)
+            // Apply to shooter motor (positive velocity for forward direction)
             shooterMotor.setVelocity(velocityTicksPerSecInt);
             
         } catch (Exception e) {
-            // On error, stop shooter motor
+            telemetry.addData("Shooter Apply Error", e.getMessage());
             try {
                 shooterMotor.setVelocity(0);
             } catch (Exception e2) {
                 // Ignore
             }
+        }
+    }
+    
+    /**
+     * Update shooter RPM (for backward compatibility with no-tag case)
+     */
+    private void updateShooter(double distance) {
+        calculateShooterRPM(distance);
+        if (shooterOn) {
+            applyShooterRPM();
         }
     }
     
@@ -937,205 +1050,108 @@ public class TeleOpRed extends LinearOpMode {
     }
     
     /**
-     * Update telemetry with current status
+     * Check shooter RPM and trigger haptics when at target RPM
+     */
+    private void checkShooterRPMAndHaptics() {
+        if (shooterMotor == null) {
+            return;
+        }
+        
+        try {
+            // Only check if shooter is running (simple shooter or auto-aim shooter)
+            boolean shooterRunning = simpleShooterOn || shooterOn;
+            
+            if (shooterRunning) {
+                double currentVelocity = shooterMotor.getVelocity();
+                double currentRPM = (currentVelocity / TICKS_PER_REVOLUTION) * 60.0;
+                
+                // For simple shooter, target is -6000 RPM
+                double targetRPMToCheck = simpleShooterOn ? -6000.0 : targetRPM;
+                
+                // Check if within tolerance
+                double rpmError = Math.abs(currentRPM - targetRPMToCheck);
+                boolean atTargetRPM = rpmError <= RPM_TOLERANCE;
+                
+                // Trigger haptics when reaching target (only once when first reaching target)
+                if (atTargetRPM && !lastHapticState) {
+                    // Just reached target - trigger haptics
+                    gamepad2.rumble(200); // 200ms rumble
+                }
+                
+                lastHapticState = atTargetRPM;
+            } else {
+                // Shooter not running - reset haptic state
+                lastHapticState = false;
+            }
+        } catch (Exception e) {
+            // Ignore errors
+        }
+    }
+    
+    /**
+     * Update telemetry with current status (simplified)
      */
     private void updateTelemetry() {
         try {
             telemetry.addLine("=== TeleOp Red ===");
             
-            // Drive status
-            telemetry.addLine("\n--- Drive Status ---");
-            double rawForward = gamepad1.left_stick_y;
-            double rawStrafe = -gamepad1.right_stick_x;
-            double rawRotate = gamepad1.left_stick_x;
-            double driveScale = gamepad1.right_bumper ? 0.5 : 1.0;
-            double forward = rawForward * driveScale;
-            double strafe = rawStrafe * driveScale;
-            double rotate = rawRotate * driveScale;
-            
-            // Apply deadband for display
-            if (Math.abs(forward) < DRIVE_DEADBAND) forward = 0;
-            if (Math.abs(strafe) < DRIVE_DEADBAND) strafe = 0;
-            if (Math.abs(rotate) < DRIVE_DEADBAND) rotate = 0;
-            
-            telemetry.addData("Raw Forward", "%.2f", rawForward);
-            telemetry.addData("Raw Strafe", "%.2f", rawStrafe);
-            telemetry.addData("Raw Rotate", "%.2f", rawRotate);
-            telemetry.addData("Forward (scaled)", "%.2f", forward);
-            telemetry.addData("Strafe (scaled)", "%.2f", strafe);
-            telemetry.addData("Rotate (scaled)", "%.2f", rotate);
-            telemetry.addData("Drive Scale", "%.1f", driveScale);
-            
-            // Show calculated powers
-            double flPower = forward + strafe + rotate;
-            double frPower = forward - strafe - rotate;
-            double blPower = forward - strafe + rotate;
-            double brPower = forward + strafe - rotate;
-            telemetry.addData("Calc FL", "%.3f", Math.max(-1.0, Math.min(1.0, flPower)));
-            telemetry.addData("Calc FR", "%.3f", Math.max(-1.0, Math.min(1.0, frPower)));
-            telemetry.addData("Calc BL", "%.3f", Math.max(-1.0, Math.min(1.0, blPower)));
-            telemetry.addData("Calc BR", "%.3f", Math.max(-1.0, Math.min(1.0, brPower)));
-            
-            // Motor status
-            telemetry.addData("Motors Initialized", 
-                (leftFront != null && leftBack != null && rightFront != null && rightBack != null) ? "YES" : "NO");
-            if (leftFront != null) {
-                try {
-                    telemetry.addData("LeftFront Power", "%.3f (cmd: %.3f)", leftFront.getPower(), 
-                        gamepad1.left_stick_y + (-gamepad1.right_stick_x) + gamepad1.left_stick_x);
-                } catch (Exception e) {
-                    telemetry.addData("LeftFront", "Error reading");
-                }
-            }
-            if (rightFront != null) {
-                try {
-                    telemetry.addData("RightFront Power", "%.3f", rightFront.getPower());
-                } catch (Exception e) {
-                    telemetry.addData("RightFront", "Error reading");
-                }
-            }
-            if (leftBack != null) {
-                try {
-                    telemetry.addData("LeftBack Power", "%.3f", leftBack.getPower());
-                } catch (Exception e) {
-                    telemetry.addData("LeftBack", "Error reading");
-                }
-            }
-            if (rightBack != null) {
-                try {
-                    telemetry.addData("RightBack Power", "%.3f", rightBack.getPower());
-                } catch (Exception e) {
-                    telemetry.addData("RightBack", "Error reading");
-                }
-            }
-            
-            // Intake and transfer status
-            telemetry.addLine("\n--- Intake & Transfer ---");
-            telemetry.addData("Intake", intakeOn ? "ON" : "OFF");
-            telemetry.addData("Intake Motor", intake != null ? "Found" : "NOT FOUND");
-            if (intake != null) {
-                telemetry.addData("Intake Power", "%.3f", intake.getPower());
-            }
-            telemetry.addData("Transfer", transferOn ? "ON" : "OFF");
-            telemetry.addData("Transfer Motor", transfer != null ? "Found" : "NOT FOUND");
-            if (transfer != null) {
-                telemetry.addData("Transfer Power", "%.3f", transfer.getPower());
-            }
-            
-            // Shooter status
-            telemetry.addLine("\n--- Shooter Status ---");
-            telemetry.addData("Shooter", shooterOn ? "ON (Right Trigger)" : "OFF");
-            telemetry.addData("Shooter Motor", shooterMotor != null ? "Found" : "NOT FOUND");
-            telemetry.addData("Spinner Motor", (robot != null && robot.spinner != null) ? "Found" : "NOT FOUND");
-            telemetry.addData("Hood Servo", hoodServo != null ? "Found" : "NOT FOUND");
-            if (hoodServo != null) {
-                telemetry.addData("Hood Position", "%.4f", hoodServo.getPosition());
-            }
-            telemetry.addData("Limelight", limelight != null ? "Connected" : "Missing");
-            telemetry.addData("Tag Detected", tagDetected ? "YES" : "NO");
-            
-            // Manual mode status
-            telemetry.addLine("\n--- Manual Mode Status ---");
-            telemetry.addData("Manual Turret", manualTurretActive ? "ACTIVE (D-pad Left/Right)" : "INACTIVE");
-            telemetry.addData("Manual Hood", manualHoodActive ? "ACTIVE (D-pad Up/Down)" : "INACTIVE");
-            if (!tagDetected) {
-                telemetry.addLine("Manual mode available (no tag detected)");
-            }
-            
-            if (tagDetected && cachedTagResult != null && cachedTagResult.isValid) {
-                telemetry.addLine("\n--- AprilTag " + TARGET_TAG_ID + " Detected ---");
-                telemetry.addData("Distance", "%.1f inches", cachedTagResult.distance);
-                telemetry.addData("X Angle", "%.2f°", cachedTagResult.xDegrees);
-                
-                // Turret status
-                telemetry.addLine("\n--- Turret Status ---");
-                if (robot.spinner != null) {
-                    try {
-                        int pos = robot.spinner.getCurrentPosition();
-                        double posDegrees = (pos / 550.0) * 90.0; // Approximate encoder to degrees conversion
-                        telemetry.addData("Turret Position", "%d ticks (%.1f°)", pos, posDegrees);
-                        telemetry.addData("Turret Mode", "AUTO (tag detected)");
-                    } catch (Exception e) {
-                        // Ignore
-                    }
-                }
-                
-                // Hood status
-                telemetry.addLine("\n--- Hood Status ---");
-                if (hoodServo != null) {
-                    try {
-                        telemetry.addData("Hood Position (current)", "%.4f", hoodServo.getPosition());
-                        telemetry.addData("Hood Position (calculated)", "%.4f", currentHoodPosition);
-                        telemetry.addData("Hood Mode", "AUTO (tag detected)");
-                        if (cachedTagResult.distance < CLOSE_DISTANCE_THRESHOLD) {
-                            telemetry.addData("Hood Adjustment", "%.4f (close distance)", HOOD_CLOSE_ADJUSTMENT);
-                        }
-                        // Show calculated hood from formula
-                        if (robot != null) {
-                            try {
-                                double calculatedHood = robot.calculateHoodPosition(cachedTagResult.distance, null);
-                                telemetry.addData("Hood (formula)", "%.4f", calculatedHood);
-                            } catch (Exception e) {
-                                telemetry.addData("Hood Formula Error", e.getMessage());
-                            }
-                        }
-                    } catch (Exception e) {
-                        telemetry.addData("Hood", "Error reading: " + e.getMessage());
-                    }
-                } else {
-                    telemetry.addData("Hood Servo", "NOT FOUND");
-                }
-                
-                // Shooter RPM
-                if (shooterMotor != null) {
-                    try {
-                        double currentVelocity = shooterMotor.getVelocity();
-                        int currentRPM = (int)Math.round((currentVelocity / TICKS_PER_REVOLUTION) * 60.0);
-                        telemetry.addData("Shooter RPM", "%.0f / %.0f", (double)currentRPM, targetRPM);
-                    } catch (Exception e) {
-                        // Ignore
-                    }
-                }
+            // System status
+            telemetry.addData("Tag", tagDetected ? "DETECTED" : "NOT DETECTED");
+            if (simpleShooterOn) {
+                telemetry.addData("Shooter", "ON (-6000 RPM)");
             } else {
-                telemetry.addLine("\n❌ AprilTag " + TARGET_TAG_ID + " not detected");
-                
-                // Show turret and hood status when no tag
-                telemetry.addLine("\n--- Turret Status (No Tag) ---");
-                if (robot != null && robot.spinner != null) {
-                    try {
-                        int pos = robot.spinner.getCurrentPosition();
-                        double posDegrees = (pos / 550.0) * 90.0;
-                        telemetry.addData("Turret Position", "%d ticks (%.1f°)", pos, posDegrees);
-                        telemetry.addData("Turret Mode", manualTurretActive ? "MANUAL (D-pad Left/Right)" : "STATIONARY");
-                    } catch (Exception e) {
-                        // Ignore
-                    }
-                }
-                
-                telemetry.addLine("\n--- Hood Status (No Tag) ---");
-                if (hoodServo != null) {
-                    try {
-                        telemetry.addData("Hood Position", "%.4f", hoodServo.getPosition());
-                        telemetry.addData("Hood Mode", manualHoodActive ? "MANUAL (D-pad Up/Down)" : "AUTO (formula)");
-                    } catch (Exception e) {
-                        // Ignore
-                    }
+                telemetry.addData("Shooter", shooterOn ? "ON (Auto)" : "OFF");
+            }
+            telemetry.addData("Intake", intakeOn ? "ON" : "OFF");
+            telemetry.addData("Transfer", transferOn ? "ON" : "OFF");
+            
+            // Manual mode (only show if active)
+            if (manualTurretActive || manualHoodActive) {
+                if (manualTurretActive) telemetry.addData("Manual Turret", "ACTIVE");
+                if (manualHoodActive) telemetry.addData("Manual Hood", "ACTIVE");
+            }
+            
+            // AprilTag info (when detected)
+            if (tagDetected && cachedTagResult != null && cachedTagResult.isValid) {
+                telemetry.addData("Distance", "%.1f\"", cachedTagResult.distance);
+                telemetry.addData("X Angle", "%.1f°", cachedTagResult.xDegrees);
+            }
+            
+            // Turret position
+            if (robot != null && robot.spinner != null) {
+                try {
+                    int pos = robot.spinner.getCurrentPosition();
+                    double posDegrees = (pos / 550.0) * 90.0;
+                    telemetry.addData("Turret", "%.1f°", posDegrees);
+                } catch (Exception e) {
+                    // Ignore
                 }
             }
             
-            // Controls
-            telemetry.addLine("\n--- Controls ---");
-            telemetry.addLine("Gamepad 1: Left stick Y = Forward, Right stick X = Strafe, Left stick X = Turn");
-            telemetry.addLine("Gamepad 1: Right Bumper = Slow mode (0.5x speed)");
-            telemetry.addLine("Gamepad 2: Left Trigger = Intake, A = Transfer, Right Trigger = Shooter");
-            if (!tagDetected) {
-                telemetry.addLine("Gamepad 2: D-pad Left/Right = Manual Turret, D-pad Up/Down = Manual Hood");
+            // Hood position
+            if (hoodServo != null) {
+                try {
+                    telemetry.addData("Hood", "%.3f", hoodServo.getPosition());
+                } catch (Exception e) {
+                    // Ignore
+                }
+            }
+            
+            // Shooter RPM (when on)
+            if (shooterOn && shooterMotor != null) {
+                try {
+                    double currentVelocity = shooterMotor.getVelocity();
+                    int currentRPM = (int)Math.round((currentVelocity / TICKS_PER_REVOLUTION) * 60.0);
+                    telemetry.addData("RPM", "%d / %.0f", currentRPM, targetRPM);
+                } catch (Exception e) {
+                    // Ignore
+                }
             }
             
         } catch (Exception e) {
-            telemetry.addData("Telemetry Error", e.getMessage());
+            telemetry.addData("Error", e.getMessage());
         }
-        
+
         telemetry.update();
     }
 }
