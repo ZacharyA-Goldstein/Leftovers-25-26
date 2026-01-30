@@ -114,6 +114,9 @@ public class Tuning extends SelectableOpMode {
         follower.startTeleopDrive(true);
         follower.setTeleOpDrive(0,0,0,true);
     }
+    public static void setTeleOpDrive(double forward, double strafe, double turn, boolean normalize) {
+        follower.setTeleOpDrive(forward, strafe, turn, normalize);
+    }
 }
 
 /**

@@ -1,30 +1,31 @@
 package org.firstinspires.ftc.teamcode.auton;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.FuturePose;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-import com.pedropathing.util.Timer;
 @Autonomous
-public class betterAuton extends OpMode {
+public class autoCloseBlueFix extends OpMode {
     private Follower follower;
     private Pose Pose;
     private Timer pathTimer, OpmodeTimer;
 
-    private final Pose startPose=new Pose(121.71651495448634,120.59297789336802,Math.toRadians(40.0));
-    private final Pose shootPose=new Pose(86.51235370611184, 85.01430429128737,Math.toRadians(40.0));
-    private final Pose startIntake1=new Pose(102.61638491547464,83.89076723016905,Math.toRadians(0));
-    private final Pose doneIntake1=new Pose(127.70871261378414,83.70351105331599, Math.toRadians(0));
-    private final Pose shoot2= new Pose(86.51235370611184, 85.01430429128737,Math.toRadians(40.0));
-    private final Pose offLine=new Pose(86.7, 117.2, Math.toRadians(40));
+    private final Pose startPose=new Pose(20.9,122.1,Math.toRadians(134));
+    private final Pose shootPose=new Pose(51.5, 91.8,Math.toRadians(134));
+
+    private final Pose startIntake1=new Pose(43.7,86.2,Math.toRadians(180));
+    private final Pose doneIntake1=new Pose(10.1,83.9, Math.toRadians(180));
+    private final Pose shoot2= new Pose(51.5, 91.8,Math.toRadians(134));
+    private final Pose offLine=new Pose(67, 110.3, Math.toRadians(134));
 
 
-    public enum PathState{
+    private enum PathState{
         startPos_ShootPos,
         shoot1,
         ShootPos_StartIntake1Pos,
@@ -37,7 +38,7 @@ public class betterAuton extends OpMode {
         ShootPos2_OffLine
 
     }
-    PathState pathState;
+    autoCloseBlueFix.PathState pathState;
 
     private PathChain starttoShoot, shoot1toIntake1, Intake1, intake1toShoot2, shoot2tooffline;
 
@@ -88,7 +89,7 @@ public class betterAuton extends OpMode {
             case intakeOn:
                 if(!follower.isBusy()){
                     intakeOn();
-                    setPathState(PathState.StartIntake1Pos_FinishIntake1Pos);
+                    setPathState(autoCloseBlueFix.PathState.StartIntake1Pos_FinishIntake1Pos);
                 }
                 break;
             case StartIntake1Pos_FinishIntake1Pos:
@@ -98,7 +99,7 @@ public class betterAuton extends OpMode {
             case intakeOff:
                 if(!follower.isBusy()){
                     intakeOff();
-                    setPathState(PathState.FinishIntake1Pos_ShootPos2);
+                    setPathState(autoCloseBlueFix.PathState.FinishIntake1Pos_ShootPos2);
                 }
                 break;
             case FinishIntake1Pos_ShootPos2:
@@ -123,6 +124,7 @@ public class betterAuton extends OpMode {
 
 
 
+
     public void setPathState(PathState newState){
         pathState=newState;
         pathTimer.resetTimer();
@@ -136,7 +138,7 @@ public class betterAuton extends OpMode {
     @Override
     public void init(){
         follower = Constants.createFollower(hardwareMap);
-        pathState= PathState.startPos_ShootPos;
+        pathState= autoCloseBlueFix.PathState.startPos_ShootPos;
         pathTimer=new Timer();
         OpmodeTimer=new Timer();
 
