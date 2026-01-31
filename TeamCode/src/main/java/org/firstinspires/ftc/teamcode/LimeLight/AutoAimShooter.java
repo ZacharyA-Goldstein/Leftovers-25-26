@@ -3,9 +3,11 @@ package org.firstinspires.ftc.teamcode.LimeLight;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.limelightvision.LLResult;
 
 import java.util.List;
@@ -33,50 +35,67 @@ public class AutoAimShooter extends LinearOpMode {
     private DcMotorEx shooterMotor;
     private Servo hoodServo;
     
+    // Transfer continuous servos
+    private CRServo blueTunnel;
+    private CRServo blueToilet;
+    private CRServo blackTunnel;
+    // Transfer motor
+    private DcMotor orangeToilet;
+    
     // --- TUNING: Camera mounting ---
     private static final double CAMERA_HEIGHT = 13.0; // Inches. Measure lens height from floor
     private static final double CAMERA_ANGLE = 0.0; // Degrees down from horizontal. Measure on robot
     private static final double MAX_DISTANCE = 144.0; // Maximum distance for tag detection
     
+    // --- TUNING: Distance limits for formula ---
+    private static final double MIN_DISTANCE = 30.0; // Minimum distance for formula calculation (tune this for close shots)
+    private static final double MAX_DISTANCE_FORMULA = 160.0; // Maximum distance for formula calculation
+    
     // --- TUNING: Target AprilTag ID (change for different alliances) ---
-    private static final int TARGET_TAG_ID = 24; // AprilTag ID to track (24 for red, 20 for blue, etc.)
+    private static final int TARGET_TAG_ID = 20; // AprilTag ID to track (24 for red, 20 for blue, etc.)
     
     // --- TUNING: Turret limits (±90 degrees from initialization) ---
     private static final int SPINNER_MIN = -550;  // Encoder limit (min) - -90 degrees left
     private static final int SPINNER_MAX = 550;   // Encoder limit (max) - +90 degrees right
     
     // --- TUNING: Horizontal turret alignment ---
-    private static final double TURRET_KP = 0.03;      // Proportional gain (deg -> power) - reduced to prevent overshoot
-    private static final double TURRET_MIN_POWER = 0.15; // Minimum power to move turret - reduced
-    private static final double TURRET_MAX_POWER = 0.35;  // Maximum alignment power - reduced to prevent overshoot
-    private static final double TURRET_DEADBAND = 1.5;  // Deadband - no movement within this (degrees) - increased
-    private static final double TURRET_SLOW_ZONE = 5.0; // Zone where turret slows down significantly (degrees)
-    private static final double TURRET_SLOW_POWER = 0.2; // Power used in slow zone
-    private static final double HORIZONTAL_OFFSET_DEG = 2.0; // Offset to compensate for shooting left/right (tune this)
+    private static final double TURRET_KP = 0.02;      // Proportional gain (deg -> power) - reduced to prevent wobbling
+    private static final double TURRET_MIN_POWER = 0.08; // Minimum power to move turret - reduced to prevent constant movement
+    private static final double TURRET_MAX_POWER = 0.25;  // Maximum alignment power - reduced to prevent overshoot
+    private static final double TURRET_DEADBAND = 2.5;  // Deadband - no movement within this (degrees) - increased to reduce wobbling
+    private static final double TURRET_SLOW_ZONE = 6.0; // Zone where turret slows down significantly (degrees) - increased
+    private static final double TURRET_SLOW_POWER = 0.12; // Power used in slow zone - reduced for smoother approach
+    private static final double TURRET_VERY_SLOW_ZONE = 3.5; // Very close zone with even slower power
+    private static final double TURRET_VERY_SLOW_POWER = 0.06; // Very slow power when very close to target
+    private static final double HORIZONTAL_OFFSET_DEG = 0.0; // Offset to compensate for shooting left/right (tune this)
     
     // --- TUNING: Hood adjustment for close distances ---
-    private static final double CLOSE_DISTANCE_THRESHOLD = 80.0; // Inches - below this is "close"
-    private static final double HOOD_CLOSE_ADJUSTMENT = -0.02; // Subtract this from hood when close (lowers hood)
+    // NOTE: Removed close distance adjustment - new formula (R² = 0.972) handles all distances accurately
+    // If fine-tuning is needed, adjust the formula coefficients in dumbMapLime.java
     
     // --- TUNING: Hood servo limits ---
-    private static final double HOOD_MIN = 0.217; // Minimum hood position
-    private static final double HOOD_MAX = 0.282; // Maximum hood position
+    private static final double HOOD_MIN = 0.677; // Minimum hood position
+    private static final double HOOD_MAX = 0.717; // Maximum hood position
     
     // --- TUNING: Shooter motor constants ---
     private static final int TICKS_PER_REVOLUTION = 28; // PPR for GoBILDA 6000 RPM motor
     
+    // --- TUNING: Manual mode adjustments ---
+    private static final double MANUAL_RPM_STEP = 50.0; // RPM adjustment step size
+    private static final double MANUAL_HOOD_STEP = 0.001; // Hood adjustment step size
+    
+    // --- TUNING: Transfer servo control ---
+    private static final double TRANSFER_SERVO_POWER = 1.0; // Power for transfer servos
+    private static final double BLUE_TOILET_TOGGLE_DURATION = 0.2; // Toggle every 0.2 seconds
+    private static final double BLACK_TUNNEL_DURATION = 5.0; // Duration in seconds for BlackTunnel in intake-only mode (adjustable)
+    private static final double RPM_TOLERANCE = 50.0; // RPM tolerance for "good" RPM
+    private ElapsedTime blueToiletToggleTimer = new ElapsedTime();
+    private boolean blueToiletToggleState = false; // Current on/off state for BlueToilet toggle
+    private ElapsedTime blackTunnelTimer = new ElapsedTime(); // Timer for BlackTunnel in intake-only mode
+    
     // --- TUNING: RPM scaling (distance-based adjustment) ---
-    private static double calculateRPMScaleFactor(double distance) {
-        if (distance <= 80.0) {
-            return 0.90; // Close distances
-        } else if (distance >= 120.0) {
-            return 1.0; // Far distances
-        } else {
-            // Linear interpolation between 80" and 120"
-            double t = (distance - 80.0) / (120.0 - 80.0);
-            return 0.90 + (1.0 - 0.90) * t;
-        }
-    }
+    // NOTE: Removed scaling factor - new formula (R² = 0.972) is accurate enough
+    // If fine-tuning is needed, adjust the formula coefficients in dumbMapLime.java
     
     // Runtime variables
     private AprilTagDetector.AprilTagResult cachedTagResult = null;
@@ -94,6 +113,16 @@ public class AutoAimShooter extends LinearOpMode {
     // Shooter control
     private boolean shooterOn = false;
     private boolean lastAButton = false;
+    
+    // Transfer control (manual override toggle)
+    private boolean manualTransferOverride = false;
+    private boolean lastXButton = false;
+    
+    // Manual mode for testing
+    private boolean manualMode = false;
+    private boolean lastBButton = false;
+    private double manualRPM = 3000.0; // Starting manual RPM value
+    private double manualHood = (HOOD_MIN + HOOD_MAX) / 2.0; // Starting manual hood value
     
     @Override
     public void runOpMode() {
@@ -130,7 +159,7 @@ public class AutoAimShooter extends LinearOpMode {
                 shooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
                 shooterMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
                 shooterMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-                shooterMotor.setDirection(DcMotorEx.Direction.FORWARD);
+                shooterMotor.setDirection(DcMotorEx.Direction.REVERSE);
                 shooterMotor.setVelocity(0);
                 telemetry.addData("Shooter Motor", "Initialized (Velocity Control)");
             } else {
@@ -154,8 +183,72 @@ public class AutoAimShooter extends LinearOpMode {
             telemetry.addData("Hood Servo Error", e.getMessage());
         }
         
+        // Initialize transfer servos and motor
+        initializeTransferServos();
+        
         telemetry.addData("Status", "Hardware initialized. Press START to begin.");
         telemetry.update();
+    }
+    
+    /**
+     * Initialize transfer continuous servos
+     */
+    private void initializeTransferServos() {
+        try {
+            blueTunnel = hardwareMap.get(CRServo.class, "BlueTunnel");
+            if (blueTunnel != null) {
+                blueTunnel.setPower(0.0);
+                telemetry.addData("BlueTunnel", "Initialized");
+            } else {
+                telemetry.addData("BlueTunnel", "NOT FOUND");
+            }
+        } catch (Exception e) {
+            blueTunnel = null;
+            telemetry.addData("BlueTunnel", "NOT FOUND");
+            e.printStackTrace();
+        }
+        
+        try {
+            blueToilet = hardwareMap.get(CRServo.class, "BlueToilet");
+            if (blueToilet != null) {
+                blueToilet.setPower(0.0);
+                telemetry.addData("BlueToilet", "Initialized");
+            } else {
+                telemetry.addData("BlueToilet", "NOT FOUND");
+            }
+        } catch (Exception e) {
+            blueToilet = null;
+            telemetry.addData("BlueToilet", "NOT FOUND");
+            e.printStackTrace();
+        }
+        
+        try {
+            orangeToilet = hardwareMap.get(DcMotor.class, "OrangeToilet");
+            if (orangeToilet != null) {
+                orangeToilet.setPower(0.0);
+                telemetry.addData("OrangeToilet", "Initialized");
+            } else {
+                telemetry.addData("OrangeToilet", "NOT FOUND");
+            }
+        } catch (Exception e) {
+            orangeToilet = null;
+            telemetry.addData("OrangeToilet", "NOT FOUND");
+            e.printStackTrace();
+        }
+        
+        try {
+            blackTunnel = hardwareMap.get(CRServo.class, "BlackTunnel");
+            if (blackTunnel != null) {
+                blackTunnel.setPower(0.0);
+                telemetry.addData("BlackTunnel", "Initialized");
+            } else {
+                telemetry.addData("BlackTunnel", "NOT FOUND");
+            }
+        } catch (Exception e) {
+            blackTunnel = null;
+            telemetry.addData("BlackTunnel", "NOT FOUND");
+            e.printStackTrace();
+        }
         
         // Wait for start
         waitForStart();
@@ -197,13 +290,13 @@ public class AutoAimShooter extends LinearOpMode {
             
             if (limelight != null) {
                 limelight.start();
-                limelight.pipelineSwitch(0); // Pipeline 0 for AprilTag
+                limelight.pipelineSwitch(3); // Pipeline 3 for Blue Alliance AprilTag
                 sleep(500);
                 
                 LLResult testResult = limelight.getLatestResult();
                 if (testResult != null) {
                     telemetry.addLine("✅ Limelight initialized successfully!");
-                    telemetry.addData("Pipeline", "0 (AprilTag)");
+                    telemetry.addData("Pipeline", "3 (AprilTag - Blue Alliance)");
                 } else {
                     telemetry.addLine("⚠️ Limelight found but not returning data yet");
                 }
@@ -225,6 +318,18 @@ public class AutoAimShooter extends LinearOpMode {
             try {
                 // Handle A button toggle for shooter
                 handleShooterToggle();
+                
+                // Handle X button toggle for transfer
+                handleTransferToggle();
+                
+                // Handle B button toggle for manual mode
+                handleManualModeToggle();
+                
+                // Handle manual adjustments (if in manual mode)
+                handleManualAdjustments();
+                
+                // Update transfer motor
+                updateTransfer();
                 
                 // Detect AprilTag and update all settings
                 detectAndUpdate();
@@ -258,6 +363,18 @@ public class AutoAimShooter extends LinearOpMode {
             if (shooterMotor != null) {
                 shooterMotor.setPower(0.0);
             }
+            if (blueTunnel != null) {
+                blueTunnel.setPower(0.0);
+            }
+            if (blueToilet != null) {
+                blueToilet.setPower(0.0);
+            }
+            if (blackTunnel != null) {
+                blackTunnel.setPower(0.0);
+            }
+            if (orangeToilet != null) {
+                orangeToilet.setPower(0.0);
+            }
             if (hoodServo != null) {
                 hoodServo.setPosition((HOOD_MIN + HOOD_MAX) / 2.0);
             }
@@ -272,14 +389,181 @@ public class AutoAimShooter extends LinearOpMode {
     private void handleShooterToggle() {
         boolean aPressed = gamepad1.a;
         
+        // Toggle on button press (edge detection)
         if (aPressed && !lastAButton) {
             shooterOn = !shooterOn;
         }
         lastAButton = aPressed;
         
-        // Auto-stop shooter if tag is lost
-        if (!tagDetected) {
+        // Auto-stop shooter if tag is lost (only in auto mode)
+        // This should only run AFTER the toggle, so it doesn't interfere with manual toggle
+        if (!tagDetected && !manualMode && shooterOn) {
             shooterOn = false;
+        }
+    }
+    
+    /**
+     * Handle X button toggle for manual transfer override
+     */
+    private void handleTransferToggle() {
+        boolean xPressed = gamepad1.x;
+        
+        if (xPressed && !lastXButton) {
+            manualTransferOverride = !manualTransferOverride;
+        }
+        lastXButton = xPressed;
+    }
+    
+    /**
+     * Handle transfer servo controls
+     * - Transfer ONLY runs when manual override (X button) is enabled
+     * - A button controls shooter only, X button controls transfer only (no double binding)
+     * 
+     * Servo/Motor directions:
+     * - BlueTunnel: reverse (negative power)
+     * - BlueToilet: reverse (negative power)
+     * - BlackTunnel: forward (positive power)
+     * - OrangeToilet: negative direction (negative power)
+     */
+    private void updateTransfer() {
+        // Transfer ONLY runs when manual override is enabled (X button)
+        // This ensures A button only controls shooter, X button only controls transfer
+        boolean transferActive = manualTransferOverride;
+        
+        // Determine servo states
+        // No intake in AutoAimShooter, so intakeActive is always false
+        boolean intakeActive = false;
+        // Shooter active only for reference (not used for transfer logic)
+        boolean shooterActive = transferActive;
+        
+        // BlueTunnel: on when transfer is active (reverse direction)
+        double blueTunnelPower = 0.0;
+        if (transferActive) {
+            blueTunnelPower = -TRANSFER_SERVO_POWER; // Reverse direction
+        }
+        
+        // BlackTunnel: on when transfer is active (forward direction)
+        double blackTunnelPower = 0.0;
+        if (transferActive) {
+            blackTunnelPower = TRANSFER_SERVO_POWER; // Forward direction
+        }
+        
+        // OrangeToilet: on when transfer is active (negative direction)
+        double orangeToiletPower = 0.0;
+        if (transferActive) {
+            orangeToiletPower = -TRANSFER_SERVO_POWER; // Negative direction
+        }
+        
+        // BlueToilet: on when transfer is active, toggles every 0.2s (reverse direction)
+        double blueToiletPower = 0.0;
+        if (transferActive) {
+            // Toggle every 0.2 seconds
+            if (blueToiletToggleTimer.seconds() >= BLUE_TOILET_TOGGLE_DURATION) {
+                blueToiletToggleState = !blueToiletToggleState;
+                blueToiletToggleTimer.reset();
+            }
+            
+            if (blueToiletToggleState) {
+                blueToiletPower = -TRANSFER_SERVO_POWER; // Reverse direction
+            } else {
+                blueToiletPower = 0.0;
+            }
+        } else {
+            // Transfer off - reset toggle state
+            blueToiletToggleState = false;
+            blueToiletToggleTimer.reset();
+        }
+        
+        // Apply powers to servos and motor
+        try {
+            if (blueTunnel != null) {
+                blueTunnel.setPower(blueTunnelPower);
+            }
+            if (blackTunnel != null) {
+                blackTunnel.setPower(blackTunnelPower);
+            }
+            if (blueToilet != null) {
+                blueToilet.setPower(blueToiletPower);
+            }
+            if (orangeToilet != null) {
+                orangeToilet.setPower(orangeToiletPower);
+            }
+        } catch (Exception e) {
+            // Ignore errors
+        }
+    }
+    
+    /**
+     * Handle B button toggle for manual mode
+     */
+    private void handleManualModeToggle() {
+        boolean bPressed = gamepad1.b;
+        
+        if (bPressed && !lastBButton) {
+            manualMode = !manualMode;
+        }
+        lastBButton = bPressed;
+    }
+    
+    /**
+     * Handle manual adjustments for RPM and hood (D-pad controls)
+     * D-pad Up/Down: Adjust RPM
+     * D-pad Left/Right: Adjust Hood
+     */
+    private void handleManualAdjustments() {
+        if (!manualMode) {
+            return;
+        }
+        
+        // Adjust RPM with D-pad Up/Down
+        if (gamepad1.dpad_up) {
+            manualRPM += MANUAL_RPM_STEP;
+        } else if (gamepad1.dpad_down) {
+            manualRPM -= MANUAL_RPM_STEP;
+        }
+        
+        // Clamp RPM to reasonable range
+        manualRPM = Math.max(-6000, Math.min(-2000, manualRPM));
+        
+        // Adjust Hood with D-pad Left/Right
+        if (gamepad1.dpad_right) {
+            manualHood += MANUAL_HOOD_STEP;
+        } else if (gamepad1.dpad_left) {
+            manualHood -= MANUAL_HOOD_STEP;
+        }
+        
+        // Clamp hood to servo limits
+        manualHood = Math.max(HOOD_MIN, Math.min(HOOD_MAX, manualHood));
+        
+        // Apply manual values directly
+        if (shooterMotor != null) {
+            if (shooterOn) {
+                try {
+                    // Convert RPM to ticks per second
+                    double velocityTicksPerSec = (manualRPM / 60.0) * TICKS_PER_REVOLUTION;
+                    int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
+                    shooterMotor.setVelocity(velocityTicksPerSecInt);
+                    targetRPM = manualRPM;
+                } catch (Exception e) {
+                    telemetry.addData("Manual Shooter Error", e.getMessage());
+                }
+            } else {
+                // Shooter toggled off - stop motor
+                try {
+                    shooterMotor.setVelocity(0);
+                } catch (Exception e) {
+                    // Ignore
+                }
+            }
+        }
+        
+        if (hoodServo != null) {
+            try {
+                hoodServo.setPosition(manualHood);
+                currentHoodPosition = manualHood;
+            } catch (Exception e) {
+                telemetry.addData("Manual Hood Error", e.getMessage());
+            }
         }
     }
     
@@ -287,6 +571,9 @@ public class AutoAimShooter extends LinearOpMode {
      * Detect AprilTag and automatically update turret, hood, and shooter
      */
     private void detectAndUpdate() {
+        // Note: When tag is detected, hood and RPM always adjust automatically
+        // The shooterOn toggle only affects behavior when no tag is detected
+        
         if (limelight == null || aprilTagDetector == null) {
             // No Limelight - stop everything
             if (robot.spinner != null) {
@@ -364,36 +651,64 @@ public class AutoAimShooter extends LinearOpMode {
             
             // Update all systems ONLY if we have a valid, FRESH tag detection THIS loop
             if (freshTagDetected && tagDetected && cachedTagResult != null && cachedTagResult.isValid && currentDistance > 0) {
-                // 1. Update turret (horizontal alignment) - use FRESH tx from current detection
+                // 1. Update turret (horizontal alignment) - always active when tag detected
                 updateTurret(currentTx);
                 
-                // 2. Update hood position
-                updateHood(currentDistance);
+                // 2. Update hood position - always active when tag detected (only in auto mode)
+                if (!manualMode) {
+                    updateHood(currentDistance);
+                }
                 
-                // 3. Update shooter RPM (only if A button is pressed)
-                if (shooterOn) {
-                    updateShooter(currentDistance);
-                } else {
-                    // Shooter off - stop motor
-                    if (shooterMotor != null) {
-                        try {
-                            shooterMotor.setVelocity(0);
-                        } catch (Exception e) {
-                            // Ignore
+                // 3. Calculate shooter RPM - always calculate when tag detected (only in auto mode)
+                // Motor only runs when shooterOn is true, but RPM is always calculated and ready
+                if (!manualMode) {
+                    // Calculate target RPM (prepares motor to run)
+                    calculateShooterRPM(currentDistance);
+                    
+                    // Only actually run motor if shooter toggle is on
+                    if (shooterOn) {
+                        applyShooterRPM();
+                    } else {
+                        // Motor off - stop velocity
+                        if (shooterMotor != null) {
+                            try {
+                                shooterMotor.setVelocity(0);
+                            } catch (Exception e) {
+                                // Ignore
+                            }
                         }
                     }
                 }
             } else {
-                // No FRESH tag - IMMEDIATELY stop shooter and turret
-                if (shooterMotor != null) {
-                    try {
-                        shooterMotor.setVelocity(0);
-                    } catch (Exception e) {
-                        // Ignore
+                // No FRESH tag - handle turret, hood, and shooter separately (like TeleOp)
+                if (!manualMode) {
+                    // Turret: stop when no tag detected
+                    if (robot.spinner != null) {
+                        robot.spinner.setPower(0.0);
                     }
-                }
-                if (robot.spinner != null) {
-                    robot.spinner.setPower(0.0);
+                    
+                    // Hood and shooter respond to user input even when no tag detected (like TeleOp)
+                    if (shooterOn) {
+                        // Use last known distance if available, otherwise use default distance
+                        double distanceToUse = (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) 
+                            ? cachedTagResult.distance 
+                            : 120.0; // Default distance when no tag detected
+                        
+                        // Update hood based on formula (even without tag) - always adjusts like TeleOp
+                        updateHood(distanceToUse);
+                        
+                        // Update shooter RPM based on formula
+                        updateShooter(distanceToUse);
+                    } else {
+                        // Shooter motor off - stop velocity
+                        if (shooterMotor != null) {
+                            try {
+                                shooterMotor.setVelocity(0);
+                            } catch (Exception e) {
+                                // Ignore
+                            }
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -452,11 +767,14 @@ public class AutoAimShooter extends LinearOpMode {
                 return;
             }
             
-            // Progressive power control: slow down as we approach the target
+            // Progressive power control: slow down as we approach the target (reduces wobbling)
             double cmd;
             double sign = Math.signum(adjustedTx);
             
-            if (absTx <= TURRET_SLOW_ZONE) {
+            if (absTx <= TURRET_VERY_SLOW_ZONE) {
+                // Very close to target - use very slow power to prevent wobbling
+                cmd = TURRET_VERY_SLOW_POWER * sign;
+            } else if (absTx <= TURRET_SLOW_ZONE) {
                 // Close to target - use slow, gentle power
                 cmd = TURRET_SLOW_POWER * sign;
             } else {
@@ -495,21 +813,21 @@ public class AutoAimShooter extends LinearOpMode {
     }
     
     /**
-     * Automatically adjust hood position based on distance
+     * Automatically adjust hood position based on distance using new formula
      */
     private void updateHood(double distance) {
         if (robot == null || hoodServo == null) {
+            telemetry.addData("Hood Error", "robot or hoodServo is null");
             return;
         }
         
         try {
-            // Calculate hood position using formula
-            double calculatedHood = robot.calculateHoodPosition(distance, null);
+            // Clamp distance to formula limits before calculation
+            double clampedDistance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE_FORMULA, distance));
             
-            // Adjust hood for close distances (lower the hood)
-            if (distance < CLOSE_DISTANCE_THRESHOLD) {
-                calculatedHood += HOOD_CLOSE_ADJUSTMENT; // Negative adjustment lowers hood
-            }
+            // Calculate hood position using new formula (R² = 0.972)
+            // Formula automatically finds optimal hood/RPM combination
+            double calculatedHood = robot.calculateHoodPosition(clampedDistance, null);
             
             // Clamp to servo limits
             currentHoodPosition = Math.max(HOOD_MIN, Math.min(HOOD_MAX, calculatedHood));
@@ -517,27 +835,45 @@ public class AutoAimShooter extends LinearOpMode {
             // Apply to servo
             hoodServo.setPosition(currentHoodPosition);
             
+            // Debug telemetry
+            telemetry.addData("Hood Update", "Distance: %.1f -> Hood: %.4f", distance, currentHoodPosition);
+            
         } catch (Exception e) {
             telemetry.addData("Hood Error", e.getMessage());
+            e.printStackTrace();
         }
     }
     
     /**
-     * Automatically adjust shooter RPM based on distance
+     * Calculate shooter RPM based on distance using new formula (prepares motor but doesn't run it)
      */
-    private void updateShooter(double distance) {
-        if (robot == null || shooterMotor == null) {
+    private void calculateShooterRPM(double distance) {
+        if (robot == null) {
             return;
         }
         
         try {
-            // Calculate target RPM using formula
-            double calculatedRPM = robot.calculateShooterRPM(distance);
+            // Clamp distance to formula limits before calculation
+            double clampedDistance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE_FORMULA, distance));
             
-            // Apply distance-based scaling factor
-            double scaleFactor = calculateRPMScaleFactor(distance);
-            targetRPM = calculatedRPM * scaleFactor;
+            // Calculate target RPM using new formula (R² = 0.972)
+            // Formula automatically finds optimal hood/RPM combination
+            targetRPM = robot.calculateShooterRPM(clampedDistance);
             
+        } catch (Exception e) {
+            telemetry.addData("Shooter Calc Error", e.getMessage());
+        }
+    }
+    
+    /**
+     * Apply the calculated RPM to the shooter motor
+     */
+    private void applyShooterRPM() {
+        if (shooterMotor == null) {
+            return;
+        }
+        
+        try {
             // Convert RPM to ticks per second for velocity control
             double velocityTicksPerSec = (targetRPM / 60.0) * TICKS_PER_REVOLUTION;
             int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
@@ -546,7 +882,7 @@ public class AutoAimShooter extends LinearOpMode {
             shooterMotor.setVelocity(velocityTicksPerSecInt);
             
         } catch (Exception e) {
-            telemetry.addData("Shooter Error", e.getMessage());
+            telemetry.addData("Shooter Apply Error", e.getMessage());
             try {
                 shooterMotor.setVelocity(0);
             } catch (Exception e2) {
@@ -556,13 +892,35 @@ public class AutoAimShooter extends LinearOpMode {
     }
     
     /**
+     * Update shooter RPM (for backward compatibility with no-tag case)
+     */
+    private void updateShooter(double distance) {
+        calculateShooterRPM(distance);
+        if (shooterOn) {
+            applyShooterRPM();
+        }
+    }
+    
+    /**
      * Update telemetry with current status
      */
     private void updateTelemetry() {
         try {
             telemetry.addLine("=== Auto Aim Shooter ===");
+            telemetry.addData("Mode", manualMode ? "MANUAL (B to toggle)" : "AUTO (B to toggle)");
+            telemetry.addData("Shooter", shooterOn ? "ON" : "OFF");
+            telemetry.addData("A Button", gamepad1.a ? "PRESSED" : "Released");
+            telemetry.addData("Manual Transfer Override", manualTransferOverride ? "ON (X button)" : "OFF");
             telemetry.addData("Limelight", limelight != null ? "Connected" : "Missing");
             telemetry.addData("Tag Detected", tagDetected ? "YES" : "NO");
+            
+            // Manual mode values (always show when in manual mode)
+            if (manualMode) {
+                telemetry.addLine("\n--- Manual Mode (Testing) ---");
+                telemetry.addData("Manual RPM", "%.0f (D-pad Up/Down)", manualRPM);
+                telemetry.addData("Manual Hood", "%.4f (D-pad Left/Right)", manualHood);
+                telemetry.addData("Shooter", shooterOn ? "ON (A to toggle)" : "OFF (A to toggle)");
+            }
             
             if (tagDetected && cachedTagResult != null && cachedTagResult.isValid) {
                 telemetry.addLine("\n--- AprilTag " + TARGET_TAG_ID + " Detected ---");
@@ -596,12 +954,12 @@ public class AutoAimShooter extends LinearOpMode {
                 telemetry.addLine("\n--- Hood Status ---");
                 if (hoodServo != null) {
                     try {
-                        telemetry.addData("Hood Position", "%.4f", hoodServo.getPosition());
-                        if (cachedTagResult.distance < CLOSE_DISTANCE_THRESHOLD) {
-                            telemetry.addData("Hood Adjustment", "%.4f (close distance)", HOOD_CLOSE_ADJUSTMENT);
-                        }
+                        double currentHoodPos = hoodServo.getPosition();
+                        telemetry.addData("Hood Position (current)", "%.4f", currentHoodPos);
+                        telemetry.addData("Hood Position (target)", "%.4f", currentHoodPosition);
+                        telemetry.addData("Hood Distance", "%.1f inches", cachedTagResult.distance);
                     } catch (Exception e) {
-                        telemetry.addData("Hood", "Error reading");
+                        telemetry.addData("Hood", "Error reading: " + e.getMessage());
                     }
                 } else {
                     telemetry.addData("Hood Servo", "NOT FOUND");
@@ -623,6 +981,40 @@ public class AutoAimShooter extends LinearOpMode {
                     telemetry.addData("Shooter Motor", "NOT FOUND");
                 }
                 
+                // DATA POINT FOR FORMULA (easy to copy)
+                telemetry.addLine("\n=== DATA POINT (Copy this) ===");
+                if (shooterMotor != null && hoodServo != null) {
+                    try {
+                        double currentVelocity = shooterMotor.getVelocity();
+                        int currentRPM = (int)Math.round((currentVelocity / TICKS_PER_REVOLUTION) * 60.0);
+                        double hoodPos = hoodServo.getPosition();
+                        telemetry.addData("Format", "{%.1f, %.4f, %d},", 
+                            cachedTagResult.distance, hoodPos, currentRPM);
+                        telemetry.addLine("Distance: " + String.format("%.1f", cachedTagResult.distance) + 
+                            " | Hood: " + String.format("%.4f", hoodPos) + 
+                            " | RPM: " + currentRPM);
+                    } catch (Exception e) {
+                        telemetry.addData("Data Point", "Error: " + e.getMessage());
+                    }
+                }
+                
+                // Transfer status
+                telemetry.addLine("\n--- Transfer Status ---");
+                boolean transferActive = manualTransferOverride;
+                
+                if (transferActive) {
+                    telemetry.addData("Transfer", "ACTIVE (X button pressed)");
+                    telemetry.addData("BlueToilet", blueToiletToggleState ? "ON" : "OFF");
+                } else {
+                    telemetry.addData("Transfer", "OFF (Press X to activate)");
+                }
+                
+                telemetry.addData("Servo/Motor Powers", String.format("BT:%.2f BlT:%.2f BTo:%.2f OTo:%.2f",
+                    blueTunnel != null ? (transferActive ? -1.0 : 0.0) : -999.0,
+                    blackTunnel != null ? (transferActive ? 1.0 : 0.0) : -999.0,
+                    blueToilet != null ? (transferActive && blueToiletToggleState ? -1.0 : 0.0) : -999.0,
+                    orangeToilet != null ? (transferActive ? -1.0 : 0.0) : -999.0));
+                
                 // Formula values
                 if (robot != null) {
                     try {
@@ -642,15 +1034,26 @@ public class AutoAimShooter extends LinearOpMode {
                 }
             }
             
-            // Controls
-            telemetry.addLine("\n--- Controls ---");
-            telemetry.addData("A Button", "Toggle shooter ON/OFF");
+            // Controls - Show all controls clearly
+            telemetry.addLine("\n=== CONTROLS (Gamepad 1) ===");
+            telemetry.addLine("--- Main Controls ---");
+            telemetry.addData("A Button", "Toggle shooter ON/OFF (shooter only, no transfer)");
+            telemetry.addData("X Button", "Toggle transfer ON/OFF (transfer only, independent of shooter)");
+            telemetry.addData("B Button", "Toggle manual mode ON/OFF");
+            if (manualMode) {
+                telemetry.addLine("Manual Mode Controls:");
+                telemetry.addData("D-pad Up", "Increase RPM (+" + MANUAL_RPM_STEP + ")");
+                telemetry.addData("D-pad Down", "Decrease RPM (-" + MANUAL_RPM_STEP + ")");
+                telemetry.addData("D-pad Right", "Increase Hood (+" + MANUAL_HOOD_STEP + ")");
+                telemetry.addData("D-pad Left", "Decrease Hood (-" + MANUAL_HOOD_STEP + ")");
+            }
             
             // Tuning values
             telemetry.addLine("\n--- Tuning Values ---");
+            telemetry.addData("Min Distance", "%.1f\" (tune for close shots)", MIN_DISTANCE);
+            telemetry.addData("Max Distance", "%.1f\"", MAX_DISTANCE_FORMULA);
             telemetry.addData("Horizontal Offset", "%.1f° (adjust if shooting left/right)", HORIZONTAL_OFFSET_DEG);
-            telemetry.addData("Close Distance Threshold", "%.1f\"", CLOSE_DISTANCE_THRESHOLD);
-            telemetry.addData("Hood Close Adjustment", "%.4f (lowers hood when close)", HOOD_CLOSE_ADJUSTMENT);
+            telemetry.addData("Formula R²", "0.972 (new formula - no scaling/adjustments)");
             telemetry.addData("Turret KP", "%.3f", TURRET_KP);
             telemetry.addData("Turret Deadband", "%.1f°", TURRET_DEADBAND);
             telemetry.addData("Max Lost Detections", "%d", MAX_LOST_DETECTIONS);

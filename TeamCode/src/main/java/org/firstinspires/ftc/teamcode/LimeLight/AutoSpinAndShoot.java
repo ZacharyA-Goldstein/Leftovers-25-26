@@ -604,44 +604,44 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             // Within deadband - set lock state (but continue tracking to maintain lock as bot moves)
                             if (!isLocked) {
                                 // First time locking - set lock state and get distance
-                                isLocked = true;
+                            isLocked = true;
                                 isTracking = false; // No longer in initial tracking phase
-                                lostDetectionCount = 0;
-                                brakeStartTime = 0; // Reset brake timer
-                                postBrakeStartTime = 0; // Reset post-brake timer
+                            lostDetectionCount = 0;
+                            brakeStartTime = 0; // Reset brake timer
+                            postBrakeStartTime = 0; // Reset post-brake timer
                                 
-                                // Get distance - try cached first, then get fresh if needed (critical for shooting)
-                                if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
-                                    lockedDistance = cachedTagResult.distance;
-                                    telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
-                                } else {
-                                    // Cached result invalid - get fresh distance (one extra call is OK when locking)
-                                    try {
-                                        if (aprilTagDetector != null) {
-                                            AprilTagDetector.AprilTagResult freshTag = aprilTagDetector.getTagById(TARGET_TAG_ID);
-                                            if (freshTag != null && freshTag.isValid && freshTag.distance > 0) {
-                                                lockedDistance = freshTag.distance;
-                                                cachedTagResult = freshTag; // Update cache
-                                                telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
-                                            } else {
-                                                lockedDistance = 60.0; // Fallback default
-                                                telemetry.addLine("⚠️ LOCKED - Using default distance: 60.0\"");
-                                            }
+                            // Get distance - try cached first, then get fresh if needed (critical for shooting)
+                            if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
+                                lockedDistance = cachedTagResult.distance;
+                                telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
+                            } else {
+                                // Cached result invalid - get fresh distance (one extra call is OK when locking)
+                                try {
+                                    if (aprilTagDetector != null) {
+                                        AprilTagDetector.AprilTagResult freshTag = aprilTagDetector.getTagById(TARGET_TAG_ID);
+                                        if (freshTag != null && freshTag.isValid && freshTag.distance > 0) {
+                                            lockedDistance = freshTag.distance;
+                                            cachedTagResult = freshTag; // Update cache
+                                            telemetry.addLine("🔒 LOCKED - Distance: " + String.format("%.1f\"", lockedDistance));
                                         } else {
                                             lockedDistance = 60.0; // Fallback default
-                                            telemetry.addLine("⚠️ LOCKED - AprilTagDetector NULL, using default: 60.0\"");
+                                            telemetry.addLine("⚠️ LOCKED - Using default distance: 60.0\"");
                                         }
-                                    } catch (Exception e) {
-                                        lockedDistance = 60.0; // Fallback default on error
-                                        telemetry.addLine("⚠️ LOCKED - Error getting distance: " + e.getMessage());
+                                    } else {
+                                        lockedDistance = 60.0; // Fallback default
+                                        telemetry.addLine("⚠️ LOCKED - AprilTagDetector NULL, using default: 60.0\"");
                                     }
+                                } catch (Exception e) {
+                                    lockedDistance = 60.0; // Fallback default on error
+                                    telemetry.addLine("⚠️ LOCKED - Error getting distance: " + e.getMessage());
                                 }
+                            }
                             } else {
                                 // Already locked - update distance if bot moved
                                 if (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) {
                                     lockedDistance = cachedTagResult.distance;
-                                }
                             }
+                        }
                             
                             // When locked and within deadband, use very gentle correction to maintain lock
                             // Apply horizontal offset to alignment command (compensates for shooting left)
@@ -694,7 +694,7 @@ public class AutoSpinAndShoot extends LinearOpMode {
                             
                             // Check encoder limits (with exception handling) - enforce ±90 degree limit
                             try {
-                                int currentPos = robot.spinner.getCurrentPosition();
+                int currentPos = robot.spinner.getCurrentPosition();
                                 
                                 // Safety check: if already past limits, stop and don't move further
                                 if (currentPos >= SPINNER_MAX) {
@@ -753,9 +753,9 @@ public class AutoSpinAndShoot extends LinearOpMode {
                                 if (absTx <= DEADBAND) {
                                     // Within deadband - set lock state (but continue tracking)
                                     if (!isLocked) {
-                                        isLocked = true;
-                                        isTracking = false;
-                                        lostDetectionCount = 0;
+                                    isLocked = true;
+                                    isTracking = false;
+                                    lostDetectionCount = 0;
                                     }
                                     // When locked and within deadband, use gentle correction
                                     double adjustedCachedTx = cachedTx + HORIZONTAL_OFFSET_DEG;
@@ -850,8 +850,8 @@ public class AutoSpinAndShoot extends LinearOpMode {
                                 // No cached result - reset and search
                                 isLocked = false;
                                 isTracking = false;
-                                cachedTagResult = null;
-                                continueSearch();
+                    cachedTagResult = null;
+                    continueSearch();
                             }
                         }
                     } else {
@@ -886,9 +886,9 @@ public class AutoSpinAndShoot extends LinearOpMode {
                     if (absTx <= DEADBAND) {
                         // Within deadband - set lock state (but continue tracking)
                         if (!isLocked) {
-                            isLocked = true;
-                            isTracking = false;
-                            lostDetectionCount = 0;
+                        isLocked = true;
+                        isTracking = false;
+                        lostDetectionCount = 0;
                         }
                         // When locked and within deadband, use gentle correction
                         double adjustedCachedTx = cachedTx + HORIZONTAL_OFFSET_DEG;
