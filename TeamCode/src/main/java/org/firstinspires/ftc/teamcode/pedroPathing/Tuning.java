@@ -435,7 +435,7 @@ class ForwardVelocityTuner extends OpMode {
 class LateralVelocityTuner extends OpMode {
     private final ArrayList<Double> velocities = new ArrayList<>();
 
-    public static double DISTANCE = 48;
+    public static double DISTANCE = 24;
     public static double RECORD_NUMBER = 10;
 
     private boolean end;
@@ -491,7 +491,8 @@ class LateralVelocityTuner extends OpMode {
                 end = true;
                 stopRobot();
             } else {
-                follower.setTeleOpDrive(0,1,0,true);
+                // Inverted strafe sign to match CrunchBotBlue's inverted mecanum math
+                follower.setTeleOpDrive(0,-1,0,true);
                 double currentVelocity = Math.abs(follower.getVelocity().dot(new Vector(1, Math.PI / 2)));
                 velocities.add(currentVelocity);
                 velocities.remove(0);
@@ -696,7 +697,8 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
     public void start() {
         follower.startTeleopDrive(false);
         follower.update();
-        follower.setTeleOpDrive(0,1,0,true);
+        // Inverted strafe sign to match CrunchBotBlue's inverted mecanum math
+        follower.setTeleOpDrive(0,-1,0,true);
     }
 
     /**

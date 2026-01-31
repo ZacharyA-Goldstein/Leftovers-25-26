@@ -23,11 +23,11 @@ public class pathingCloseTestBlue extends OpMode {
     
     // Waypoints from trajectory file (trajectory 5)
     private final Pose startpoint = new Pose(20.7, 123, Math.toRadians(145)); // Start at 145°
-    private final Pose waypoint1 = new Pose(46.5, 93, Math.toRadians(200)); // Path 1 end at 200° (shooting position)
-    private final Pose waypoint2 = new Pose(27, 93, Math.toRadians(200)); // Path 2 end at 200° (intake on during this path)
+    private final Pose waypoint1 = new Pose(46.5, 88.5, Math.toRadians(180)); // Path 1 end at 200° (shooting position)
+    private final Pose waypoint2 = new Pose(27, 88.5, Math.toRadians(180)); // Path 2 end at 200° (intake on during this path)
     
     // Path chain
-    private PathChain path1, path2, path3;
+    private PathChain path1, path2, path3, path4;
     
     // Shooting hardware
     private dumbMapLime robot; // For spinner access
@@ -50,9 +50,9 @@ public class pathingCloseTestBlue extends OpMode {
     private static final double HOOD_NEW_MAX = 0.717;
     
     // Shooting constants
-    private static final double SHOOTER_TARGET_RPM = -2400.0; // Target RPM for first shooting
-    private static final double SHOOTER_TARGET_RPM_SECOND = -2250.0; // Target RPM for second shooting
-    private static final double HOOD_OLD_POSITION = 0.2255; // Old hood position to map
+    private static final double SHOOTER_TARGET_RPM = -3500.0; // Target RPM for first shooting
+    private static final double SHOOTER_TARGET_RPM_SECOND = -3500.0; // Target RPM for second shooting
+    private static final double HOOD_OLD_POSITION = 0.217; // Old hood position to map
     
     public void buildPaths() {
         // Path 1: startpoint (20.7, 123, 145°) → waypoint1 (45, 93, 200°)
@@ -74,6 +74,11 @@ public class pathingCloseTestBlue extends OpMode {
                 .addPath(new BezierLine(waypoint2, waypoint1))
                 .setLinearHeadingInterpolation(Math.toRadians(200), Math.toRadians(200))
                 .build();
+        path4 = follower.pathBuilder()
+                .addPath(new BezierLine(waypoint1, waypoint2))
+                .setLinearHeadingInterpolation(Math.toRadians(200), Math.toRadians(200))
+                .build();
+
     }
     
     @Override
@@ -386,7 +391,7 @@ public class pathingCloseTestBlue extends OpMode {
                     }
                 }
                 
-                if (pathTimer.getElapsedTime() > 5000) { // 5 second wait for second shooting
+                if (pathTimer.getElapsedTime() > 3000) { // 5 second wait for second shooting
                     // Shooting complete - turn off all motors
                     if (shooterMotor != null) {
                         shooterMotor.setVelocity(0);
@@ -410,6 +415,7 @@ public class pathingCloseTestBlue extends OpMode {
 
             case 8:
                 // All done
+                follower.followPath(path4, true);
                 telemetry.addLine("✅ Autonomous complete");
                 break;
         }

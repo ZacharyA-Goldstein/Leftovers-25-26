@@ -24,7 +24,7 @@ public class pathingCloseTestRed extends OpMode {
     // Waypoints from trajectory file (trajectory 6)
     private final Pose startpoint = new Pose(122.6, 124, Math.toRadians(35)); // Start at 90°
     private final Pose waypoint1 = new Pose(97, 88.2, Math.toRadians(0)); // Path 1 end at 0° (shooting position)
-    private final Pose waypoint2 = new Pose(121, 88.2, Math.toRadians(0)); // Path 2 end at 0° (intake on during this path)
+    private final Pose waypoint2 = new Pose(125, 88.2, Math.toRadians(0)); // Path 2 end at 0° (intake on during this path)
     
     // Path chain
     private PathChain path1, path2, path3;
@@ -39,20 +39,20 @@ public class pathingCloseTestRed extends OpMode {
     private static final int TICKS_PER_REVOLUTION = 28;
     
     // Spinner position
-    private static final int SPINNER_TARGET_POSITION = -130;
+    private static final int SPINNER_TARGET_POSITION = -115;
     
     // Hood servo position mapping (old range to new range)
-    // Old range: 0.217 (min) to 0.251 (max) - effective old range
+    // Old range: 0.217 (min) to 0.251 (max) - effective old rangexs67
     // New range: 0.677 (min) to 0.717 (max) - actual servo limits
     private static final double HOOD_OLD_MIN = 0.217;
     private static final double HOOD_OLD_MAX = 0.251;
     private static final double HOOD_NEW_MIN = 0.677;
     private static final double HOOD_NEW_MAX = 0.717;
-    
+
     // Shooting constants
-    private static final double SHOOTER_TARGET_RPM = -2400.0; // Target RPM for first shooting
-    private static final double SHOOTER_TARGET_RPM_SECOND = -2250.0; // Target RPM for second shooting
-    private static final double HOOD_OLD_POSITION = 0.2255; // Old hood position to map
+    private static final double SHOOTER_TARGET_RPM = -3600; // Target RPM for first shooting
+    private static final double SHOOTER_TARGET_RPM_SECOND = -3600; // Target RPM for second shooting
+    private static final double HOOD_OLD_POSITION = 0.225; // Old hood position to map
     
     public void buildPaths() {
         // Path 1: startpoint (122.6, 124, 90°) → waypoint1 (97, 88.2, 0°)
@@ -128,7 +128,7 @@ public class pathingCloseTestRed extends OpMode {
                 telemetry.addLine("🚀 Starting Path 1...");
                 setPathState(1);
                 break;
-                
+
             case 1:
                 // Wait for Path 1 to complete
                 if (!follower.isBusy()) {
@@ -145,7 +145,7 @@ public class pathingCloseTestRed extends OpMode {
                     telemetry.addData("  Current Heading", "%.1f°", Math.toDegrees(currentPose.getHeading()));
                 }
                 break;
-                
+
             case 2:
                 // Wait for shooter to reach target RPM
                 // Continuously update spinner and shooter to ensure they keep running
@@ -156,14 +156,14 @@ public class pathingCloseTestRed extends OpMode {
                     }
                     robot.spinner.setPower(0.8);
                 }
-                
+
                 if (shooterMotor != null) {
                     // Continuously re-apply velocity command
                     double velocityTicksPerSec = (SHOOTER_TARGET_RPM / 60.0) * TICKS_PER_REVOLUTION;
                     int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
                     shooterMotor.setVelocity(velocityTicksPerSecInt);
                 }
-                
+
                 // Always show current RPM
                 if (shooterMotor != null) {
                     try {
@@ -174,7 +174,7 @@ public class pathingCloseTestRed extends OpMode {
                         telemetry.addLine("📊 Shooter RPM: Unable to read");
                     }
                 }
-                
+
                 if (isShooterAtRPM(SHOOTER_TARGET_RPM)) {
                     // Shooter at RPM - turn on intake and transfer, then proceed to shooting
                     if (intakeMotor != null) {
@@ -190,9 +190,9 @@ public class pathingCloseTestRed extends OpMode {
                     telemetry.addLine("⏳ Waiting for shooter to reach target RPM...");
                 }
                 break;
-                
+
             case 3:
-                // Shooting at waypoint1 - 2.0 seconds with transfer, intake, and shooter on
+                // Shooting at waypoint1 - 5 seconds with transfer, intake, and shooter on
                 // Keep all motors running
                 if (robot != null && robot.spinner != null) {
                     if (robot.spinner.getMode() != DcMotor.RunMode.RUN_TO_POSITION) {
@@ -213,7 +213,7 @@ public class pathingCloseTestRed extends OpMode {
                     int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
                     shooterMotor.setVelocity(velocityTicksPerSecInt);
                 }
-                
+
                 // Show current RPM while shooting
                 if (shooterMotor != null) {
                     try {
@@ -224,8 +224,8 @@ public class pathingCloseTestRed extends OpMode {
                         telemetry.addLine("📊 Shooting - Shooter RPM: Unable to read");
                     }
                 }
-                
-                if (pathTimer.getElapsedTime() > 2000) { // 2.0 second wait for first shooting (only 2 balls)
+
+                if (pathTimer.getElapsedTime() > 5000) { // 2.0 second wait for first shooting (only 2 balls)
                     // Shooting complete - turn off shooter, transfer, and spinner
                     // Keep intake ON for Path 2 (explicitly set to ensure continuity)
                     if (intakeMotor != null) {
@@ -248,14 +248,14 @@ public class pathingCloseTestRed extends OpMode {
                     telemetry.addLine(String.format("⏳ Shooting... %d seconds remaining", remaining));
                 }
                 break;
-                
+
             case 4:
                 // Wait for Path 2 to complete (intake on during this path to collect balls)
                 // Intake is already on from shooting phase
                 if (intakeMotor != null) {
                     intakeMotor.setPower(1.0);
                 }
-                
+
                 if (!follower.isBusy()) {
                     // Path 2 complete - turn off intake, return to waypoint1
                     if (intakeMotor != null) {
@@ -273,7 +273,7 @@ public class pathingCloseTestRed extends OpMode {
                     telemetry.addData("  Current Heading", "%.1f°", Math.toDegrees(currentPose.getHeading()));
                 }
                 break;
-                
+
             case 5:
                 // Wait for Path 3 to complete (returning to waypoint1)
                 // Only intake is on during Path 3 (collecting balls)
@@ -284,7 +284,7 @@ public class pathingCloseTestRed extends OpMode {
                 if (transferMotor != null) {
                     transferMotor.setPower(0.0);
                 }
-                
+
                 if (!follower.isBusy()) {
                     // Path 3 complete - turn OFF intake before RPM buildup
                     if (intakeMotor != null) {
@@ -303,7 +303,7 @@ public class pathingCloseTestRed extends OpMode {
                     telemetry.addData("  Current Heading", "%.1f°", Math.toDegrees(currentPose.getHeading()));
                 }
                 break;
-                
+
             case 6:
                 // Wait for shooter to reach target RPM (second shooting at waypoint1)
                 // Don't move spinner - keep it at current position
@@ -314,7 +314,7 @@ public class pathingCloseTestRed extends OpMode {
                 if (transferMotor != null) {
                     transferMotor.setPower(0.0);
                 }
-                
+
                 // Re-initialize shooter motor if it's null (was turned off earlier)
                 if (shooterMotor == null) {
                     shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter");
@@ -325,14 +325,14 @@ public class pathingCloseTestRed extends OpMode {
                         shooterMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
                     }
                 }
-                
+
                 if (shooterMotor != null) {
                     // Continuously re-apply velocity command (using second shooting RPM: -2250)
                     double velocityTicksPerSec = (SHOOTER_TARGET_RPM_SECOND / 60.0) * TICKS_PER_REVOLUTION;
                     int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
                     shooterMotor.setVelocity(velocityTicksPerSecInt);
                 }
-                
+
                 // Always show current RPM
                 if (shooterMotor != null) {
                     try {
@@ -343,7 +343,7 @@ public class pathingCloseTestRed extends OpMode {
                         telemetry.addLine("📊 Shooter RPM: Unable to read");
                     }
                 }
-                
+
                 if (isShooterAtRPM(SHOOTER_TARGET_RPM_SECOND)) {
                     // Shooter at RPM - turn on intake and transfer, then proceed to shooting
                     if (intakeMotor != null) {
@@ -359,9 +359,9 @@ public class pathingCloseTestRed extends OpMode {
                     telemetry.addLine("⏳ Waiting for shooter to reach target RPM...");
                 }
                 break;
-                
+
             case 7:
-                // Second shooting at waypoint1 - 3 seconds with transfer, intake, and shooter on
+                // Second shooting at waypoint1 - 5 seconds with transfer, intake, and shooter on
                 // Keep all motors running (spinner stays at current position)
                 if (intakeMotor != null) {
                     intakeMotor.setPower(1.0);
@@ -375,7 +375,7 @@ public class pathingCloseTestRed extends OpMode {
                     int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
                     shooterMotor.setVelocity(velocityTicksPerSecInt);
                 }
-                
+
                 // Show current RPM while shooting
                 if (shooterMotor != null) {
                     try {
@@ -386,8 +386,8 @@ public class pathingCloseTestRed extends OpMode {
                         telemetry.addLine("📊 Shooting - Shooter RPM: Unable to read");
                     }
                 }
-                
-                if (pathTimer.getElapsedTime() > 5000) { // 5 second wait for second shooting
+
+                if (pathTimer.getElapsedTime() > 3000) { // 5 second wait for second shooting
                     // Shooting complete - turn off all motors
                     if (shooterMotor != null) {
                         shooterMotor.setVelocity(0);

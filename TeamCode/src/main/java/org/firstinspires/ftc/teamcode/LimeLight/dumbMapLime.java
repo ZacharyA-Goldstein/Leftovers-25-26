@@ -246,56 +246,41 @@ public class dumbMapLime {
     }
     
     /**
-     * Shooter formula coefficients from 15 data points
+     * Shooter formula coefficients from 16 data points
      * Formula: distance = A * hoodPos + B * RPM + C
-     * Derived using multiple linear regression on all 31 data points
-     * R² = 0.7214
+     * Derived using multiple linear regression on all 16 data points
+     * R² = 0.972053
      */
-    private static final double FORMULA_A = -208.929760;  // Hood coefficient
-    private static final double FORMULA_B = -0.046754;   // RPM coefficient
-    private static final double FORMULA_C = -0.053225;    // Intercept
+    private static final double FORMULA_A = 164.882397;  // Hood coefficient
+    private static final double FORMULA_B = -0.120907;   // RPM coefficient
+    private static final double FORMULA_C = -319.979673;    // Intercept
     
     /**
-     * All 31 data points from testing
+     * All 16 data points from testing
      * Format: [distance, hoodPos, RPM]
      */
     private static final double[][] ALL_DATA_POINTS = {
-        {144.0, 0.24, -4000},
-        {144.0, 0.24, -4300},
-        {144.0, 0.24, -4500},
-        {144.0, 0.2350, -4250},
-        {144.0, 0.2370, -4250},
-        {144.0, 0.2380, -4250},
-        {144.0, 0.239, -4500},
-        {144.0, 0.239, -4350},
-        {136.5, 0.235, -3350},
-        {136.5, 0.235, -3450},
-        {136.5, 0.235, -3550},
-        {136.5, 0.235, -3600},
-        {136.5, 0.240, -3450},
-        {136.5, 0.237, -3450},
-        {136.5, 0.236, -3450},
-        {107.9, 0.2400, -3500},
-        {107.9, 0.2400, -3250},
-        {107.9, 0.2400, -3350},
-        {107.9, 0.237, -3350},
-        {107.9, 0.238, -3350},
-        {107.9, 0.238, -3250},
-        {107.9, 0.238, -3300},
-        {107.9, 0.236, -3250},
-        {72.1, 0.23, -2900},
-        {72.1, 0.232, -2900},
-        {72.1, 0.234, -2900},
-        {72.1, 0.234, -3050},
-        {72.1, 0.234, -2850},
-        {72.1, 0.232, -2850},
-        {72.1, 0.232, -2950},
-        {72.1, 0.2300, -2950},
+        {71.5, 0.6810, -2250},
+        {57.0, 0.6870, -2200},
+        {63.0, 0.6920, -2200},
+        {68.0, 0.6910, -2350},
+        {77.5, 0.6930, -2400},
+        {83.0, 0.6940, -2400},
+        {90.0, 0.6950, -2450},
+        {95.0, 0.6960, -2450},
+        {101.0, 0.7000, -2500},
+        {108.0, 0.7040, -2600},
+        {114.5, 0.7090, -2600},
+        {118.7, 0.6990, -2650},
+        {126.0, 0.7030, -2700},
+        {131.0, 0.7050, -2750},
+        {135.0, 0.7070, -2800},
+        {142.5, 0.7090, -2900},
     };
     
-    // Hood and RPM limits
-    private static final double HOOD_MIN = 0.206;
-    private static final double HOOD_MAX = 0.295;
+    // Hood and RPM limits (updated to match TeleOpBlue)
+    private static final double HOOD_MIN = 0.690; // Updated to match TeleOp limits
+    private static final double HOOD_MAX = 0.717;
     private static final double RPM_MIN = -6000;
     private static final double RPM_MAX = -2000;
     
@@ -308,17 +293,23 @@ public class dumbMapLime {
      */
     public double[] calculateShooterSettings(double distanceIn) {
         // Clamp distance to reasonable range
-        double minDist = 50.0;
+        double minDist = 30.0;
         double maxDist = 160.0;
         distanceIn = Math.max(minDist, Math.min(maxDist, distanceIn));
         
         // Find RPM range from data points (dynamic based on actual data)
-        double minRPMInData = -4000;
-        double maxRPMInData = -3000;
+        double minRPMInData = Double.MAX_VALUE;
+        double maxRPMInData = Double.MIN_VALUE;
         for (double[] point : ALL_DATA_POINTS) {
             double rpm = point[2];
             if (rpm < minRPMInData) minRPMInData = rpm;
             if (rpm > maxRPMInData) maxRPMInData = rpm;
+        }
+        
+        // If no data points found, use default range
+        if (minRPMInData == Double.MAX_VALUE) {
+            minRPMInData = -2900;
+            maxRPMInData = -2200;
         }
         
         // Expand range slightly beyond data for interpolation/extrapolation
@@ -328,7 +319,7 @@ public class dumbMapLime {
         
         // Optimization: find RPM that gives valid hood position and minimizes error
         double bestRPM = (searchMinRPM + searchMaxRPM) / 2.0; // Start with middle value
-        double bestHood = 0.24;
+        double bestHood = (HOOD_MIN + HOOD_MAX) / 2.0; // Start with middle of valid range
         double bestError = Double.MAX_VALUE;
         
         // Grid search over RPM range (coarse search with 50 RPM steps)
@@ -382,6 +373,31 @@ public class dumbMapLime {
         // Clamp final values
         bestHood = Math.max(HOOD_MIN, Math.min(HOOD_MAX, bestHood));
         bestRPM = Math.max(RPM_MIN, Math.min(RPM_MAX, bestRPM));
+        
+        // If no valid combination was found (bestError still MAX_VALUE), use direct formula calculation
+        if (bestError == Double.MAX_VALUE) {
+            // Try to find a valid RPM that gives a hood within bounds
+            // Use middle RPM value and calculate hood directly
+            double testRPM = (searchMinRPM + searchMaxRPM) / 2.0;
+            double testHood = (distanceIn - FORMULA_B * testRPM - FORMULA_C) / FORMULA_A;
+            
+            // If still out of bounds, use the closest valid value
+            if (testHood < HOOD_MIN) {
+                bestHood = HOOD_MIN;
+                // Solve for RPM: distance = A * HOOD_MIN + B * RPM + C
+                bestRPM = (distanceIn - FORMULA_A * HOOD_MIN - FORMULA_C) / FORMULA_B;
+            } else if (testHood > HOOD_MAX) {
+                bestHood = HOOD_MAX;
+                // Solve for RPM: distance = A * HOOD_MAX + B * RPM + C
+                bestRPM = (distanceIn - FORMULA_A * HOOD_MAX - FORMULA_C) / FORMULA_B;
+            } else {
+                bestHood = testHood;
+                bestRPM = testRPM;
+            }
+            
+            // Clamp RPM
+            bestRPM = Math.max(RPM_MIN, Math.min(RPM_MAX, bestRPM));
+        }
         
         return new double[]{bestHood, bestRPM};
     }

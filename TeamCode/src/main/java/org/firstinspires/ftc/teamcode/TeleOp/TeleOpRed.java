@@ -3,9 +3,11 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.limelightvision.LLResult;
 
 import org.firstinspires.ftc.teamcode.LimeLight.AprilTagDetector;
@@ -40,9 +42,15 @@ public class TeleOpRed extends LinearOpMode {
     // Drive motors
     private DcMotor leftFront, leftBack, rightFront, rightBack;
     
-    // Intake and transfer motors
+    // Intake motor
     private DcMotor intake;
-    private DcMotor transfer; // Transfer wheels motor
+    
+    // Transfer continuous servos
+    private CRServo blueTunnel;
+    private CRServo blueToilet;
+    private CRServo blackTunnel;
+    // Transfer motor
+    private DcMotor orangeToilet;
     
     // Auto-aim shooter components
     private dumbMapLime robot;
@@ -76,13 +84,14 @@ public class TeleOpRed extends LinearOpMode {
     // --- TUNING: Horizontal turret alignment ---
     private static final double TURRET_KP = 0.02;      // Proportional gain (degrees -> power) - reduced to prevent wobbling
     private static final double TURRET_MIN_POWER = 0.08; // Minimum power to move turret - reduced to prevent constant movement
-    private static final double TURRET_MAX_POWER = 0.25;  // Maximum alignment power - reduced to prevent overshoot
-    private static final double TURRET_DEADBAND = 2.5;  // Deadband - no movement within this angle (degrees) - increased to reduce wobbling
+    private static final double TURRET_MAX_POWER = 0.15;  // Maximum alignment power - reduced to prevent overshoot
+    private static final double TURRET_DEADBAND = 3.5;  // Deadband - no movement within this angle (degrees) - increased to reduce wobbling
     private static final double TURRET_SLOW_ZONE = 6.0; // Zone where turret slows down significantly (degrees) - increased
     private static final double TURRET_SLOW_POWER = 0.12; // Power used in slow zone - reduced for smoother approach
-    private static final double TURRET_VERY_SLOW_ZONE = 3.5; // Very close zone with even slower power
+    private static final double TURRET_VERY_SLOW_ZONE = 5.5; // Very close zone with even slower power
     private static final double TURRET_VERY_SLOW_POWER = 0.06; // Very slow power when very close to target
-    private static final double HORIZONTAL_OFFSET_DEG = 2.0; // Offset to compensate for shooting left/right (tune this)
+    private static final double HORIZONTAL_OFFSET_DEG = 5.0; // Offset to compensate for shooting left/right (tune this)
+    private static final double TURRET_DIRECTION_FLIP = -1.0; // Flip turret direction: -1.0 if turning wrong way, 1.0 if correct
     
     // --- TUNING: Hood adjustment ---
     // NOTE: Removed close distance adjustment - new formula (R² = 0.972) handles all distances accurately
@@ -90,7 +99,7 @@ public class TeleOpRed extends LinearOpMode {
     private static final double HOOD_MULTIPLIER = 0.95; // Multiplier applied to calculated hood position (tune this if needed)
     
     // --- TUNING: Hood servo limits ---
-    private static final double HOOD_MIN = 0.677; // Minimum hood position
+    private static final double HOOD_MIN = 0.690; // Minimum hood position
     private static final double HOOD_MAX = 0.717; // Maximum hood position
     
     // --- TUNING: Shooter motor constants ---
@@ -101,16 +110,21 @@ public class TeleOpRed extends LinearOpMode {
     // If fine-tuning is needed, adjust the formula coefficients in dumbMapLime.java
     
     // Drive control (from HeleOpBase)
-    private static final double DRIVE_DEADBAND = 0.05;
+    private static final double DRIVE_DEADBAND = 0.3; // Increased to filter out stick drift
     
-    // Intake and transfer control
+    // Intake control
     private boolean intakeOn = false;
-    private boolean transferOn = false;
     private boolean lastIntakeTrigger = false;
-    private boolean lastAButton = false;
     private static final double INTAKE_POWER = 1.0;
     private static final double INTAKE_REVERSE_POWER = -1.0; // Reverse intake power
-    private static final double TRANSFER_POWER = 1.0;
+    
+    // Transfer servo control
+    private static final double TRANSFER_SERVO_POWER = 1.0; // Power for transfer servos
+    private static final double BLUE_TOILET_TOGGLE_DURATION = 0.2; // Toggle every 0.2 seconds
+    private static final double BLACK_TUNNEL_DURATION = 10.0; // Duration in seconds for BlackTunnel in intake-only mode (adjustable)
+    private ElapsedTime blueToiletToggleTimer = new ElapsedTime();
+    private boolean blueToiletToggleState = false; // Current on/off state for BlueToilet toggle
+    private ElapsedTime blackTunnelTimer = new ElapsedTime(); // Timer for BlackTunnel in intake-only mode
     
     // Haptics for shooter RPM
     private static final double RPM_TOLERANCE = 50.0; // RPM tolerance for "good" RPM (tune this)
@@ -125,13 +139,13 @@ public class TeleOpRed extends LinearOpMode {
     
     // Current auto-aim settings
     private double currentHoodPosition = (HOOD_MIN + HOOD_MAX) / 2.0;
-    private double targetRPM = 0.0;
+    private static final double FIXED_TARGET_RPM = -4500.0; // Fixed RPM (negative for reverse direction)
+    private double targetRPM = FIXED_TARGET_RPM; // Always use fixed RPM value
     private boolean tagDetected = false;
     private double lastValidTx = 0.0; // Store last valid tx value for reference
     
     // Shooter control
     private boolean shooterOn = false;
-    private boolean lastRightTrigger = false;
     
     // Turret state tracking
     private boolean turretStopped = false; // Track if turret has been set to 0 when tag is lost
@@ -140,17 +154,23 @@ public class TeleOpRed extends LinearOpMode {
     private boolean manualTurretActive = false; // Track if turret is being manually controlled
     private boolean manualHoodActive = false; // Track if hood is being manually controlled
     
-    // Simple shooter control
-    private boolean simpleShooterOn = false; // Toggle state for simple shooter
+    // Shooter toggle tracking
     private boolean lastXButton = false; // Track X button state for toggle detection
+    
+    // Manual transfer override (when shooter is on)
+    private boolean manualTransferOverride = false; // Manual override to activate transfer servos
+    private boolean lastAButton = false; // Track A button state for manual transfer toggle
     
     @Override
     public void runOpMode() {
         // Initialize drive motors
         initializeDriveMotors();
         
-        // Initialize intake and transfer motors
-        initializeIntakeAndTransfer();
+        // Initialize intake motor
+        initializeIntake();
+        
+        // Initialize transfer servos
+        initializeTransferServos();
         
         // Initialize auto-aim shooter hardware
         initializeAutoAimShooter();
@@ -170,20 +190,39 @@ public class TeleOpRed extends LinearOpMode {
                 // Handle drive controls (gamepad 1)
                 handleDrive();
                 
-                // Handle intake and transfer controls (gamepad 2)
-                handleIntakeAndTransfer();
+                // Handle intake controls (gamepad 2)
+                handleIntake();
                 
-                // Handle simple shooter control (gamepad 2 X button)
-                handleSimpleShooter();
+                // Handle transfer servo controls (based on intake and shooter state)
+                handleTransferServos();
                 
-                // Handle shooter toggle (gamepad 2 right trigger)
+                // Handle shooter toggle (gamepad 2 X button) - turns motor on/off
                 handleShooterToggle();
+                
+                // Handle manual transfer override (gamepad 2 A button) - works independently
+                handleManualTransferOverride();
                 
                 // Handle manual turret control (gamepad 2 D-pad) - only when no tag detected
                 handleManualTurret();
                 
-                // Detect AprilTag and update auto-aim systems (always active)
+                // Detect AprilTag and update auto-aim systems (only turret, always active)
                 detectAndUpdate();
+                
+                // Apply shooter RPM if manually turned on (always fixed RPM, independent of Limelight)
+                if (shooterOn) {
+                    // Ensure targetRPM is set to fixed RPM
+                    targetRPM = FIXED_TARGET_RPM;
+                    applyShooterRPM();
+                } else {
+                    // Shooter off - stop motor
+                    if (shooterMotor != null) {
+                        try {
+                            shooterMotor.setVelocity(0);
+                        } catch (Exception e) {
+                            // Ignore
+                        }
+                    }
+                }
                 
                 // Check shooter RPM and trigger haptics if at target
                 checkShooterRPMAndHaptics();
@@ -261,9 +300,9 @@ public class TeleOpRed extends LinearOpMode {
     }
     
     /**
-     * Initialize intake and transfer motors
+     * Initialize intake motor
      */
-    private void initializeIntakeAndTransfer() {
+    private void initializeIntake() {
         try {
             // Use exact dumbMap motor name
             intake = hardwareMap.get(DcMotor.class, "intake");
@@ -278,23 +317,65 @@ public class TeleOpRed extends LinearOpMode {
             telemetry.addData("Intake Motor", "NOT FOUND");
             e.printStackTrace();
         }
-        
-        // Initialize transfer motor
+    }
+    
+    /**
+     * Initialize transfer continuous servos
+     */
+    private void initializeTransferServos() {
         try {
-            transfer = hardwareMap.get(DcMotor.class, "transfer");
-            if (transfer != null) {
-                transfer.setDirection(DcMotor.Direction.FORWARD);
-                // Set run mode (matching intake - RUN_WITHOUT_ENCODER)
-                transfer.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                transfer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                transfer.setPower(0);
-                telemetry.addData("Transfer Motor", "Initialized");
+            blueTunnel = hardwareMap.get(CRServo.class, "BlueTunnel");
+            if (blueTunnel != null) {
+                blueTunnel.setPower(0.0);
+                telemetry.addData("BlueTunnel", "Initialized");
             } else {
-                telemetry.addData("Transfer Motor", "NOT FOUND");
+                telemetry.addData("BlueTunnel", "NOT FOUND");
             }
         } catch (Exception e) {
-            transfer = null;
-            telemetry.addData("Transfer Motor", "NOT FOUND");
+            blueTunnel = null;
+            telemetry.addData("BlueTunnel", "NOT FOUND");
+            e.printStackTrace();
+        }
+        
+        try {
+            blueToilet = hardwareMap.get(CRServo.class, "BlueToilet");
+            if (blueToilet != null) {
+                blueToilet.setPower(0.0);
+                telemetry.addData("BlueToilet", "Initialized");
+            } else {
+                telemetry.addData("BlueToilet", "NOT FOUND");
+            }
+        } catch (Exception e) {
+            blueToilet = null;
+            telemetry.addData("BlueToilet", "NOT FOUND");
+            e.printStackTrace();
+        }
+        
+        try {
+            orangeToilet = hardwareMap.get(DcMotor.class, "OrangeToilet");
+            if (orangeToilet != null) {
+                orangeToilet.setPower(0.0);
+                telemetry.addData("OrangeToilet", "Initialized");
+            } else {
+                telemetry.addData("OrangeToilet", "NOT FOUND");
+            }
+        } catch (Exception e) {
+            orangeToilet = null;
+            telemetry.addData("OrangeToilet", "NOT FOUND");
+            e.printStackTrace();
+        }
+        
+        try {
+            blackTunnel = hardwareMap.get(CRServo.class, "BlackTunnel");
+            if (blackTunnel != null) {
+                blackTunnel.setPower(0.0);
+                telemetry.addData("BlackTunnel", "Initialized");
+            } else {
+                telemetry.addData("BlackTunnel", "NOT FOUND");
+            }
+        } catch (Exception e) {
+            blackTunnel = null;
+            telemetry.addData("BlackTunnel", "NOT FOUND");
             e.printStackTrace();
         }
     }
@@ -338,7 +419,7 @@ public class TeleOpRed extends LinearOpMode {
                 shooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
                 shooterMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
                 shooterMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-                shooterMotor.setDirection(DcMotorEx.Direction.FORWARD);
+                shooterMotor.setDirection(DcMotorEx.Direction.REVERSE);
                 shooterMotor.setVelocity(0);
                 telemetry.addData("Shooter Motor", "Initialized (Velocity Control)");
             } else {
@@ -357,8 +438,7 @@ public class TeleOpRed extends LinearOpMode {
                 hoodServo = hardwareMap.get(Servo.class, "servo");
             }
             if (hoodServo != null) {
-                currentHoodPosition = (HOOD_MIN + HOOD_MAX) / 2.0;
-                hoodServo.setPosition(currentHoodPosition);
+                hoodServo.setPosition(HOOD_MIN); // Set to minimum initially
                 telemetry.addData("Hood Servo", "Initialized");
             } else {
                 telemetry.addData("Hood Servo", "NOT FOUND");
@@ -384,14 +464,15 @@ public class TeleOpRed extends LinearOpMode {
             limelight = robot.getLimeLight();
             
             if (limelight != null) {
-                // Set pipeline to 0 for AprilTag (dumbMapLime already does this, but ensure it's set)
+                // Set pipeline to 0 for Red Alliance AprilTag (matching README and other Red code)
+                // Blue uses pipeline 3, Red uses pipeline 0
                 limelight.pipelineSwitch(0);
                 sleep(500);
                 
                 LLResult testResult = limelight.getLatestResult();
                 if (testResult != null) {
                     telemetry.addLine("✅ Limelight initialized successfully!");
-                    telemetry.addData("Pipeline", "0 (AprilTag)");
+                    telemetry.addData("Pipeline", "0 (AprilTag - Red Alliance)");
                 } else {
                     telemetry.addLine("⚠️ Limelight found but not returning data yet");
                 }
@@ -468,9 +549,25 @@ public class TeleOpRed extends LinearOpMode {
     }
     
     /**
-     * Handle intake and transfer controls (gamepad 2)
+     * Handle intake controls (gamepad 2)
+     * Intake automatically turns on when shooter is at target RPM (or manual override is active)
      */
-    private void handleIntakeAndTransfer() {
+    private void handleIntake() {
+        // Check if shooter is at target RPM or manual override is active
+        boolean shooterAtTargetRPM = false;
+        if (shooterOn && shooterMotor != null && targetRPM != 0) {
+            try {
+                double currentVelocity = shooterMotor.getVelocity();
+                double currentRPM = (currentVelocity / TICKS_PER_REVOLUTION) * 60.0;
+                double rpmError = Math.abs(currentRPM - targetRPM);
+                shooterAtTargetRPM = rpmError <= RPM_TOLERANCE;
+            } catch (Exception e) {
+                // Ignore errors
+            }
+        }
+        // Transfer only activates with manual override (no automatic activation)
+        boolean shooterTransferActive = manualTransferOverride;
+        
         // Reverse intake on left bumper (gamepad 2) - takes priority over normal intake
         boolean leftBumper = gamepad2.left_bumper;
         
@@ -484,10 +581,16 @@ public class TeleOpRed extends LinearOpMode {
                     boolean currentIntakeTrigger = gamepad2.left_trigger > 0.5;
                     if (currentIntakeTrigger && !lastIntakeTrigger) {
                         intakeOn = !intakeOn;
+                        if (intakeOn) {
+                            // Reset timer when intake turns on
+                            blackTunnelTimer.reset();
+                        }
                     }
                     lastIntakeTrigger = currentIntakeTrigger;
                     
-                    intake.setPower(intakeOn ? INTAKE_POWER : 0.0);
+                    // Intake runs if manually toggled on OR if manual transfer override is active
+                    boolean intakeShouldRun = intakeOn || shooterTransferActive;
+                    intake.setPower(intakeShouldRun ? INTAKE_POWER : 0.0);
                 }
             } catch (Exception e) {
                 // Ignore - motor may have disconnected
@@ -497,89 +600,149 @@ public class TeleOpRed extends LinearOpMode {
             boolean currentIntakeTrigger = gamepad2.left_trigger > 0.5;
             if (currentIntakeTrigger && !lastIntakeTrigger) {
                 intakeOn = !intakeOn;
+                if (intakeOn) {
+                    // Reset timer when intake turns on
+                    blackTunnelTimer.reset();
+                }
             }
             lastIntakeTrigger = currentIntakeTrigger;
         }
         
-        // Transfer toggle on A button (gamepad 2)
-        boolean aPressed = gamepad2.a;
-        if (aPressed && !lastAButton) {
-            transferOn = !transferOn;
-        }
-        lastAButton = aPressed;
-        
-        if (transfer != null) {
-            try {
-                transfer.setPower(transferOn ? TRANSFER_POWER : 0.0);
-            } catch (Exception e) {
-                // Ignore - motor may have disconnected
-            }
-        }
     }
     
     /**
-     * Simple shooter control: Toggle shooter on/off with X button (gamepad 2)
-     * When on, shooter runs at -6000 RPM and hood is at 0.677
+     * Handle transfer servo controls (same logic as TransferServoTest)
+     * - When intake is on: BlueTunnel and BlackTunnel turn on
+     * - When shooter is on AND at target RPM: All servos/motors turn on, BlueToilet toggles every 0.2s
+     * 
+     * Servo/Motor directions:
+     * - BlueTunnel: reverse (negative power)
+     * - BlueToilet: reverse (negative power)
+     * - BlackTunnel: forward (positive power)
+     * - OrangeToilet: negative direction (negative power)
+     * 
+     * Note: BlackTunnel stops after 5 seconds when only intake is active (not when shooter is active)
      */
-    private void handleSimpleShooter() {
-        // Keep hood at 0.677 always
-        if (hoodServo != null) {
+    private void handleTransferServos() {
+        // Check if shooter is at target RPM
+        boolean shooterAtTargetRPM = false;
+        if (shooterOn && shooterMotor != null && targetRPM != 0) {
             try {
-                hoodServo.setPosition(HOOD_MIN); // HOOD_MIN is 0.677
+                double currentVelocity = shooterMotor.getVelocity();
+                double currentRPM = (currentVelocity / TICKS_PER_REVOLUTION) * 60.0;
+                double rpmError = Math.abs(currentRPM - targetRPM);
+                shooterAtTargetRPM = rpmError <= RPM_TOLERANCE;
             } catch (Exception e) {
-                // Ignore
+                // Ignore errors
             }
         }
         
-        // Toggle shooter on/off with X button (gamepad 2)
-        boolean xPressed = gamepad2.x;
+        // Determine servo states
+        boolean intakeActive = intakeOn;
+        // Shooter active ONLY when manual override is enabled (no automatic activation)
+        // Manual override works independently - bypasses RPM check and shooter requirement
+        boolean shooterActive = manualTransferOverride;
         
-        // Detect button press (edge detection)
-        if (xPressed && !lastXButton) {
-            // Button just pressed - toggle shooter state
-            simpleShooterOn = !simpleShooterOn;
+        // BlueTunnel: on when intake OR shooter is active (reverse direction)
+        double blueTunnelPower = 0.0;
+        if (intakeActive || shooterActive) {
+            blueTunnelPower = -TRANSFER_SERVO_POWER; // Reverse direction
         }
-        lastXButton = xPressed;
         
-        // Run shooter based on toggle state
-        if (simpleShooterOn && shooterMotor != null) {
-            try {
-                // Convert -6000 RPM to ticks per second (negative for reverse direction)
-                double velocityTicksPerSec = (-6000.0 / 60.0) * TICKS_PER_REVOLUTION;
-                int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
-                shooterMotor.setVelocity(velocityTicksPerSecInt);
-            } catch (Exception e) {
-                // If velocity control fails, try power control at -1.0
-                try {
-                    shooterMotor.setPower(-1.0);
-                } catch (Exception e2) {
-                    // Ignore
-                }
+        // BlackTunnel: on when intake OR shooter is active (forward direction)
+        // In intake-only mode, stops after 5 seconds
+        double blackTunnelPower = 0.0;
+        if (shooterActive) {
+            // Shooter active - always on
+            blackTunnelPower = TRANSFER_SERVO_POWER; // Forward direction
+        } else if (intakeActive) {
+            // Intake active - check timer for intake-only mode
+            if (blackTunnelTimer.seconds() < BLACK_TUNNEL_DURATION) {
+                // Within 5 seconds - turn on
+                blackTunnelPower = TRANSFER_SERVO_POWER; // Forward direction
+            } else {
+                // Past 5 seconds - turn off
+                blackTunnelPower = 0.0;
             }
-        } else if (shooterMotor != null && !simpleShooterOn && !shooterOn) {
-            // Shooter off - stop motor (only if both simple shooter and auto-aim shooter are off)
-            try {
-                shooterMotor.setVelocity(0);
-            } catch (Exception e) {
-                try {
-                    shooterMotor.setPower(0.0);
-                } catch (Exception e2) {
-                    // Ignore
-                }
+        }
+        
+        // OrangeToilet: on when shooter is active (negative direction)
+        double orangeToiletPower = 0.0;
+        if (shooterActive) {
+            orangeToiletPower = -TRANSFER_SERVO_POWER; // Negative direction
+        }
+        
+        // BlueToilet: on when shooter is active, toggles every 0.2s (reverse direction)
+        double blueToiletPower = 0.0;
+        if (shooterActive) {
+            // Toggle every 0.2 seconds
+            if (blueToiletToggleTimer.seconds() >= BLUE_TOILET_TOGGLE_DURATION) {
+                blueToiletToggleState = !blueToiletToggleState;
+                blueToiletToggleTimer.reset();
             }
+            
+            if (blueToiletToggleState) {
+                blueToiletPower = -TRANSFER_SERVO_POWER; // Reverse direction
+            } else {
+                blueToiletPower = 0.0;
+            }
+        } else {
+            // Shooter off - reset toggle state
+            blueToiletToggleState = false;
+            blueToiletToggleTimer.reset();
+        }
+        
+        // Apply powers to servos and motor
+        try {
+            if (blueTunnel != null) {
+                blueTunnel.setPower(blueTunnelPower);
+            }
+            if (blackTunnel != null) {
+                blackTunnel.setPower(blackTunnelPower);
+            }
+            if (blueToilet != null) {
+                blueToilet.setPower(blueToiletPower);
+            }
+            if (orangeToilet != null) {
+                orangeToilet.setPower(orangeToiletPower);
+            }
+        } catch (Exception e) {
+            // Ignore errors
         }
     }
+    
     
     /**
      * Handle right trigger toggle for shooter (gamepad 2)
      */
     private void handleShooterToggle() {
-        boolean rightTriggerPressed = gamepad2.right_trigger > 0.5;
+        // X button (gamepad 2) toggles shooter motor on/off
+        boolean xPressed = gamepad2.x;
         
-        if (rightTriggerPressed && !lastRightTrigger) {
+        if (xPressed && !lastXButton) {
             shooterOn = !shooterOn;
+            // Reset manual transfer override when shooter turns off
+            if (!shooterOn) {
+                manualTransferOverride = false;
+            }
         }
-        lastRightTrigger = rightTriggerPressed;
+        lastXButton = xPressed;
+    }
+    
+    /**
+     * Handle manual transfer override (gamepad 2 A button)
+     * A button can manually activate all transfer servos, bypassing RPM check
+     * Works independently - can be used even when shooter is off
+     */
+    private void handleManualTransferOverride() {
+        // A button (gamepad 2) toggles manual transfer override
+        // Works independently of shooter state - allows manual control anytime
+        boolean aPressed = gamepad2.a;
+        
+        if (aPressed && !lastAButton) {
+            manualTransferOverride = !manualTransferOverride;
+        }
+        lastAButton = aPressed;
     }
     
     /**
@@ -690,7 +853,7 @@ public class TeleOpRed extends LinearOpMode {
      */
     private void detectAndUpdate() {
         if (limelight == null || aprilTagDetector == null) {
-            // No Limelight - stop everything
+            // No Limelight - stop turret
             if (robot.spinner != null) {
                 robot.spinner.setPower(0.0);
             }
@@ -712,13 +875,18 @@ public class TeleOpRed extends LinearOpMode {
             double currentTx = 0.0;
             double currentDistance = 0.0;
             
-            if (shouldCallLimelight) {
-                LLResult result = limelight.getLatestResult();
-                if (result != null) {
-                    double tx = result.getTx();
-                    double ty = result.getTy();
-                    double ta = result.getTa();
-                    
+            // Always get tx from Limelight for continuous turret alignment (even if not doing full detection)
+            LLResult result = limelight.getLatestResult();
+            if (result != null) {
+                double tx = result.getTx();
+                double ty = result.getTy();
+                double ta = result.getTa();
+                
+                // Always update currentTx from Limelight for continuous alignment
+                currentTx = tx;
+                
+                // Only do full detection cycle (AprilTag detector) when throttled
+                if (shouldCallLimelight) {
                     double MIN_TAG_AREA = 0.003;
                     List<com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
                     boolean hasTargetTag = false;
@@ -739,8 +907,6 @@ public class TeleOpRed extends LinearOpMode {
                                 freshTagDetected = true;
                                 lostDetectionCount = 0;
                                 tagDetected = true;
-                                // Use fresh tx value from current Limelight result (not cached)
-                                currentTx = tx;
                                 currentDistance = cachedTagResult.distance;
                                 lastValidTx = tx; // Store for reference
                             }
@@ -748,92 +914,57 @@ public class TeleOpRed extends LinearOpMode {
                             // Ignore
                         }
                     }
-                }
-                
-                // If no fresh tag detected this loop, increment lost count
-                if (!freshTagDetected) {
-                    lostDetectionCount++;
-                    if (lostDetectionCount > MAX_LOST_DETECTIONS) {
-                        tagDetected = false;
-                        cachedTagResult = null;
-                        // Set turret to 0 power once to maintain belt tension (BRAKE mode holds position)
-                        if (!turretStopped && robot.spinner != null) {
-                            robot.spinner.setPower(0.0);
-                            turretStopped = true;
+                    
+                    // If no fresh tag detected this loop, increment lost count
+                    if (!freshTagDetected) {
+                        lostDetectionCount++;
+                        if (lostDetectionCount > MAX_LOST_DETECTIONS) {
+                            tagDetected = false;
+                            cachedTagResult = null;
+                            // Set turret to 0 power once to maintain belt tension (BRAKE mode holds position)
+                            if (!turretStopped && robot.spinner != null) {
+                                robot.spinner.setPower(0.0);
+                                turretStopped = true;
+                            }
                         }
+                    } else {
+                        // Tag detected again - reset the stopped flag
+                        turretStopped = false;
                     }
-                } else {
-                    // Tag detected again - reset the stopped flag
-                    turretStopped = false;
                 }
             }
             
-            // Update all systems only if we have a valid, fresh tag detection in this loop
-            if (freshTagDetected && tagDetected && cachedTagResult != null && cachedTagResult.isValid && currentDistance > 0) {
+            // Update turret based on tag detection status - CONTINUOUSLY every loop when tag is detected
+            if (tagDetected && cachedTagResult != null && cachedTagResult.isValid) {
                 // Reset stopped flag when tag is detected (auto mode takes over)
                 turretStopped = false;
                 
-                // 1. Update turret (horizontal alignment) - always active when tag detected
-                updateTurret(currentTx);
-                
-                // 2. Update hood position - only if simple shooter is off (simple shooter keeps hood at 0.677)
-                if (!simpleShooterOn) {
-                    updateHood(currentDistance);
-                }
-                
-                // 3. Calculate shooter RPM - always calculate when tag detected (but don't apply if simple shooter is on)
-                // Motor only runs when shooterOn is true, but RPM is always calculated and ready
-                if (!simpleShooterOn) {
-                    calculateShooterRPM(currentDistance);
-                }
-                
-                // Only actually run motor if shooter toggle is on (and simple shooter is off)
-                if (shooterOn && !simpleShooterOn) {
-                    applyShooterRPM();
-                } else if (!simpleShooterOn) {
-                    // Motor off - stop velocity (only if simple shooter is also off)
-                    if (shooterMotor != null) {
-                        try {
-                            shooterMotor.setVelocity(0);
-                        } catch (Exception e) {
-                            // Ignore
-                        }
+                // Always use current tx from Limelight for continuous alignment
+                // This ensures the turret updates every loop, not just when doing full detection
+                if (currentTx != 0.0) {
+                    updateTurret(currentTx);
+                    lastValidTx = currentTx; // Keep lastValidTx updated
+                } else if (lastValidTx != 0.0) {
+                    // Fallback to last valid tx if current is 0
+                    updateTurret(lastValidTx);
+                } else {
+                    // Both are 0 - stop turret
+                    if (robot.spinner != null) {
+                        robot.spinner.setPower(0.0);
                     }
                 }
+                
             } else {
-                // No fresh tag detected - handle turret, hood, and shooter separately
-                
-                // Manual turret control is handled in handleManualTurret() method
+                // No tag detected - manual turret control is handled in handleManualTurret() method
                 // (called before detectAndUpdate() in main loop)
-                
-                // Hood and shooter respond to user input even when no tag detected (only if simple shooter is off)
-                if (shooterOn && !simpleShooterOn) {
-                    // Use last known distance if available, otherwise use default distance
-                    double distanceToUse = (cachedTagResult != null && cachedTagResult.isValid && cachedTagResult.distance > 0) 
-                        ? cachedTagResult.distance 
-                        : 120.0; // Default distance when no tag detected
-                    
-                    // Update hood based on formula (even without tag)
-                    updateHood(distanceToUse);
-                    
-                    // Calculate and apply shooter RPM based on formula
-                    calculateShooterRPM(distanceToUse);
-                    applyShooterRPM();
-                } else if (!simpleShooterOn) {
-                    // Shooter motor off - stop velocity (only if simple shooter is also off)
-                    if (shooterMotor != null) {
-                        try {
-                            shooterMotor.setVelocity(0);
-                        } catch (Exception e) {
-                            // Ignore
-                        }
-                    }
-                    // Hood stays at last position when shooter is off
-                }
+                telemetry.addData("Turret Status", "No tag detected (tagDetected: %s)", tagDetected);
             }
         } catch (Exception e) {
             telemetry.addData("Detection Error", e.getMessage());
-            // On error, stop shooter but keep turret stationary
+            // On error, stop turret
+            if (robot.spinner != null) {
+                robot.spinner.setPower(0.0);
+            }
             if (shooterMotor != null) {
                 try {
                     shooterMotor.setVelocity(0);
@@ -841,7 +972,6 @@ public class TeleOpRed extends LinearOpMode {
                     // Ignore
                 }
             }
-            // Turret stays stationary on error - don't change its power
         }
     }
     
@@ -907,17 +1037,47 @@ public class TeleOpRed extends LinearOpMode {
                 }
             }
             
+            // Apply direction flip if motor is wired backwards
+            cmd = cmd * TURRET_DIRECTION_FLIP;
+            
             // Check if approaching limits - prevent movement beyond ±90 degrees
-            if (cmd > 0 && currentPos >= SPINNER_MAX - 50) {
-                cmd = 0.0; // Cannot go right - approaching +90° limit
-            } else if (cmd < 0 && currentPos <= SPINNER_MIN + 50) {
-                cmd = 0.0; // Cannot go left - approaching -90° limit
+            // After direction flip: if TURRET_DIRECTION_FLIP is -1.0, positive cmd turns left, negative turns right
+            // So we need to check limits based on the ORIGINAL direction (before flip)
+            // Original: positive = right (toward MAX), negative = left (toward MIN)
+            // After flip: positive = left (toward MIN), negative = right (toward MAX)
+            if (TURRET_DIRECTION_FLIP < 0) {
+                // Direction is flipped: positive cmd = left, negative cmd = right
+                if (cmd > 0 && currentPos <= SPINNER_MIN + 50) {
+                    cmd = 0.0; // Cannot go further left - approaching MIN limit
+                } else if (cmd < 0 && currentPos >= SPINNER_MAX - 50) {
+                    cmd = 0.0; // Cannot go further right - approaching MAX limit
+                }
+            } else {
+                // Direction is normal: positive cmd = right, negative cmd = left
+                if (cmd > 0 && currentPos >= SPINNER_MAX - 50) {
+                    cmd = 0.0; // Cannot go further right - approaching MAX limit
+                } else if (cmd < 0 && currentPos <= SPINNER_MIN + 50) {
+                    cmd = 0.0; // Cannot go further left - approaching MIN limit
+                }
             }
             
             // Apply command to turret motor
             robot.spinner.setPower(cmd);
             
+            // Debug telemetry - show turret alignment status
+            telemetry.addData("Turret TX", "%.2f° (raw)", tx);
+            telemetry.addData("Turret TX Adj", "%.2f° (offset: %.1f°)", adjustedTx, HORIZONTAL_OFFSET_DEG);
+            telemetry.addData("Turret Cmd", "%.3f", cmd);
+            telemetry.addData("Turret Deadband", "%.1f° (within: %s)", TURRET_DEADBAND, absTx <= TURRET_DEADBAND ? "YES" : "NO");
+            telemetry.addData("Turret Pos", "%d (min: %d, max: %d)", currentPos, SPINNER_MIN, SPINNER_MAX);
+            telemetry.addData("Turret At Limit", "%s", 
+                (currentPos >= SPINNER_MAX) ? "MAX" : 
+                (currentPos <= SPINNER_MIN) ? "MIN" : 
+                (cmd > 0 && currentPos >= SPINNER_MAX - 50) ? "Near MAX" :
+                (cmd < 0 && currentPos <= SPINNER_MIN + 50) ? "Near MIN" : "OK");
+            
         } catch (Exception e) {
+            telemetry.addData("Turret Error", e.getMessage());
             // On any error, stop turret immediately
             if (robot.spinner != null) {
                 robot.spinner.setPower(0.0);
@@ -991,13 +1151,17 @@ public class TeleOpRed extends LinearOpMode {
         if (shooterMotor == null) {
             return;
         }
-        
         try {
             // Convert RPM to ticks per second for velocity control
+            // Note: targetRPM is negative (reverse direction), so velocity will be negative
             double velocityTicksPerSec = (targetRPM / 60.0) * TICKS_PER_REVOLUTION;
             int velocityTicksPerSecInt = (int)Math.round(velocityTicksPerSec);
             
-            // Apply to shooter motor (positive velocity for forward direction)
+            // Debug telemetry
+            telemetry.addData("Shooter Velocity", String.format("RPM:%.0f -> %d ticks/sec", 
+                targetRPM, velocityTicksPerSecInt));
+            
+            // Apply to shooter motor (negative velocity for reverse direction)
             shooterMotor.setVelocity(velocityTicksPerSecInt);
             
         } catch (Exception e) {
@@ -1030,7 +1194,10 @@ public class TeleOpRed extends LinearOpMode {
             if (rightFront != null) rightFront.setPower(0);
             if (rightBack != null) rightBack.setPower(0);
             if (intake != null) intake.setPower(0);
-            if (transfer != null) transfer.setPower(0);
+            if (blueTunnel != null) blueTunnel.setPower(0.0);
+            if (blueToilet != null) blueToilet.setPower(0.0);
+            if (blackTunnel != null) blackTunnel.setPower(0.0);
+            if (orangeToilet != null) orangeToilet.setPower(0.0);
             if (robot != null && robot.spinner != null) {
                 robot.spinner.setPower(0.0);
             }
@@ -1042,7 +1209,7 @@ public class TeleOpRed extends LinearOpMode {
                 }
             }
             if (hoodServo != null) {
-                hoodServo.setPosition((HOOD_MIN + HOOD_MAX) / 2.0);
+                hoodServo.setPosition(HOOD_MIN); // Set to minimum
             }
         } catch (Exception e) {
             // Ignore
@@ -1053,34 +1220,34 @@ public class TeleOpRed extends LinearOpMode {
      * Check shooter RPM and trigger haptics when at target RPM
      */
     private void checkShooterRPMAndHaptics() {
-        if (shooterMotor == null) {
+        if (shooterMotor == null || gamepad2 == null) {
             return;
         }
         
         try {
-            // Only check if shooter is running (simple shooter or auto-aim shooter)
-            boolean shooterRunning = simpleShooterOn || shooterOn;
-            
-            if (shooterRunning) {
+            // Only check if shooter is running and target RPM is valid (RPMs are negative, so check != 0)
+            if (shooterOn && targetRPM != 0) {
                 double currentVelocity = shooterMotor.getVelocity();
                 double currentRPM = (currentVelocity / TICKS_PER_REVOLUTION) * 60.0;
                 
-                // For simple shooter, target is -6000 RPM
-                double targetRPMToCheck = simpleShooterOn ? -6000.0 : targetRPM;
-                
                 // Check if within tolerance
-                double rpmError = Math.abs(currentRPM - targetRPMToCheck);
+                // Both currentRPM and targetRPM are negative, so compare directly
+                double rpmError = Math.abs(currentRPM - targetRPM);
                 boolean atTargetRPM = rpmError <= RPM_TOLERANCE;
+                
+                // Debug telemetry
+                telemetry.addData("RPM Check", String.format("Cur:%.0f Tgt:%.0f Err:%.0f OK:%s", 
+                    currentRPM, targetRPM, rpmError, atTargetRPM ? "YES" : "NO"));
                 
                 // Trigger haptics when reaching target (only once when first reaching target)
                 if (atTargetRPM && !lastHapticState) {
-                    // Just reached target - trigger haptics
+                    // Just reached target - trigger haptics on gamepad 2
                     gamepad2.rumble(200); // 200ms rumble
                 }
                 
                 lastHapticState = atTargetRPM;
             } else {
-                // Shooter not running - reset haptic state
+                // Shooter not running or no valid target RPM - reset haptic state
                 lastHapticState = false;
             }
         } catch (Exception e) {
@@ -1097,13 +1264,44 @@ public class TeleOpRed extends LinearOpMode {
             
             // System status
             telemetry.addData("Tag", tagDetected ? "DETECTED" : "NOT DETECTED");
-            if (simpleShooterOn) {
-                telemetry.addData("Shooter", "ON (-6000 RPM)");
-            } else {
-                telemetry.addData("Shooter", shooterOn ? "ON (Auto)" : "OFF");
-            }
+            telemetry.addData("Shooter", shooterOn ? "ON" : "OFF");
             telemetry.addData("Intake", intakeOn ? "ON" : "OFF");
-            telemetry.addData("Transfer", transferOn ? "ON" : "OFF");
+            // Transfer servo status
+            if (shooterOn) {
+                if (manualTransferOverride) {
+                    telemetry.addData("Transfer", "ACTIVE (Manual Override)");
+                    telemetry.addData("BlueToilet", blueToiletToggleState ? "ON" : "OFF");
+                } else if (shooterMotor != null && targetRPM != 0) {
+                    try {
+                        double currentVelocity = shooterMotor.getVelocity();
+                        double currentRPM = (currentVelocity / TICKS_PER_REVOLUTION) * 60.0;
+                        double rpmError = Math.abs(currentRPM - targetRPM);
+                        boolean atTarget = rpmError <= RPM_TOLERANCE;
+                        telemetry.addData("Transfer", atTarget ? "ACTIVE (At RPM)" : "WAITING (Not at RPM)");
+                        if (atTarget) {
+                            telemetry.addData("BlueToilet", blueToiletToggleState ? "ON" : "OFF");
+                        }
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+                } else {
+                    telemetry.addData("Transfer", "WAITING (No RPM target)");
+                }
+            } else if (intakeOn) {
+                telemetry.addData("Transfer", "ACTIVE (Intake)");
+                double timeRemaining = BLACK_TUNNEL_DURATION - blackTunnelTimer.seconds();
+                if (timeRemaining > 0) {
+                    telemetry.addData("BlackTunnel Timer", "%.1fs remaining", timeRemaining);
+                } else {
+                    telemetry.addData("BlackTunnel Timer", "STOPPED (5s elapsed)");
+                }
+            } else {
+                telemetry.addData("Transfer", "OFF");
+            }
+            telemetry.addData("Manual Transfer Override", manualTransferOverride ? "ON (Gamepad 2 A)" : "OFF (Gamepad 2 A)");
+            if (manualTransferOverride) {
+                telemetry.addData("Transfer Status", "ACTIVE (Manual Override - bypasses RPM check)");
+            }
             
             // Manual mode (only show if active)
             if (manualTurretActive || manualHoodActive) {
@@ -1116,42 +1314,42 @@ public class TeleOpRed extends LinearOpMode {
                 telemetry.addData("Distance", "%.1f\"", cachedTagResult.distance);
                 telemetry.addData("X Angle", "%.1f°", cachedTagResult.xDegrees);
             }
-            
+                
             // Turret position
             if (robot != null && robot.spinner != null) {
-                try {
-                    int pos = robot.spinner.getCurrentPosition();
+                    try {
+                        int pos = robot.spinner.getCurrentPosition();
                     double posDegrees = (pos / 550.0) * 90.0;
                     telemetry.addData("Turret", "%.1f°", posDegrees);
-                } catch (Exception e) {
-                    // Ignore
+                    } catch (Exception e) {
+                        // Ignore
+                    }
                 }
-            }
-            
+                
             // Hood position
-            if (hoodServo != null) {
-                try {
+                if (hoodServo != null) {
+                    try {
                     telemetry.addData("Hood", "%.3f", hoodServo.getPosition());
-                } catch (Exception e) {
-                    // Ignore
+                    } catch (Exception e) {
+                        // Ignore
+                    }
                 }
-            }
-            
+                
             // Shooter RPM (when on)
             if (shooterOn && shooterMotor != null) {
-                try {
-                    double currentVelocity = shooterMotor.getVelocity();
-                    int currentRPM = (int)Math.round((currentVelocity / TICKS_PER_REVOLUTION) * 60.0);
+                    try {
+                        double currentVelocity = shooterMotor.getVelocity();
+                        int currentRPM = (int)Math.round((currentVelocity / TICKS_PER_REVOLUTION) * 60.0);
                     telemetry.addData("RPM", "%d / %.0f", currentRPM, targetRPM);
-                } catch (Exception e) {
-                    // Ignore
-                }
+                    } catch (Exception e) {
+                        // Ignore
+                    }
             }
             
         } catch (Exception e) {
             telemetry.addData("Error", e.getMessage());
         }
-
+        
         telemetry.update();
     }
 }
