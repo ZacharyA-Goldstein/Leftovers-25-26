@@ -153,8 +153,8 @@ public class dumbMap {
             rightBack = opMode.hardwareMap.get(DcMotor.class, "backRight");
 
             // Set motor directions (adjust if needed)
-            leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
-            leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
             rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
             rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
 
@@ -162,12 +162,7 @@ public class dumbMap {
             setMotorModes(DcMotor.RunMode.RUN_USING_ENCODER);
             setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             
-            // Set motor directions (adjust if needed)
-            leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
-            leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
-            
+
             // Reset encoders and set to run using encoder
             for (DcMotor motor : new DcMotor[]{leftFront, rightFront, leftBack, rightBack}) {
                 motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
